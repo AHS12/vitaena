@@ -1,0 +1,188 @@
+// Core types for the resume data structure
+export interface PersonalInfo {
+  name: string;
+  title: string;
+  phone: string;
+  email: string;
+  location: string;
+  linkedIn?: string;
+  website?: string;
+  photo?: string;
+  showPhone: boolean;
+  showEmail: boolean;
+  showLocation: boolean;
+  showLinkedIn: boolean;
+  showWebsite: boolean;
+  showPhoto: boolean;
+}
+
+export interface DateRange {
+  startMonth?: number;
+  startYear: number;
+  endMonth?: number;
+  endYear?: number;
+  isOngoing: boolean;
+  customText?: string;
+}
+
+export interface WorkExperience {
+  id: string;
+  company: string;
+  position: string;
+  location: string;
+  dateRange: DateRange;
+  description: string;
+  bullets: string[];
+  showBullets: boolean;
+  showDescription: boolean;
+  showLocation: boolean;
+  showDateRange: boolean;
+}
+
+export interface Education {
+  id: string;
+  institution: string;
+  degree: string;
+  location: string;
+  dateRange: DateRange;
+  gpa?: string;
+  showGpa: boolean;
+  showLocation: boolean;
+  showDateRange: boolean;
+}
+
+export interface Skill {
+  name: string;
+  level: number; // 1-5 scale
+}
+
+export interface Language {
+  name: string;
+  level: number; // 1-5 scale
+  levelText: string; // e.g., "Native", "Proficient"
+}
+
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  link?: string;
+  dateRange?: DateRange;
+  technologies: string[];
+  showLink: boolean;
+  showDateRange: boolean;
+  showDescription: boolean;
+}
+
+export interface Activity {
+  id: string;
+  title: string;
+  description: string;
+  location?: string;
+  dateRange?: DateRange;
+  link?: string;
+  showLocation: boolean;
+  showDateRange: boolean;
+  showDescription: boolean;
+  showLink: boolean;
+}
+
+export interface CustomSection {
+  id: string;
+  title: string;
+  items: Array<{
+    id: string;
+    title?: string;
+    description?: string;
+    details?: string;
+    dateRange?: DateRange;
+    showDateRange?: boolean;
+  }>;
+  showTitle: boolean;
+}
+
+export interface ResumeData {
+  id: string;
+  templateId: string;
+  personalInfo: PersonalInfo;
+  summary: string;
+  workExperience: WorkExperience[];
+  education: Education[];
+  skills: Skill[];
+  languages: Language[];
+  projects: Project[];
+  activities: Activity[];
+  customSections: CustomSection[];
+  showSummary: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ResumeTemplate {
+  id: string;
+  name: string;
+  description: string;
+  previewImage: string;
+  component: string; // Component name for dynamic import
+  category: "modern" | "classic" | "creative" | "minimalist";
+  isDefault: boolean;
+}
+
+// Store types
+export interface ResumeStore {
+  currentResume: ResumeData | null;
+  resumes: ResumeData[];
+  templates: ResumeTemplate[];
+  isLoading: boolean;
+  error: string | null;
+
+  // Actions
+  createResume: (templateId: string) => Promise<string>;
+  loadResume: (id: string) => Promise<void>;
+  saveResume: (resume: ResumeData) => Promise<void>;
+  deleteResume: (id: string) => Promise<void>;
+  updateResumeField: <K extends keyof ResumeData>(
+    field: K,
+    value: ResumeData[K]
+  ) => void;
+  exportToPDF: (resumeId: string) => Promise<void>;
+  duplicateResume: (id: string) => Promise<string>;
+}
+
+// UI State types
+export interface UIStore {
+  sidebarOpen: boolean;
+  activeSection: string;
+  previewMode: boolean;
+  isExporting: boolean;
+
+  // Actions
+  toggleSidebar: () => void;
+  setActiveSection: (section: string) => void;
+  setPreviewMode: (enabled: boolean) => void;
+  setExporting: (exporting: boolean) => void;
+}
+
+// Color schemes for templates
+export interface ColorScheme {
+  primary: string;
+  secondary: string;
+  accent: string;
+  text: string;
+  textLight: string;
+  background: string;
+  border: string;
+}
+
+export interface TemplateConfig {
+  colors: ColorScheme;
+  fonts: {
+    heading: string;
+    body: string;
+  };
+  spacing: {
+    section: string;
+    item: string;
+  };
+  layout: "single-column" | "two-column" | "mixed";
+}
