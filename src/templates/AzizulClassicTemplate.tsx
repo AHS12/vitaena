@@ -194,7 +194,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     {data.showSummary && data.summary && (
                         <div style={{ marginBottom: '8mm' }}> {/* Reduced from 10mm */}
                             <h3 style={{
-                                fontSize: '12px', // Reduced from 13px
+                                fontSize: '13px', // Increased from 12px
                                 fontWeight: 'bold',
                                 color: '#111827',
                                 marginBottom: '4px', // Reduced from 5px
@@ -206,7 +206,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 SUMMARY
                             </h3>
                             <p style={{
-                                fontSize: '10px', // Reduced from 11px
+                                fontSize: '11px', // Increased from 10px
                                 color: '#374151',
                                 lineHeight: '1.4', // Reduced from 1.5
                                 margin: '0',
@@ -221,7 +221,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     {data.showWorkExperience && data.workExperience.filter(exp => exp.show).length > 0 && (
                         <div style={{ marginBottom: '8mm' }}> {/* Reduced from 10mm */}
                             <h3 style={{
-                                fontSize: '12px', // Reduced from 13px
+                                fontSize: '13px', // Increased from 12px
                                 fontWeight: 'bold',
                                 color: '#111827',
                                 marginBottom: '5px', // Reduced from 7px
@@ -238,7 +238,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3px' }}>
                                             <div>
                                                 <h4 style={{
-                                                    fontSize: '11px', // Reduced from 12px
+                                                    fontSize: '12px', // Increased from 11px
                                                     fontWeight: 'bold',
                                                     color: '#111827',
                                                     margin: '0 0 1px 0' // Reduced from 2px
@@ -246,7 +246,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                     {exp.position}
                                                 </h4>
                                                 <p style={{
-                                                    fontSize: '10px', // Reduced from 11px
+                                                    fontSize: '11px', // Increased from 10px
                                                     fontWeight: '600',
                                                     color: '#2563eb',
                                                     margin: '0 0 1px 0' // Reduced from 2px
@@ -255,7 +255,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                 </p>
                                                 {exp.showLocation && exp.location && (
                                                     <p style={{
-                                                        fontSize: '9px', // Reduced from 10px
+                                                        fontSize: '10px', // Increased from 9px
                                                         color: '#6b7280',
                                                         margin: '0'
                                                     }}>
@@ -265,7 +265,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                             </div>
                                             {exp.showDateRange && (
                                                 <div style={{
-                                                    fontSize: '9px', // Reduced from 10px
+                                                    fontSize: '10px', // Increased from 9px
                                                     color: '#6b7280',
                                                     textAlign: 'right',
                                                     whiteSpace: 'nowrap'
@@ -276,7 +276,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         </div>
                                         {exp.showDescription && exp.description && (
                                             <p style={{
-                                                fontSize: '10px', // Reduced from 11px
+                                                fontSize: '11px', // Increased from 10px
                                                 color: '#374151',
                                                 marginBottom: '2px', // Reduced from 3px
                                                 lineHeight: '1.3' // Reduced from 1.4
@@ -286,7 +286,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         )}
                                         {exp.showBullets && exp.bullets.length > 0 && (
                                             <div style={{
-                                                fontSize: '10px', // Reduced from 11px
+                                                fontSize: '11px', // Increased from 10px
                                                 color: '#374151',
                                                 margin: '0',
                                                 lineHeight: '1.3' // Reduced from 1.4
@@ -318,7 +318,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     {data.showEducation && data.education.filter(edu => edu.show).length > 0 && (
                         <div style={{ marginBottom: '7mm' }}> {/* Reduced from 10mm */}
                             <h3 style={{
-                                fontSize: '12px', // Reduced from 13px
+                                fontSize: '13px', // Increased from 12px
                                 fontWeight: 'bold',
                                 color: '#111827',
                                 marginBottom: '5px', // Reduced from 7px
@@ -335,7 +335,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <div>
                                                 <h4 style={{
-                                                    fontSize: '11px', // Reduced from 12px
+                                                    fontSize: '12px', // Increased from 11px
                                                     fontWeight: 'bold',
                                                     color: '#111827',
                                                     margin: '0 0 1px 0' // Reduced from 2px
@@ -343,7 +343,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                     {edu.degree}
                                                 </h4>
                                                 <p style={{
-                                                    fontSize: '10px', // Reduced from 11px
+                                                    fontSize: '11px', // Increased from 10px
                                                     fontWeight: '600',
                                                     color: '#2563eb',
                                                     margin: '0 0 1px 0' // Reduced from 2px
@@ -388,7 +388,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     {data.showCertifications && Array.isArray(data.certifications) && data.certifications.filter(cert => cert.show).length > 0 && (
                         <div style={{ marginBottom: '7mm' }}> {/* Reduced from 10mm */}
                             <h3 style={{
-                                fontSize: '12px', // Reduced from 13px
+                                fontSize: '13px', // Increased from 12px
                                 fontWeight: 'bold',
                                 color: '#111827',
                                 marginBottom: '5px', // Reduced from 7px
@@ -403,7 +403,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 {data.certifications.filter(cert => cert.show).map((cert) => (
                                     <div key={cert.id}>
                                         <h4 style={{
-                                            fontSize: '12px', // Increased from 11px
+                                            fontSize: '13px', // Increased from 12px
                                             fontWeight: 'bold',
                                             color: '#111827',
                                             margin: '0 0 2px 0'
@@ -411,7 +411,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                             {cert.name}
                                         </h4>
                                         <p style={{
-                                            fontSize: '11px', // Increased from 10px
+                                            fontSize: '12px', // Increased from 11px
                                             fontWeight: '600',
                                             color: '#2563eb',
                                             margin: '0 0 2px 0'
@@ -420,7 +420,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         </p>
                                         {cert.showIssueDate && (
                                             <p style={{
-                                                fontSize: '10px', // Increased from 9px
+                                                fontSize: '11px', // Increased from 10px
                                                 color: '#6b7280',
                                                 margin: '0 0 2px 0'
                                             }}>
@@ -432,7 +432,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         )}
                                         {cert.showCredentialId && cert.credentialId && (
                                             <p style={{
-                                                fontSize: '10px', // Increased from 9px
+                                                fontSize: '11px', // Increased from 10px
                                                 color: '#374151',
                                                 margin: '0 0 2px 0'
                                             }}>
@@ -445,7 +445,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 style={{
-                                                    fontSize: '10px', // Increased from 9px
+                                                    fontSize: '11px', // Increased from 10px
                                                     color: '#2563eb',
                                                     textDecoration: 'none',
                                                     cursor: 'pointer',
