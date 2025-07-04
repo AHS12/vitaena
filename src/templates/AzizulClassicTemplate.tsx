@@ -33,15 +33,16 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
     const templateStyles: React.CSSProperties = {
         backgroundColor: '#ffffff',
-        width: '210mm', // A4 width
+        width: '210mm',
         maxWidth: '210mm',
-        height: '297mm', // Fixed height for A4
+        height: '297mm',
         maxHeight: '297mm',
-        margin: '0 auto',
+        margin: '0',
+        padding: '0',
         fontFamily: '"Segoe UI", "Helvetica Neue", Arial, sans-serif',
         color: '#111827',
-        fontSize: '11px',
-        lineHeight: '1.3',
+        fontSize: '12px', // Increased from 11px
+        lineHeight: '1.4', // Slightly increased for better readability
         overflow: 'hidden',
         pageBreakInside: 'avoid',
         pageBreakAfter: 'auto',
@@ -60,6 +61,20 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
     return (
         <div style={templateStyles} className={className} data-resume-template>
+            <style>{`
+                [data-resume-template] a {
+                    transition: all 0.2s ease;
+                }
+                [data-resume-template] a:hover {
+                    opacity: 0.8;
+                }
+                @media print {
+                    [data-resume-template] a {
+                        color: #2563eb !important;
+                        text-decoration: none !important;
+                    }
+                }
+            `}</style>
             {/* Header Section */}
             <div style={{
                 padding: '10mm 15mm 6mm 15mm',
@@ -70,7 +85,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
             }}>
                 <div style={{ flex: 1 }}>
                     <h1 style={{
-                        fontSize: '26px',
+                        fontSize: '28px', // Increased from 26px
                         fontWeight: 'bold',
                         color: '#111827',
                         margin: '0 0 5px 0',
@@ -79,7 +94,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                         {data.personalInfo.name || 'YOUR NAME'}
                     </h1>
                     <h2 style={{
-                        fontSize: '13px',
+                        fontSize: '14px', // Increased from 13px
                         fontWeight: '600',
                         color: '#2563eb',
                         margin: '0 0 10px 0',
@@ -88,39 +103,72 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                         {data.personalInfo.title || 'SOFTWARE ENGINEER'}
                     </h2>
 
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', fontSize: '10px', color: '#374151' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', fontSize: '11px', color: '#374151' }}> {/* Increased from 10px */}
                         {data.personalInfo.showPhone && data.personalInfo.phone && (
                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <Phone style={{ width: '11px', height: '11px', marginRight: '4px' }} />
+                                <Phone style={{ width: '12px', height: '12px', marginRight: '4px' }} /> {/* Increased from 11px */}
                                 {data.personalInfo.phone}
                             </div>
                         )}
                         {data.personalInfo.showEmail && data.personalInfo.email && (
                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <Mail style={{ width: '11px', height: '11px', marginRight: '4px' }} />
-                                {data.personalInfo.email}
+                                <Mail style={{ width: '12px', height: '12px', marginRight: '4px' }} /> {/* Increased from 11px */}
+                                <a
+                                    href={`mailto:${data.personalInfo.email}`}
+                                    style={{
+                                        color: '#2563eb',
+                                        textDecoration: 'none',
+                                        cursor: 'pointer'
+                                    }}
+                                    onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
+                                    onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
+                                >
+                                    {data.personalInfo.email}
+                                </a>
                             </div>
                         )}
                         {data.personalInfo.showLocation && data.personalInfo.location && (
                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <MapPin style={{ width: '11px', height: '11px', marginRight: '4px' }} />
+                                <MapPin style={{ width: '12px', height: '12px', marginRight: '4px' }} /> {/* Increased from 11px */}
                                 {data.personalInfo.location}
                             </div>
                         )}
                         {data.personalInfo.showLinkedIn && data.personalInfo.linkedIn && (
                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <Linkedin style={{ width: '11px', height: '11px', marginRight: '4px' }} />
-                                <span style={{ color: '#2563eb' }}>
+                                <Linkedin style={{ width: '12px', height: '12px', marginRight: '4px' }} /> {/* Increased from 11px */}
+                                <a
+                                    href={data.personalInfo.linkedIn}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        color: '#2563eb',
+                                        textDecoration: 'none',
+                                        cursor: 'pointer'
+                                    }}
+                                    onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
+                                    onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
+                                >
                                     {data.personalInfo.linkedIn.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}
-                                </span>
+                                </a>
                             </div>
                         )}
                         {data.personalInfo.showWebsite && data.personalInfo.website && (
                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <Globe style={{ width: '11px', height: '11px', marginRight: '4px' }} />
-                                <span style={{ color: '#2563eb' }}>
+                                <Globe style={{ width: '12px', height: '12px', marginRight: '4px' }} /> {/* Increased from 11px */}
+                                <a
+                                    href={data.personalInfo.website}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        color: '#2563eb',
+                                        textDecoration: 'none',
+                                        cursor: 'pointer'
+                                    }}
+                                    onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
+                                    onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
+                                >
                                     {data.personalInfo.website.replace(/https?:\/\/(www\.)?/, '')}
-                                </span>
+                                </a>
                             </div>
                         )}
                     </div>
@@ -144,12 +192,12 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                 <div style={{ width: '65%', padding: '6mm 10mm 6mm 15mm', overflow: 'hidden' }}>
                     {/* Summary Section */}
                     {data.showSummary && data.summary && (
-                        <div style={{ marginBottom: '10mm' }}>
+                        <div style={{ marginBottom: '8mm' }}> {/* Reduced from 10mm */}
                             <h3 style={{
-                                fontSize: '12px',
+                                fontSize: '12px', // Reduced from 13px
                                 fontWeight: 'bold',
                                 color: '#111827',
-                                marginBottom: '5px',
+                                marginBottom: '4px', // Reduced from 5px
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px',
                                 borderBottom: '1px solid #111827',
@@ -158,9 +206,9 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 SUMMARY
                             </h3>
                             <p style={{
-                                fontSize: '10px',
+                                fontSize: '10px', // Reduced from 11px
                                 color: '#374151',
-                                lineHeight: '1.4',
+                                lineHeight: '1.4', // Reduced from 1.5
                                 margin: '0',
                                 textAlign: 'justify'
                             }}>
@@ -171,12 +219,12 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
                     {/* Experience Section */}
                     {data.showWorkExperience && data.workExperience.filter(exp => exp.show).length > 0 && (
-                        <div style={{ marginBottom: '10mm' }}>
+                        <div style={{ marginBottom: '8mm' }}> {/* Reduced from 10mm */}
                             <h3 style={{
-                                fontSize: '12px',
+                                fontSize: '12px', // Reduced from 13px
                                 fontWeight: 'bold',
                                 color: '#111827',
-                                marginBottom: '7px',
+                                marginBottom: '5px', // Reduced from 7px
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px',
                                 borderBottom: '1px solid #111827',
@@ -184,30 +232,30 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                             }}>
                                 EXPERIENCE
                             </h3>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}> {/* Reduced from 7px */}
                                 {data.workExperience.filter(exp => exp.show).map((exp) => (
                                     <div key={exp.id}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3px' }}>
                                             <div>
                                                 <h4 style={{
-                                                    fontSize: '11px',
+                                                    fontSize: '11px', // Reduced from 12px
                                                     fontWeight: 'bold',
                                                     color: '#111827',
-                                                    margin: '0 0 2px 0'
+                                                    margin: '0 0 1px 0' // Reduced from 2px
                                                 }}>
                                                     {exp.position}
                                                 </h4>
                                                 <p style={{
-                                                    fontSize: '10px',
+                                                    fontSize: '10px', // Reduced from 11px
                                                     fontWeight: '600',
                                                     color: '#2563eb',
-                                                    margin: '0 0 2px 0'
+                                                    margin: '0 0 1px 0' // Reduced from 2px
                                                 }}>
                                                     {exp.company}
                                                 </p>
                                                 {exp.showLocation && exp.location && (
                                                     <p style={{
-                                                        fontSize: '9px',
+                                                        fontSize: '9px', // Reduced from 10px
                                                         color: '#6b7280',
                                                         margin: '0'
                                                     }}>
@@ -217,7 +265,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                             </div>
                                             {exp.showDateRange && (
                                                 <div style={{
-                                                    fontSize: '9px',
+                                                    fontSize: '9px', // Reduced from 10px
                                                     color: '#6b7280',
                                                     textAlign: 'right',
                                                     whiteSpace: 'nowrap'
@@ -228,20 +276,20 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         </div>
                                         {exp.showDescription && exp.description && (
                                             <p style={{
-                                                fontSize: '10px',
+                                                fontSize: '10px', // Reduced from 11px
                                                 color: '#374151',
-                                                marginBottom: '3px',
-                                                lineHeight: '1.3'
+                                                marginBottom: '2px', // Reduced from 3px
+                                                lineHeight: '1.3' // Reduced from 1.4
                                             }}>
                                                 {exp.description}
                                             </p>
                                         )}
                                         {exp.showBullets && exp.bullets.length > 0 && (
                                             <div style={{
-                                                fontSize: '10px',
+                                                fontSize: '10px', // Reduced from 11px
                                                 color: '#374151',
                                                 margin: '0',
-                                                lineHeight: '1.3'
+                                                lineHeight: '1.3' // Reduced from 1.4
                                             }}>
                                                 {exp.bullets.map((bullet, index) => (
                                                     <div key={index} style={{
@@ -252,7 +300,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                         <span style={{
                                                             marginRight: '6px',
                                                             marginTop: '2px',
-                                                            fontSize: '8px',
+                                                            fontSize: '9px', // Increased from 8px
                                                             lineHeight: '1'
                                                         }}>•</span>
                                                         <span style={{ flex: 1 }}>{bullet}</span>
@@ -268,12 +316,12 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
                     {/* Education Section */}
                     {data.showEducation && data.education.filter(edu => edu.show).length > 0 && (
-                        <div style={{ marginBottom: '10mm' }}>
+                        <div style={{ marginBottom: '7mm' }}> {/* Reduced from 10mm */}
                             <h3 style={{
-                                fontSize: '12px',
+                                fontSize: '12px', // Reduced from 13px
                                 fontWeight: 'bold',
                                 color: '#111827',
-                                marginBottom: '7px',
+                                marginBottom: '5px', // Reduced from 7px
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px',
                                 borderBottom: '1px solid #111827',
@@ -281,30 +329,30 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                             }}>
                                 EDUCATION
                             </h3>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}> {/* Reduced from 5px */}
                                 {data.education.filter(edu => edu.show).map((edu) => (
                                     <div key={edu.id}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <div>
                                                 <h4 style={{
-                                                    fontSize: '11px',
+                                                    fontSize: '11px', // Reduced from 12px
                                                     fontWeight: 'bold',
                                                     color: '#111827',
-                                                    margin: '0 0 2px 0'
+                                                    margin: '0 0 1px 0' // Reduced from 2px
                                                 }}>
                                                     {edu.degree}
                                                 </h4>
                                                 <p style={{
-                                                    fontSize: '10px',
+                                                    fontSize: '10px', // Reduced from 11px
                                                     fontWeight: '600',
                                                     color: '#2563eb',
-                                                    margin: '0 0 2px 0'
+                                                    margin: '0 0 1px 0' // Reduced from 2px
                                                 }}>
                                                     {edu.institution}
                                                 </p>
                                                 {edu.showLocation && edu.location && (
                                                     <p style={{
-                                                        fontSize: '9px',
+                                                        fontSize: '10px', // Increased from 9px
                                                         color: '#6b7280',
                                                         margin: '0'
                                                     }}>
@@ -313,7 +361,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                 )}
                                                 {edu.showGpa && edu.gpa && (
                                                     <p style={{
-                                                        fontSize: '9px',
+                                                        fontSize: '10px', // Increased from 9px
                                                         color: '#6b7280',
                                                         margin: '0'
                                                     }}>
@@ -323,7 +371,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                             </div>
                                             {edu.showDateRange && (
                                                 <div style={{
-                                                    fontSize: '9px',
+                                                    fontSize: '10px', // Increased from 9px
                                                     color: '#6b7280'
                                                 }}>
                                                     {formatDateRange(edu.dateRange)}
@@ -338,12 +386,12 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
                     {/* Certifications Section */}
                     {data.showCertifications && Array.isArray(data.certifications) && data.certifications.filter(cert => cert.show).length > 0 && (
-                        <div style={{ marginBottom: '10mm' }}>
+                        <div style={{ marginBottom: '7mm' }}> {/* Reduced from 10mm */}
                             <h3 style={{
-                                fontSize: '12px',
+                                fontSize: '12px', // Reduced from 13px
                                 fontWeight: 'bold',
                                 color: '#111827',
-                                marginBottom: '7px',
+                                marginBottom: '5px', // Reduced from 7px
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px',
                                 borderBottom: '1px solid #111827',
@@ -351,11 +399,11 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                             }}>
                                 CERTIFICATIONS
                             </h3>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}> {/* Reduced from 7px */}
                                 {data.certifications.filter(cert => cert.show).map((cert) => (
                                     <div key={cert.id}>
                                         <h4 style={{
-                                            fontSize: '11px',
+                                            fontSize: '12px', // Increased from 11px
                                             fontWeight: 'bold',
                                             color: '#111827',
                                             margin: '0 0 2px 0'
@@ -363,7 +411,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                             {cert.name}
                                         </h4>
                                         <p style={{
-                                            fontSize: '10px',
+                                            fontSize: '11px', // Increased from 10px
                                             fontWeight: '600',
                                             color: '#2563eb',
                                             margin: '0 0 2px 0'
@@ -372,7 +420,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         </p>
                                         {cert.showIssueDate && (
                                             <p style={{
-                                                fontSize: '9px',
+                                                fontSize: '10px', // Increased from 9px
                                                 color: '#6b7280',
                                                 margin: '0 0 2px 0'
                                             }}>
@@ -384,7 +432,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         )}
                                         {cert.showCredentialId && cert.credentialId && (
                                             <p style={{
-                                                fontSize: '9px',
+                                                fontSize: '10px', // Increased from 9px
                                                 color: '#374151',
                                                 margin: '0 0 2px 0'
                                             }}>
@@ -392,12 +440,22 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                             </p>
                                         )}
                                         {cert.showCredentialUrl && cert.credentialUrl && (
-                                            <span style={{
-                                                fontSize: '9px',
-                                                color: '#2563eb'
-                                            }}>
+                                            <a
+                                                href={cert.credentialUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{
+                                                    fontSize: '10px', // Increased from 9px
+                                                    color: '#2563eb',
+                                                    textDecoration: 'none',
+                                                    cursor: 'pointer',
+                                                    display: 'inline-block'
+                                                }}
+                                                onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
+                                                onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
+                                            >
                                                 View Certificate
-                                            </span>
+                                            </a>
                                         )}
                                     </div>
                                 ))}
@@ -412,7 +470,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     {data.showSkills && data.skills.filter(skill => skill.show).length > 0 && (
                         <div style={{ marginBottom: '7mm' }}>
                             <h3 style={{
-                                fontSize: '12px',
+                                fontSize: '13px', // Increased from 12px
                                 fontWeight: 'bold',
                                 color: '#111827',
                                 marginBottom: '7px',
@@ -435,7 +493,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                             padding: '3px 7px',
                                             backgroundColor: '#ffffff',
                                             color: '#374151',
-                                            fontSize: '9px',
+                                            fontSize: '10px', // Increased from 9px
                                             borderRadius: '3px',
                                             fontWeight: '500',
                                             border: '1px solid #d1d5db',
@@ -456,7 +514,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     {data.showStrengths && Array.isArray(data.strengths) && data.strengths.filter(strength => strength.show).length > 0 && (
                         <div style={{ marginBottom: '7mm' }}>
                             <h3 style={{
-                                fontSize: '12px',
+                                fontSize: '13px', // Increased from 12px
                                 fontWeight: 'bold',
                                 color: '#111827',
                                 marginBottom: '5px',
@@ -469,7 +527,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 {data.strengths.filter(strength => strength.show).map((strength) => (
                                     <div key={strength.id}>
                                         <h4 style={{
-                                            fontSize: '10px',
+                                            fontSize: '11px', // Increased from 10px
                                             fontWeight: 'bold',
                                             color: '#111827',
                                             margin: '0 0 2px 0'
@@ -478,9 +536,9 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         </h4>
                                         {strength.description && (
                                             <p style={{
-                                                fontSize: '9px',
+                                                fontSize: '10px', // Increased from 9px
                                                 color: '#374151',
-                                                lineHeight: '1.3',
+                                                lineHeight: '1.4', // Increased from 1.3
                                                 margin: '0'
                                             }}>
                                                 {strength.description}
@@ -496,7 +554,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     {data.showLanguages && data.languages.filter(lang => lang.show).length > 0 && (
                         <div style={{ marginBottom: '7mm' }}>
                             <h3 style={{
-                                fontSize: '12px',
+                                fontSize: '13px', // Increased from 12px
                                 fontWeight: 'bold',
                                 color: '#111827',
                                 marginBottom: '5px',
@@ -515,14 +573,14 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                             marginBottom: '2px'
                                         }}>
                                             <span style={{
-                                                fontSize: '10px',
+                                                fontSize: '11px', // Increased from 10px
                                                 fontWeight: '600',
                                                 color: '#111827'
                                             }}>
                                                 {language.name}
                                             </span>
                                             <span style={{
-                                                fontSize: '8px',
+                                                fontSize: '9px', // Increased from 8px
                                                 color: '#6b7280'
                                             }}>
                                                 {language.levelText}
@@ -539,7 +597,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     {data.showProjects && data.projects.filter(project => project.show).length > 0 && (
                         <div style={{ marginBottom: '7mm' }}>
                             <h3 style={{
-                                fontSize: '12px',
+                                fontSize: '13px', // Increased from 12px
                                 fontWeight: 'bold',
                                 color: '#111827',
                                 marginBottom: '5px',
@@ -552,7 +610,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 {data.projects.filter(project => project.show).map((project) => (
                                     <div key={project.id}>
                                         <h4 style={{
-                                            fontSize: '10px',
+                                            fontSize: '11px', // Increased from 10px
                                             fontWeight: 'bold',
                                             color: '#111827',
                                             margin: '0 0 2px 0'
@@ -561,7 +619,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         </h4>
                                         {project.showDateRange && project.dateRange && (
                                             <p style={{
-                                                fontSize: '8px',
+                                                fontSize: '9px', // Increased from 8px
                                                 color: '#6b7280',
                                                 margin: '0 0 2px 0'
                                             }}>
@@ -570,21 +628,34 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         )}
                                         {project.showDescription && project.description && (
                                             <p style={{
-                                                fontSize: '9px',
+                                                fontSize: '10px', // Increased from 9px
                                                 color: '#374151',
                                                 marginBottom: '3px',
-                                                lineHeight: '1.3'
+                                                lineHeight: '1.4' // Increased from 1.3
                                             }}>
                                                 {project.description}
                                             </p>
                                         )}
                                         {project.showLink && project.link && (
-                                            <span style={{
-                                                fontSize: '8px',
-                                                color: '#2563eb'
-                                            }}>
-                                                View Project
-                                            </span>
+                                            <div style={{ marginBottom: '3px' }}>
+                                                <a
+                                                    href={project.link}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{
+                                                        fontSize: '9px', // Increased from 8px
+                                                        color: '#2563eb',
+                                                        textDecoration: 'none',
+                                                        cursor: 'pointer',
+                                                        display: 'block',
+                                                        wordBreak: 'break-all'
+                                                    }}
+                                                    onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
+                                                    onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
+                                                >
+                                                    {project.link.replace(/https?:\/\/(www\.)?/, '')}
+                                                </a>
+                                            </div>
                                         )}
                                         {project.technologies.length > 0 && (
                                             <div style={{
@@ -600,7 +671,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                             padding: '2px 4px',
                                                             backgroundColor: '#dbeafe',
                                                             color: '#1e40af',
-                                                            fontSize: '7px',
+                                                            fontSize: '8px', // Increased from 7px
                                                             borderRadius: '2px',
                                                             fontWeight: '500'
                                                         }}
@@ -620,7 +691,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     {data.showInterests && Array.isArray(data.interests) && data.interests.filter(interest => interest.show).length > 0 && (
                         <div style={{ marginBottom: '6mm' }}>
                             <h3 style={{
-                                fontSize: '11px',
+                                fontSize: '12px', // Increased from 11px
                                 fontWeight: 'bold',
                                 color: '#111827',
                                 marginBottom: '4px',
@@ -633,7 +704,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 {data.interests.filter(interest => interest.show).map((interest) => (
                                     <div key={interest.id}>
                                         <h4 style={{
-                                            fontSize: '9px',
+                                            fontSize: '10px', // Increased from 9px
                                             fontWeight: 'bold',
                                             color: '#111827',
                                             margin: '0 0 1px 0'
@@ -642,9 +713,9 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         </h4>
                                         {interest.description && (
                                             <p style={{
-                                                fontSize: '8px',
+                                                fontSize: '9px', // Increased from 8px
                                                 color: '#374151',
-                                                lineHeight: '1.2',
+                                                lineHeight: '1.3', // Increased from 1.2
                                                 margin: '0'
                                             }}>
                                                 {interest.description}
@@ -660,7 +731,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     {data.showActivities && data.activities.filter(activity => activity.show).length > 0 && (
                         <div style={{ marginBottom: '6mm' }}>
                             <h3 style={{
-                                fontSize: '11px',
+                                fontSize: '12px', // Increased from 11px
                                 fontWeight: 'bold',
                                 color: '#111827',
                                 marginBottom: '4px',
@@ -673,7 +744,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 {data.activities.filter(activity => activity.show).map((activity) => (
                                     <div key={activity.id}>
                                         <h4 style={{
-                                            fontSize: '9px',
+                                            fontSize: '10px', // Increased from 9px
                                             fontWeight: 'bold',
                                             color: '#111827',
                                             margin: '0 0 1px 0'
@@ -682,7 +753,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         </h4>
                                         {activity.showLocation && activity.location && (
                                             <p style={{
-                                                fontSize: '7px',
+                                                fontSize: '8px', // Increased from 7px
                                                 color: '#6b7280',
                                                 margin: '0 0 1px 0'
                                             }}>
@@ -691,7 +762,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         )}
                                         {activity.showDateRange && activity.dateRange && (
                                             <p style={{
-                                                fontSize: '7px',
+                                                fontSize: '8px', // Increased from 7px
                                                 color: '#6b7280',
                                                 margin: '0 0 1px 0'
                                             }}>
@@ -700,20 +771,31 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                         )}
                                         {activity.showDescription && activity.description && (
                                             <p style={{
-                                                fontSize: '8px',
+                                                fontSize: '9px', // Increased from 8px
                                                 color: '#374151',
-                                                lineHeight: '1.2'
+                                                lineHeight: '1.3' // Increased from 1.2
                                             }}>
                                                 {activity.description}
                                             </p>
                                         )}
                                         {activity.showLink && activity.link && (
-                                            <span style={{
-                                                fontSize: '7px',
-                                                color: '#2563eb'
-                                            }}>
-                                                View Activity
-                                            </span>
+                                            <a
+                                                href={activity.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{
+                                                    fontSize: '8px', // Increased from 7px
+                                                    color: '#2563eb',
+                                                    textDecoration: 'none',
+                                                    cursor: 'pointer',
+                                                    display: 'block',
+                                                    wordBreak: 'break-all'
+                                                }}
+                                                onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
+                                                onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
+                                            >
+                                                {activity.link.replace(/https?:\/\/(www\.)?/, '')}
+                                            </a>
                                         )}
                                     </div>
                                 ))}

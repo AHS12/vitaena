@@ -1,3 +1,4 @@
+import { exportToPDF, generatePDFFilename } from '@/lib/pdf-export';
 import { ResumeData } from '@/types/resume';
 import {
     Close,
@@ -25,13 +26,15 @@ interface ExportModalProps {
 }
 
 export const ExportModal: React.FC<ExportModalProps> = ({ resume, onClose }) => {
-    const [isExporting, setIsExporting] = useState(false); const handleExportPDF = async () => {
+    const [isExporting, setIsExporting] = useState(false);
+    const [exportStatus, setExportStatus] = useState<string>('');
+
+    const handleExportPDF = async () => {
         setIsExporting(true);
+        setExportStatus('');
+
         try {
             console.log('Exporting PDF for:', resume.personalInfo.name);
-
-            // Import html2pdf dynamically
-            const html2pdf = (await import('html2pdf.js')).default;
 
             // Get the resume template element
             const resumeElement = document.querySelector('[data-resume-template]') as HTMLElement;
@@ -40,92 +43,26 @@ export const ExportModal: React.FC<ExportModalProps> = ({ resume, onClose }) => 
                 throw new Error('Resume template not found. Please make sure the resume is visible on screen.');
             }
 
-            // Configure html2pdf options for single page output
-            const options = {
-                margin: [0, 0, 0, 0], // No margins
-                filename: `${resume.personalInfo.name?.replace(/\s+/g, '_') || 'resume'}_${new Date().toISOString().split('T')[0]}.pdf`,
-                image: {
-                    type: 'jpeg',
-                    quality: 0.98
-                },
-                html2canvas: {
-                    scale: 1.5, // Reduced scale for better single-page fit
-                    useCORS: true,
-                    allowTaint: false,
-                    backgroundColor: '#ffffff',
-                    width: 794, // A4 width in pixels (210mm at 96 DPI)
-                    height: 1123, // A4 height in pixels (297mm at 96 DPI)
-                    scrollX: 0,
-                    scrollY: 0,
-                    letterRendering: true,
-                    logging: false,
-                    onclone: (clonedDoc: Document) => {
-                        console.log('Cloning document for PDF export');
-                        const resumeEl = clonedDoc.querySelector('[data-resume-template]') as HTMLElement;
-                        if (resumeEl) {
-                            // Force the template to fit on a single page
-                            resumeEl.style.width = '210mm';
-                            resumeEl.style.height = '297mm';
-                            resumeEl.style.maxHeight = '297mm';
-                            resumeEl.style.overflow = 'hidden';
-                            resumeEl.style.pageBreakInside = 'avoid';
-                            resumeEl.style.pageBreakAfter = 'auto';
-                            resumeEl.style.pageBreakBefore = 'auto';
-                            resumeEl.style.margin = '0';
-                            resumeEl.style.padding = '0';
-                            resumeEl.style.boxSizing = 'border-box';
-                            resumeEl.style.backgroundColor = '#ffffff';
-                            resumeEl.style.fontSize = '11px'; // Slightly smaller font for better fit
-                            resumeEl.style.lineHeight = '1.3';
+            // Generate filename
+            const filename = generatePDFFilename(resume.personalInfo.name);
 
-                            // Scale down content if needed for single page
-                            const contentHeight = resumeEl.scrollHeight;
-                            const maxHeight = 1123; // A4 height in pixels
-
-                            if (contentHeight > maxHeight) {
-                                const scale = maxHeight / contentHeight;
-                                resumeEl.style.transform = `scale(${scale})`;
-                                resumeEl.style.transformOrigin = 'top left';
-                                resumeEl.style.width = `${210 / scale}mm`;
-                                resumeEl.style.height = `${297 / scale}mm`;
-                            }
-
-                            // Ensure all images are properly sized
-                            const images = resumeEl.querySelectorAll('img');
-                            images.forEach((img) => {
-                                img.style.maxWidth = '100%';
-                                img.style.height = 'auto';
-                                img.style.display = 'block';
-                            });
-                        }
-                    }
-                },
-                jsPDF: {
-                    unit: 'mm',
-                    format: 'a4',
-                    orientation: 'portrait',
-                    compress: true,
-                    precision: 16
-                },
-                pagebreak: {
-                    mode: 'avoid-all', // Avoid page breaks
-                    before: '',
-                    after: ''
+            // Export PDF using utility function
+            await exportToPDF({
+                resumeElement,
+                filename,
+                onProgress: (status) => {
+                    setExportStatus(status);
                 }
-            };
-
-            // Generate and save PDF directly from the visible element
-            await html2pdf()
-                .set(options)
-                .from(resumeElement)
-                .save();
+            });
 
             console.log('PDF exported successfully');
         } catch (error) {
             console.error('Export failed:', error);
+            setExportStatus('Export failed');
             alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setIsExporting(false);
+            setTimeout(() => setExportStatus(''), 3000);
         }
     };
 
@@ -183,12 +120,17 @@ export const ExportModal: React.FC<ExportModalProps> = ({ resume, onClose }) => 
                                         PDF Document
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        Perfect for printing and sharing
+                                        High-quality PDF - pixel-perfect match to preview
                                     </Typography>
                                 </Box>
                             </Box>
                             {isExporting ? (
-                                <CircularProgress size={20} />
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <CircularProgress size={20} />
+                                    <Typography variant="body2" color="text.secondary">
+                                        {exportStatus || 'Exporting...'}
+                                    </Typography>
+                                </Box>
                             ) : (
                                 <Download sx={{ color: 'text.secondary' }} />
                             )}
