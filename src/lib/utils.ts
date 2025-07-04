@@ -32,6 +32,11 @@ export const createDefaultResumeData = (templateId: string): ResumeData => {
     activities: [],
     customSections: [],
     showSummary: true,
+    showActivities: true,
+    strengths: [],
+    showStrengths: false,
+    interests: [],
+    showInterests: false,
     createdAt: now,
     updatedAt: now,
   };

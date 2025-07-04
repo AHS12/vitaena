@@ -2,6 +2,8 @@ import { useUIStore } from '@/stores/ui-store';
 import {
     Build,
     Description,
+    EmojiEvents,
+    FitnessCenter,
     Folder,
     Language,
     LocalActivity,
@@ -27,8 +29,10 @@ const sections = [
     { id: 'experience', label: 'Experience', icon: Work },
     { id: 'education', label: 'Education', icon: School },
     { id: 'skills', label: 'Skills', icon: Build },
+    { id: 'strengths', label: 'Strengths', icon: FitnessCenter },
     { id: 'languages', label: 'Languages', icon: Language },
     { id: 'projects', label: 'Projects', icon: Folder },
+    { id: 'interests', label: 'Interests', icon: EmojiEvents },
     { id: 'activities', label: 'Activities', icon: LocalActivity },
 ];
 

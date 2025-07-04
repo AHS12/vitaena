@@ -293,20 +293,20 @@ export const ExperienceEditor: React.FC = () => {
 
                                                     <Stack spacing={2}>
                                                         {experience.bullets.map((bullet, bulletIndex) => (
-                                                            <Box key={bulletIndex} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                                                                <Typography sx={{ mt: 2, color: 'text.secondary' }}>•</Typography>
+                                                            <Box key={bulletIndex} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                <Typography sx={{ color: 'text.secondary', lineHeight: 1, fontSize: '1.2rem' }}>•</Typography>
                                                                 <TextField
                                                                     fullWidth
                                                                     value={bullet}
                                                                     onChange={(e) => updateBullet(experience.id, bulletIndex, e.target.value)}
                                                                     placeholder="Describe your achievement or responsibility..."
                                                                     size="small"
+                                                                    sx={{ flexGrow: 1 }}
                                                                 />
                                                                 <IconButton
                                                                     size="small"
                                                                     color="error"
                                                                     onClick={() => deleteBullet(experience.id, bulletIndex)}
-                                                                    sx={{ mt: 0.5 }}
                                                                 >
                                                                     <Delete />
                                                                 </IconButton>

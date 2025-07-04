@@ -101,6 +101,18 @@ export interface CustomSection {
   showTitle: boolean;
 }
 
+export interface StrengthItem {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface InterestItem {
+  id: string;
+  title: string;
+  description: string;
+}
+
 export interface ResumeData {
   id: string;
   templateId: string;
@@ -114,6 +126,11 @@ export interface ResumeData {
   activities: Activity[];
   customSections: CustomSection[];
   showSummary: boolean;
+  showActivities: boolean;
+  strengths: StrengthItem[];
+  showStrengths: boolean;
+  interests: InterestItem[];
+  showInterests: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

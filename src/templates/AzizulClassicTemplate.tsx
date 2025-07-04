@@ -15,58 +15,96 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 }) => {
     const renderSkillLevel = (level: number) => {
         return (
-            <div className="flex space-x-1">
+            <div style={{ display: 'flex', gap: '3px', marginTop: '2px' }}>
                 {[1, 2, 3, 4, 5].map((dot) => (
                     <div
                         key={dot}
-                        className={`w-3 h-3 rounded-full ${dot <= level ? 'bg-blue-600' : 'bg-gray-300'
-                            }`}
+                        style={{
+                            width: '10px',
+                            height: '10px',
+                            borderRadius: '50%',
+                            backgroundColor: dot <= level ? '#2563eb' : '#e5e7eb'
+                        }}
                     />
                 ))}
             </div>
         );
     };
 
+    const templateStyles: React.CSSProperties = {
+        backgroundColor: '#ffffff',
+        width: '210mm', // A4 width
+        maxWidth: '210mm',
+        minHeight: '297mm', // A4 height
+        maxHeight: '297mm',
+        margin: '0 auto',
+        fontFamily: 'Arial, sans-serif',
+        color: '#111827',
+        fontSize: '11px',
+        lineHeight: '1.3',
+        overflow: 'hidden',
+        pageBreakInside: 'avoid',
+        boxSizing: 'border-box'
+    };
+
     return (
-        <div className={`bg-white w-[595px] min-h-[842px] mx-auto font-sans text-gray-900 ${className}`}>
+        <div style={templateStyles} className={className}>
             {/* Header Section */}
-            <div className="bg-gray-50 px-8 py-6 flex items-start justify-between">
-                <div className="flex-1">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            <div style={{
+                padding: '15mm 15mm 8mm 15mm',
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                borderBottom: '1px solid #e5e7eb'
+            }}>
+                <div style={{ flex: 1 }}>
+                    <h1 style={{
+                        fontSize: '28px',
+                        fontWeight: 'bold',
+                        color: '#111827',
+                        margin: '0 0 6px 0',
+                        letterSpacing: '0.5px'
+                    }}>
                         {data.personalInfo.name || 'YOUR NAME'}
                     </h1>
-                    <h2 className="text-xl font-medium text-blue-600 mb-4">
+                    <h2 style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#2563eb',
+                        margin: '0 0 12px 0',
+                        textTransform: 'uppercase'
+                    }}>
                         {data.personalInfo.title || 'SOFTWARE ENGINEER'}
                     </h2>
 
-                    <div className="space-y-2">
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', fontSize: '10px', color: '#374151' }}>
                         {data.personalInfo.showPhone && data.personalInfo.phone && (
-                            <div className="flex items-center text-sm text-gray-700">
-                                <Phone className="w-4 h-4 mr-2" />
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <Phone style={{ width: '12px', height: '12px', marginRight: '4px' }} />
                                 {data.personalInfo.phone}
                             </div>
                         )}
                         {data.personalInfo.showEmail && data.personalInfo.email && (
-                            <div className="flex items-center text-sm text-gray-700">
-                                <Mail className="w-4 h-4 mr-2" />
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <Mail style={{ width: '12px', height: '12px', marginRight: '4px' }} />
                                 {data.personalInfo.email}
                             </div>
                         )}
                         {data.personalInfo.showLocation && data.personalInfo.location && (
-                            <div className="flex items-center text-sm text-gray-700">
-                                <MapPin className="w-4 h-4 mr-2" />
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <MapPin style={{ width: '12px', height: '12px', marginRight: '4px' }} />
                                 {data.personalInfo.location}
                             </div>
                         )}
                         {data.personalInfo.showLinkedIn && data.personalInfo.linkedIn && (
-                            <div className="flex items-center text-sm text-gray-700">
-                                <Linkedin className="w-4 h-4 mr-2" />
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <Linkedin style={{ width: '12px', height: '12px', marginRight: '4px' }} />
                                 {data.personalInfo.linkedIn}
                             </div>
                         )}
                         {data.personalInfo.showWebsite && data.personalInfo.website && (
-                            <div className="flex items-center text-sm text-gray-700">
-                                <Globe className="w-4 h-4 mr-2" />
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <Globe style={{ width: '12px', height: '12px', marginRight: '4px' }} />
                                 {data.personalInfo.website}
                             </div>
                         )}
@@ -74,28 +112,43 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                 </div>
 
                 {data.personalInfo.showPhoto && data.personalInfo.photo && (
-                    <div className="ml-6">
+                    <div style={{ marginLeft: '20px' }}>
                         <Image
                             src={data.personalInfo.photo}
                             alt={data.personalInfo.name}
-                            width={96}
-                            height={96}
-                            className="w-24 h-24 rounded-full object-cover"
+                            width={70}
+                            height={70}
+                            style={{ width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover' }}
                         />
                     </div>
                 )}
             </div>
 
-            <div className="flex">
+            <div style={{ display: 'flex', height: 'calc(297mm - 120px)' }}>
                 {/* Left Column */}
-                <div className="w-2/3 px-8 py-6">
+                <div style={{ width: '65%', padding: '8mm 12mm 8mm 15mm' }}>
                     {/* Summary Section */}
                     {data.showSummary && data.summary && (
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide border-b-2 border-gray-300 pb-1">
-                                Summary
+                        <div style={{ marginBottom: '12mm' }}>
+                            <h3 style={{
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                marginBottom: '6px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                                borderBottom: '2px solid #111827',
+                                paddingBottom: '2px'
+                            }}>
+                                SUMMARY
                             </h3>
-                            <p className="text-sm text-gray-700 leading-relaxed">
+                            <p style={{
+                                fontSize: '10px',
+                                color: '#374151',
+                                lineHeight: '1.4',
+                                margin: '0',
+                                textAlign: 'justify'
+                            }}>
                                 {data.summary}
                             </p>
                         </div>
@@ -103,42 +156,81 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
                     {/* Experience Section */}
                     {data.workExperience.length > 0 && (
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide border-b-2 border-gray-300 pb-1">
-                                Experience
+                        <div style={{ marginBottom: '12mm' }}>
+                            <h3 style={{
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                marginBottom: '8px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                                borderBottom: '2px solid #111827',
+                                paddingBottom: '2px'
+                            }}>
+                                EXPERIENCE
                             </h3>
-                            <div className="space-y-4">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {data.workExperience.map((exp) => (
                                     <div key={exp.id}>
-                                        <div className="flex justify-between items-start mb-2">
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
                                             <div>
-                                                <h4 className="text-base font-bold text-gray-900">
+                                                <h4 style={{
+                                                    fontSize: '11px',
+                                                    fontWeight: 'bold',
+                                                    color: '#111827',
+                                                    margin: '0 0 2px 0'
+                                                }}>
                                                     {exp.position}
                                                 </h4>
-                                                <p className="text-sm font-medium text-blue-600">
+                                                <p style={{
+                                                    fontSize: '10px',
+                                                    fontWeight: '600',
+                                                    color: '#2563eb',
+                                                    margin: '0 0 2px 0'
+                                                }}>
                                                     {exp.company}
                                                 </p>
                                                 {exp.showLocation && exp.location && (
-                                                    <p className="text-sm text-gray-600">
+                                                    <p style={{
+                                                        fontSize: '9px',
+                                                        color: '#6b7280',
+                                                        margin: '0'
+                                                    }}>
                                                         {exp.location}
                                                     </p>
                                                 )}
                                             </div>
                                             {exp.showDateRange && (
-                                                <div className="text-sm text-gray-600 text-right">
+                                                <div style={{
+                                                    fontSize: '9px',
+                                                    color: '#6b7280',
+                                                    textAlign: 'right',
+                                                    whiteSpace: 'nowrap'
+                                                }}>
                                                     {formatDateRange(exp.dateRange)}
                                                 </div>
                                             )}
                                         </div>
                                         {exp.showDescription && exp.description && (
-                                            <p className="text-sm text-gray-700 mb-2">
+                                            <p style={{
+                                                fontSize: '10px',
+                                                color: '#374151',
+                                                marginBottom: '4px',
+                                                lineHeight: '1.3'
+                                            }}>
                                                 {exp.description}
                                             </p>
                                         )}
                                         {exp.showBullets && exp.bullets.length > 0 && (
-                                            <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                                            <ul style={{
+                                                fontSize: '10px',
+                                                color: '#374151',
+                                                paddingLeft: '12px',
+                                                margin: '0',
+                                                lineHeight: '1.3'
+                                            }}>
                                                 {exp.bullets.map((bullet, index) => (
-                                                    <li key={index}>{bullet}</li>
+                                                    <li key={index} style={{ marginBottom: '2px' }}>{bullet}</li>
                                                 ))}
                                             </ul>
                                         )}
@@ -150,34 +242,64 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
                     {/* Education Section */}
                     {data.education.length > 0 && (
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide border-b-2 border-gray-300 pb-1">
-                                Education
+                        <div style={{ marginBottom: '12mm' }}>
+                            <h3 style={{
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                marginBottom: '8px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                                borderBottom: '2px solid #111827',
+                                paddingBottom: '2px'
+                            }}>
+                                EDUCATION
                             </h3>
-                            <div className="space-y-3">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                 {data.education.map((edu) => (
                                     <div key={edu.id}>
-                                        <div className="flex justify-between items-start">
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <div>
-                                                <h4 className="text-base font-bold text-gray-900">
+                                                <h4 style={{
+                                                    fontSize: '11px',
+                                                    fontWeight: 'bold',
+                                                    color: '#111827',
+                                                    margin: '0 0 2px 0'
+                                                }}>
                                                     {edu.degree}
                                                 </h4>
-                                                <p className="text-sm font-medium text-blue-600">
+                                                <p style={{
+                                                    fontSize: '10px',
+                                                    fontWeight: '600',
+                                                    color: '#2563eb',
+                                                    margin: '0 0 2px 0'
+                                                }}>
                                                     {edu.institution}
                                                 </p>
                                                 {edu.showLocation && edu.location && (
-                                                    <p className="text-sm text-gray-600">
+                                                    <p style={{
+                                                        fontSize: '9px',
+                                                        color: '#6b7280',
+                                                        margin: '0'
+                                                    }}>
                                                         {edu.location}
                                                     </p>
                                                 )}
                                                 {edu.showGpa && edu.gpa && (
-                                                    <p className="text-sm text-gray-600">
+                                                    <p style={{
+                                                        fontSize: '9px',
+                                                        color: '#6b7280',
+                                                        margin: '0'
+                                                    }}>
                                                         GPA: {edu.gpa}
                                                     </p>
                                                 )}
                                             </div>
                                             {edu.showDateRange && (
-                                                <div className="text-sm text-gray-600">
+                                                <div style={{
+                                                    fontSize: '9px',
+                                                    color: '#6b7280'
+                                                }}>
                                                     {formatDateRange(edu.dateRange)}
                                                 </div>
                                             )}
@@ -190,22 +312,74 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                 </div>
 
                 {/* Right Column */}
-                <div className="w-1/3 bg-gray-50 px-6 py-6">
+                <div style={{ width: '35%', backgroundColor: '#ffffff', padding: '8mm 12mm 8mm 8mm', borderLeft: '1px solid #e5e7eb' }}>
                     {/* Skills Section */}
                     {data.skills.length > 0 && (
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide">
-                                Skills
+                        <div style={{ marginBottom: '8mm' }}>
+                            <h3 style={{
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                marginBottom: '6px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }}>
+                                SKILLS
                             </h3>
-                            <div className="space-y-3">
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                                 {data.skills.map((skill, index) => (
-                                    <div key={index}>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-sm font-medium text-gray-900">
-                                                {skill.name}
-                                            </span>
-                                        </div>
-                                        {renderSkillLevel(skill.level)}
+                                    <span
+                                        key={index}
+                                        style={{
+                                            padding: '2px 6px',
+                                            backgroundColor: '#e5e7eb',
+                                            color: '#374151',
+                                            fontSize: '9px',
+                                            borderRadius: '3px',
+                                            fontWeight: '500'
+                                        }}
+                                    >
+                                        {skill.name}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Strengths Section */}
+                    {data.showStrengths && Array.isArray(data.strengths) && data.strengths.length > 0 && (
+                        <div style={{ marginBottom: '8mm' }}>
+                            <h3 style={{
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                marginBottom: '6px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }}>
+                                STRENGTHS
+                            </h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {data.strengths.map((strength) => (
+                                    <div key={strength.id}>
+                                        <h4 style={{
+                                            fontSize: '10px',
+                                            fontWeight: 'bold',
+                                            color: '#111827',
+                                            margin: '0 0 2px 0'
+                                        }}>
+                                            {strength.title}
+                                        </h4>
+                                        {strength.description && (
+                                            <p style={{
+                                                fontSize: '9px',
+                                                color: '#374151',
+                                                lineHeight: '1.2',
+                                                margin: '0'
+                                            }}>
+                                                {strength.description}
+                                            </p>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -214,18 +388,37 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
                     {/* Languages Section */}
                     {data.languages.length > 0 && (
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide">
-                                Languages
+                        <div style={{ marginBottom: '8mm' }}>
+                            <h3 style={{
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                marginBottom: '6px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }}>
+                                LANGUAGES
                             </h3>
-                            <div className="space-y-3">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                 {data.languages.map((language, index) => (
                                     <div key={index}>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-sm font-medium text-gray-900">
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            marginBottom: '2px'
+                                        }}>
+                                            <span style={{
+                                                fontSize: '10px',
+                                                fontWeight: '600',
+                                                color: '#111827'
+                                            }}>
                                                 {language.name}
                                             </span>
-                                            <span className="text-xs text-gray-600">
+                                            <span style={{
+                                                fontSize: '8px',
+                                                color: '#6b7280'
+                                            }}>
                                                 {language.levelText}
                                             </span>
                                         </div>
@@ -238,30 +431,55 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
                     {/* Projects Section */}
                     {data.projects.length > 0 && (
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide">
-                                Projects
+                        <div style={{ marginBottom: '8mm' }}>
+                            <h3 style={{
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                marginBottom: '6px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }}>
+                                PROJECTS
                             </h3>
-                            <div className="space-y-4">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                 {data.projects.map((project) => (
                                     <div key={project.id}>
-                                        <h4 className="text-sm font-bold text-gray-900">
+                                        <h4 style={{
+                                            fontSize: '10px',
+                                            fontWeight: 'bold',
+                                            color: '#111827',
+                                            margin: '0 0 2px 0'
+                                        }}>
                                             {project.title}
                                         </h4>
                                         {project.showDateRange && project.dateRange && (
-                                            <p className="text-xs text-gray-600 mb-1">
+                                            <p style={{
+                                                fontSize: '8px',
+                                                color: '#6b7280',
+                                                margin: '0 0 2px 0'
+                                            }}>
                                                 {formatDateRange(project.dateRange)}
                                             </p>
                                         )}
                                         {project.showDescription && project.description && (
-                                            <p className="text-xs text-gray-700 mb-2">
+                                            <p style={{
+                                                fontSize: '9px',
+                                                color: '#374151',
+                                                marginBottom: '4px',
+                                                lineHeight: '1.2'
+                                            }}>
                                                 {project.description}
                                             </p>
                                         )}
                                         {project.showLink && project.link && (
                                             <a
                                                 href={project.link}
-                                                className="text-xs text-blue-600 hover:text-blue-800"
+                                                style={{
+                                                    fontSize: '8px',
+                                                    color: '#2563eb',
+                                                    textDecoration: 'none'
+                                                }}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >
@@ -269,11 +487,23 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                             </a>
                                         )}
                                         {project.technologies.length > 0 && (
-                                            <div className="flex flex-wrap gap-1 mt-2">
+                                            <div style={{
+                                                display: 'flex',
+                                                flexWrap: 'wrap',
+                                                gap: '2px',
+                                                marginTop: '4px'
+                                            }}>
                                                 {project.technologies.map((tech, techIndex) => (
                                                     <span
                                                         key={techIndex}
-                                                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
+                                                        style={{
+                                                            padding: '1px 4px',
+                                                            backgroundColor: '#dbeafe',
+                                                            color: '#1e40af',
+                                                            fontSize: '7px',
+                                                            borderRadius: '2px',
+                                                            fontWeight: '500'
+                                                        }}
                                                     >
                                                         {tech}
                                                     </span>
@@ -286,37 +516,105 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                         </div>
                     )}
 
-                    {/* Activities Section */}
-                    {data.activities.length > 0 && (
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide">
-                                Activities
+                    {/* Interests Section */}
+                    {data.showInterests && Array.isArray(data.interests) && data.interests.length > 0 && (
+                        <div style={{ marginBottom: '8mm' }}>
+                            <h3 style={{
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                marginBottom: '6px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }}>
+                                INTERESTS
                             </h3>
-                            <div className="space-y-4">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {data.interests.map((interest) => (
+                                    <div key={interest.id}>
+                                        <h4 style={{
+                                            fontSize: '10px',
+                                            fontWeight: 'bold',
+                                            color: '#111827',
+                                            margin: '0 0 2px 0'
+                                        }}>
+                                            {interest.title}
+                                        </h4>
+                                        {interest.description && (
+                                            <p style={{
+                                                fontSize: '9px',
+                                                color: '#374151',
+                                                lineHeight: '1.2',
+                                                margin: '0'
+                                            }}>
+                                                {interest.description}
+                                            </p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Activities Section */}
+                    {data.showActivities && data.activities.length > 0 && (
+                        <div style={{ marginBottom: '8mm' }}>
+                            <h3 style={{
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                marginBottom: '6px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }}>
+                                ACTIVITIES
+                            </h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                 {data.activities.map((activity) => (
                                     <div key={activity.id}>
-                                        <h4 className="text-sm font-bold text-gray-900">
+                                        <h4 style={{
+                                            fontSize: '10px',
+                                            fontWeight: 'bold',
+                                            color: '#111827',
+                                            margin: '0 0 2px 0'
+                                        }}>
                                             {activity.title}
                                         </h4>
                                         {activity.showLocation && activity.location && (
-                                            <p className="text-xs text-gray-600">
+                                            <p style={{
+                                                fontSize: '8px',
+                                                color: '#6b7280',
+                                                margin: '0 0 2px 0'
+                                            }}>
                                                 {activity.location}
                                             </p>
                                         )}
                                         {activity.showDateRange && activity.dateRange && (
-                                            <p className="text-xs text-gray-600 mb-1">
+                                            <p style={{
+                                                fontSize: '8px',
+                                                color: '#6b7280',
+                                                margin: '0 0 2px 0'
+                                            }}>
                                                 {formatDateRange(activity.dateRange)}
                                             </p>
                                         )}
                                         {activity.showDescription && activity.description && (
-                                            <p className="text-xs text-gray-700">
+                                            <p style={{
+                                                fontSize: '9px',
+                                                color: '#374151',
+                                                lineHeight: '1.2'
+                                            }}>
                                                 {activity.description}
                                             </p>
                                         )}
                                         {activity.showLink && activity.link && (
                                             <a
                                                 href={activity.link}
-                                                className="text-xs text-blue-600 hover:text-blue-800"
+                                                style={{
+                                                    fontSize: '8px',
+                                                    color: '#2563eb',
+                                                    textDecoration: 'none'
+                                                }}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >

@@ -4,10 +4,12 @@ import React from 'react';
 import { ActivitiesEditor } from './editors/ActivitiesEditor';
 import { EducationEditor } from './editors/EducationEditor';
 import { ExperienceEditor } from './editors/ExperienceEditor';
+import { InterestsEditor } from './editors/InterestsEditor';
 import { LanguagesEditor } from './editors/LanguagesEditor';
 import { PersonalInfoEditor } from './editors/PersonalInfoEditor';
 import { ProjectsEditor } from './editors/ProjectsEditor';
 import { SkillsEditor } from './editors/SkillsEditor';
+import { StrengthsEditor } from './editors/StrengthsEditor';
 import { SummaryEditor } from './editors/SummaryEditor';
 
 export const ResumeEditor: React.FC = () => {
@@ -25,10 +27,14 @@ export const ResumeEditor: React.FC = () => {
                 return <EducationEditor />;
             case 'skills':
                 return <SkillsEditor />;
+            case 'strengths':
+                return <StrengthsEditor />;
             case 'languages':
                 return <LanguagesEditor />;
             case 'projects':
                 return <ProjectsEditor />;
+            case 'interests':
+                return <InterestsEditor />;
             case 'activities':
                 return <ActivitiesEditor />;
             default:

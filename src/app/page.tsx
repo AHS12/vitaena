@@ -44,6 +44,7 @@ export default function HomePage() {
   const [filteredResumes, setFilteredResumes] = useState<ResumeData[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   console.log('HomePage - templates:', templates, 'resumes:', resumes);
 
@@ -77,16 +78,34 @@ export default function HomePage() {
   }, [templates.length]);
 
   useEffect(() => {
-    // Filter resumes based on search query
-    if (!searchQuery.trim()) {
-      setFilteredResumes(resumes);
-    } else {
-      const filtered = resumes.filter(resume =>
-        resume.personalInfo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        resume.personalInfo.title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredResumes(filtered);
-    }
+    // Debounced search - filter resumes based on search query using the database search method
+    const searchResumes = async () => {
+      if (!searchQuery.trim()) {
+        setFilteredResumes(resumes);
+        setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const searchResults = await ResumeService.searchResumes(searchQuery);
+        setFilteredResumes(searchResults);
+      } catch (error) {
+        console.error('Failed to search resumes:', error);
+        // Fallback to simple filtering
+        const filtered = resumes.filter(resume =>
+          resume.personalInfo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          resume.personalInfo.title.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredResumes(filtered);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    // Debounce the search
+    const timeoutId = setTimeout(searchResumes, 300);
+    return () => clearTimeout(timeoutId);
   }, [resumes, searchQuery]);
 
   const handleCreateResume = async (templateId: string) => {
@@ -182,6 +201,11 @@ export default function HomePage() {
     } catch (error) {
       console.error('Failed to import data:', error);
     }
+  };
+
+  const getTemplateName = (templateId: string) => {
+    const template = templates.find(t => t.id === templateId);
+    return template?.name || 'Unknown Template';
   };
 
   if (isLoading) {
@@ -323,7 +347,7 @@ export default function HomePage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Search />
+                    {isSearching ? <CircularProgress size={20} /> : <Search />}
                   </InputAdornment>
                 ),
               }}
@@ -356,8 +380,23 @@ export default function HomePage() {
               }}
             >
               {filteredResumes.map((resume) => (
-                <Card key={resume.id} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <CardContent sx={{ flexGrow: 1 }}>
+                <Card key={resume.id} sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                  {/* Template Badge - positioned at top right */}
+                  <Box sx={{ position: 'absolute', top: 12, right: 12, zIndex: 1 }}>
+                    <Chip
+                      label={getTemplateName(resume.templateId)}
+                      size="small"
+                      variant="filled"
+                      sx={{
+                        backgroundColor: 'primary.main',
+                        color: 'primary.contrastText',
+                        '& .MuiChip-label': { fontSize: '0.75rem', fontWeight: 500 },
+                        boxShadow: 1
+                      }}
+                    />
+                  </Box>
+
+                  <CardContent sx={{ flexGrow: 1, pt: 3 }}>
                     <Typography variant="h6" component="h3" gutterBottom>
                       {resume.personalInfo.name || 'Untitled Resume'}
                     </Typography>

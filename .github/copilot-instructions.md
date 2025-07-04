@@ -10,10 +10,12 @@ This is an offline resume maker web application built with Next.js, TypeScript, 
 
 - **Frontend:** Next.js 15 with App Router, TypeScript, React 19
 - **Styling:** Tailwind CSS v4
+- **UI Components:** Material UI (MUI) for form components, inputs, and interactions
 - **State Management:** Zustand for global state
 - **Storage:** IndexedDB with Dexie.js for offline data persistence
 - **PDF Generation:** jsPDF + html2canvas for high-quality PDF exports
 - **Icons:** Lucide React for consistent iconography
+- **Package Manager:** pnpm
 
 ## Key Features
 
@@ -32,6 +34,7 @@ This is an offline resume maker web application built with Next.js, TypeScript, 
 - Use Zustand for state management with proper TypeScript types
 - Create reusable components for resume sections
 - Ensure accessibility compliance (ARIA labels, semantic HTML)
+- Use pnpm for package management instead of npm or yarn
 
 ## File Structure
 

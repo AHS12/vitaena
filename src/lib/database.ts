@@ -39,11 +39,31 @@ export class ResumeService {
     const storedResume = await db.resumes.get(id);
     if (!storedResume) return null;
 
-    return {
+    const resume: ResumeData = {
       ...storedResume,
       createdAt: new Date(storedResume.createdAt),
       updatedAt: new Date(storedResume.updatedAt),
     };
+
+    // Data migration: Ensure strengths and interests are arrays
+    let needsUpdate = false;
+
+    if (!Array.isArray(resume.strengths)) {
+      resume.strengths = [];
+      needsUpdate = true;
+    }
+
+    if (!Array.isArray(resume.interests)) {
+      resume.interests = [];
+      needsUpdate = true;
+    }
+
+    // If we had to migrate data, save the updated resume
+    if (needsUpdate) {
+      await this.saveResume(resume);
+    }
+
+    return resume;
   }
 
   static async getAllResumes(): Promise<ResumeData[]> {
@@ -52,11 +72,38 @@ export class ResumeService {
       .reverse()
       .toArray();
 
-    return storedResumes.map((stored) => ({
+    const resumes = storedResumes.map((stored) => ({
       ...stored,
       createdAt: new Date(stored.createdAt),
       updatedAt: new Date(stored.updatedAt),
     }));
+
+    // Data migration: Ensure strengths and interests are arrays
+    let needsUpdate = false;
+    const migratedResumes = resumes.map((resume) => {
+      const migrated = { ...resume };
+
+      if (!Array.isArray(migrated.strengths)) {
+        migrated.strengths = [];
+        needsUpdate = true;
+      }
+
+      if (!Array.isArray(migrated.interests)) {
+        migrated.interests = [];
+        needsUpdate = true;
+      }
+
+      return migrated;
+    });
+
+    // If we had to migrate data, save the updated resumes
+    if (needsUpdate) {
+      await Promise.all(
+        migratedResumes.map((resume) => this.saveResume(resume))
+      );
+    }
+
+    return migratedResumes;
   }
 
   static async deleteResume(id: string): Promise<void> {
