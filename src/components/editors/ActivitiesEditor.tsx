@@ -45,6 +45,7 @@ export const ActivitiesEditor: React.FC = () => {
             showDateRange: true,
             showDescription: true,
             showLink: false,
+            show: true,
         };
 
         const updatedActivities = [...currentResume.activities, newActivity];
@@ -87,6 +88,13 @@ export const ActivitiesEditor: React.FC = () => {
         updateResumeField('showActivities', !currentResume.showActivities);
     };
 
+    const toggleActivityVisibility = (activityId: string) => {
+        const updatedActivities = currentResume.activities.map(activity =>
+            activity.id === activityId ? { ...activity, show: !activity.show } : activity
+        );
+        updateResumeField('activities', updatedActivities);
+    };
+
     return (
         <Box sx={{ p: 3 }}>
             <Card>
@@ -127,7 +135,7 @@ export const ActivitiesEditor: React.FC = () => {
 
                                 return (
                                     <SortableItem key={activity.id} id={`activity-${index}`}>
-                                        <Card variant="outlined">
+                                        <Card variant="outlined" sx={{ opacity: activity.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -152,6 +160,14 @@ export const ActivitiesEditor: React.FC = () => {
                                                     >
                                                         {isExpanded ? 'Collapse' : 'Expand'}
                                                     </Button>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => toggleActivityVisibility(activity.id)}
+                                                        color={activity.show ? 'primary' : 'default'}
+                                                        title={activity.show ? 'Hide activity' : 'Show activity'}
+                                                    >
+                                                        {activity.show ? <Visibility /> : <VisibilityOff />}
+                                                    </IconButton>
                                                     <IconButton
                                                         size="small"
                                                         color="error"

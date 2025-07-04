@@ -44,6 +44,7 @@ export const EducationEditor: React.FC = () => {
             showGpa: false,
             showLocation: true,
             showDateRange: true,
+            show: true,
         };
 
         const updatedEducation = [...currentResume.education, newEducation];
@@ -86,6 +87,13 @@ export const EducationEditor: React.FC = () => {
         updateResumeField('showEducation', !currentResume.showEducation);
     };
 
+    const toggleEducationVisibility = (educationId: string) => {
+        const updatedEducation = currentResume.education.map(edu =>
+            edu.id === educationId ? { ...edu, show: !edu.show } : edu
+        );
+        updateResumeField('education', updatedEducation);
+    };
+
     return (
         <Box sx={{ p: 3 }}>
             <Card>
@@ -126,7 +134,7 @@ export const EducationEditor: React.FC = () => {
 
                                 return (
                                     <SortableItem key={education.id} id={`education-${index}`}>
-                                        <Card variant="outlined">
+                                        <Card variant="outlined" sx={{ opacity: education.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -151,6 +159,14 @@ export const EducationEditor: React.FC = () => {
                                                     >
                                                         {isExpanded ? 'Collapse' : 'Expand'}
                                                     </Button>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => toggleEducationVisibility(education.id)}
+                                                        color={education.show ? 'primary' : 'default'}
+                                                        title={education.show ? 'Hide education' : 'Show education'}
+                                                    >
+                                                        {education.show ? <Visibility /> : <VisibilityOff />}
+                                                    </IconButton>
                                                     <IconButton
                                                         size="small"
                                                         color="error"

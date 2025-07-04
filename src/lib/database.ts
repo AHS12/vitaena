@@ -103,6 +103,88 @@ export class ResumeService {
       needsUpdate = true;
     }
 
+    // Migrate individual items to have show property
+    if (resume.skills.length > 0) {
+      resume.skills.forEach((skill) => {
+        if (skill.show === undefined) {
+          skill.show = true;
+          needsUpdate = true;
+        }
+      });
+    }
+
+    if (resume.languages.length > 0) {
+      resume.languages.forEach((language) => {
+        if (language.show === undefined) {
+          language.show = true;
+          needsUpdate = true;
+        }
+      });
+    }
+
+    if (resume.strengths.length > 0) {
+      resume.strengths.forEach((strength) => {
+        if (strength.show === undefined) {
+          strength.show = true;
+          needsUpdate = true;
+        }
+      });
+    }
+
+    if (resume.interests.length > 0) {
+      resume.interests.forEach((interest) => {
+        if (interest.show === undefined) {
+          interest.show = true;
+          needsUpdate = true;
+        }
+      });
+    }
+
+    if (resume.certifications.length > 0) {
+      resume.certifications.forEach((cert) => {
+        if (cert.show === undefined) {
+          cert.show = true;
+          needsUpdate = true;
+        }
+      });
+    }
+
+    if (resume.workExperience.length > 0) {
+      resume.workExperience.forEach((exp) => {
+        if (exp.show === undefined) {
+          exp.show = true;
+          needsUpdate = true;
+        }
+      });
+    }
+
+    if (resume.education.length > 0) {
+      resume.education.forEach((edu) => {
+        if (edu.show === undefined) {
+          edu.show = true;
+          needsUpdate = true;
+        }
+      });
+    }
+
+    if (resume.projects.length > 0) {
+      resume.projects.forEach((project) => {
+        if (project.show === undefined) {
+          project.show = true;
+          needsUpdate = true;
+        }
+      });
+    }
+
+    if (resume.activities.length > 0) {
+      resume.activities.forEach((activity) => {
+        if (activity.show === undefined) {
+          activity.show = true;
+          needsUpdate = true;
+        }
+      });
+    }
+
     // If we had to migrate data, save the updated resume
     if (needsUpdate) {
       await this.saveResume(resume);
@@ -181,6 +263,88 @@ export class ResumeService {
       if (migrated.showProjects === undefined) {
         migrated.showProjects = true;
         needsUpdate = true;
+      }
+
+      // Migrate individual items to have show property
+      if (migrated.skills.length > 0) {
+        migrated.skills.forEach((skill) => {
+          if (skill.show === undefined) {
+            skill.show = true;
+            needsUpdate = true;
+          }
+        });
+      }
+
+      if (migrated.languages.length > 0) {
+        migrated.languages.forEach((language) => {
+          if (language.show === undefined) {
+            language.show = true;
+            needsUpdate = true;
+          }
+        });
+      }
+
+      if (migrated.strengths.length > 0) {
+        migrated.strengths.forEach((strength) => {
+          if (strength.show === undefined) {
+            strength.show = true;
+            needsUpdate = true;
+          }
+        });
+      }
+
+      if (migrated.interests.length > 0) {
+        migrated.interests.forEach((interest) => {
+          if (interest.show === undefined) {
+            interest.show = true;
+            needsUpdate = true;
+          }
+        });
+      }
+
+      if (migrated.certifications.length > 0) {
+        migrated.certifications.forEach((cert) => {
+          if (cert.show === undefined) {
+            cert.show = true;
+            needsUpdate = true;
+          }
+        });
+      }
+
+      if (migrated.workExperience.length > 0) {
+        migrated.workExperience.forEach((exp) => {
+          if (exp.show === undefined) {
+            exp.show = true;
+            needsUpdate = true;
+          }
+        });
+      }
+
+      if (migrated.education.length > 0) {
+        migrated.education.forEach((edu) => {
+          if (edu.show === undefined) {
+            edu.show = true;
+            needsUpdate = true;
+          }
+        });
+      }
+
+      if (migrated.projects.length > 0) {
+        migrated.projects.forEach((project) => {
+          if (project.show === undefined) {
+            project.show = true;
+            needsUpdate = true;
+          }
+        });
+      }
+
+      if (migrated.activities.length > 0) {
+        migrated.activities.forEach((activity) => {
+          if (activity.show === undefined) {
+            activity.show = true;
+            needsUpdate = true;
+          }
+        });
       }
 
       return migrated;

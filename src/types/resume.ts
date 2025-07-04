@@ -37,6 +37,7 @@ export interface WorkExperience {
   showDescription: boolean;
   showLocation: boolean;
   showDateRange: boolean;
+  show: boolean;
 }
 
 export interface Education {
@@ -49,17 +50,20 @@ export interface Education {
   showGpa: boolean;
   showLocation: boolean;
   showDateRange: boolean;
+  show: boolean;
 }
 
 export interface Skill {
   name: string;
   level: number; // 1-5 scale
+  show: boolean;
 }
 
 export interface Language {
   name: string;
   level: number; // 1-5 scale
   levelText: string; // e.g., "Native", "Proficient"
+  show: boolean;
 }
 
 export interface Project {
@@ -72,6 +76,7 @@ export interface Project {
   showLink: boolean;
   showDateRange: boolean;
   showDescription: boolean;
+  show: boolean;
 }
 
 export interface Activity {
@@ -85,6 +90,7 @@ export interface Activity {
   showDateRange: boolean;
   showDescription: boolean;
   showLink: boolean;
+  show: boolean;
 }
 
 export interface CustomSection {
@@ -105,12 +111,14 @@ export interface StrengthItem {
   id: string;
   title: string;
   description: string;
+  show: boolean;
 }
 
 export interface InterestItem {
   id: string;
   title: string;
   description: string;
+  show: boolean;
 }
 
 export interface Certification {
@@ -131,6 +139,7 @@ export interface Certification {
   showExpirationDate: boolean;
   showCredentialId: boolean;
   showCredentialUrl: boolean;
+  show: boolean;
 }
 
 export interface ResumeData {

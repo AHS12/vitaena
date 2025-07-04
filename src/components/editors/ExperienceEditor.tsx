@@ -46,6 +46,7 @@ export const ExperienceEditor: React.FC = () => {
             showDescription: true,
             showLocation: true,
             showDateRange: true,
+            show: true,
         };
 
         const updatedExperience = [...currentResume.workExperience, newExperience];
@@ -114,6 +115,13 @@ export const ExperienceEditor: React.FC = () => {
         updateResumeField('showWorkExperience', !currentResume.showWorkExperience);
     };
 
+    const toggleExperienceVisibility = (experienceId: string) => {
+        const updatedExperience = currentResume.workExperience.map(exp =>
+            exp.id === experienceId ? { ...exp, show: !exp.show } : exp
+        );
+        updateResumeField('workExperience', updatedExperience);
+    };
+
     return (
         <Box sx={{ p: 3 }}>
             <Card>
@@ -154,7 +162,7 @@ export const ExperienceEditor: React.FC = () => {
 
                                 return (
                                     <SortableItem key={experience.id} id={`experience-${index}`}>
-                                        <Card variant="outlined">
+                                        <Card variant="outlined" sx={{ opacity: experience.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -179,6 +187,14 @@ export const ExperienceEditor: React.FC = () => {
                                                     >
                                                         {isExpanded ? 'Collapse' : 'Expand'}
                                                     </Button>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => toggleExperienceVisibility(experience.id)}
+                                                        color={experience.show ? 'primary' : 'default'}
+                                                        title={experience.show ? 'Hide experience' : 'Show experience'}
+                                                    >
+                                                        {experience.show ? <Visibility /> : <VisibilityOff />}
+                                                    </IconButton>
                                                     <IconButton
                                                         size="small"
                                                         color="error"

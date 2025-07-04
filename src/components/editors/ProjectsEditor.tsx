@@ -54,6 +54,7 @@ export const ProjectsEditor: React.FC = () => {
             showLink: false,
             showDateRange: true,
             showDescription: true,
+            show: true,
         };
 
         const updatedProjects = [...currentResume.projects, newProject];
@@ -94,6 +95,13 @@ export const ProjectsEditor: React.FC = () => {
 
     const handleToggleShow = () => {
         updateResumeField('showProjects', !currentResume.showProjects);
+    };
+
+    const toggleProjectVisibility = (projectId: string) => {
+        const updatedProjects = currentResume.projects.map(project =>
+            project.id === projectId ? { ...project, show: !project.show } : project
+        );
+        updateResumeField('projects', updatedProjects);
     };
 
     const addTechnology = (projectId: string, technology: string) => {
@@ -153,7 +161,7 @@ export const ProjectsEditor: React.FC = () => {
 
                                 return (
                                     <SortableItem key={project.id} id={`project-${index}`}>
-                                        <Card variant="outlined" sx={{ opacity: currentResume.showProjects ? 1 : 0.5 }}>
+                                        <Card variant="outlined" sx={{ opacity: project.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -179,6 +187,15 @@ export const ProjectsEditor: React.FC = () => {
                                                     >
                                                         {isExpanded ? 'Collapse' : 'Expand'}
                                                     </Button>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => toggleProjectVisibility(project.id)}
+                                                        color={project.show ? 'primary' : 'default'}
+                                                        title={project.show ? 'Hide project' : 'Show project'}
+                                                        disabled={!currentResume.showProjects}
+                                                    >
+                                                        {project.show ? <Visibility /> : <VisibilityOff />}
+                                                    </IconButton>
                                                     <IconButton
                                                         size="small"
                                                         color="error"

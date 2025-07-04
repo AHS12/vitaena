@@ -32,6 +32,7 @@ export const StrengthsEditor: React.FC = () => {
             id: generateId(),
             title: '',
             description: '',
+            show: true,
         };
 
         const updatedStrengths = [...currentResume.strengths, newStrength];
@@ -39,9 +40,16 @@ export const StrengthsEditor: React.FC = () => {
         setExpandedItems([...expandedItems, newStrength.id]);
     };
 
-    const updateStrength = (id: string, field: keyof StrengthItem, value: string) => {
+    const updateStrength = (id: string, field: keyof StrengthItem, value: string | boolean) => {
         const updatedStrengths = currentResume.strengths.map(strength =>
             strength.id === id ? { ...strength, [field]: value } : strength
+        );
+        updateResumeField('strengths', updatedStrengths);
+    };
+
+    const toggleStrengthShow = (id: string) => {
+        const updatedStrengths = currentResume.strengths.map(strength =>
+            strength.id === id ? { ...strength, show: !strength.show } : strength
         );
         updateResumeField('strengths', updatedStrengths);
     };
@@ -106,7 +114,7 @@ export const StrengthsEditor: React.FC = () => {
 
                                 return (
                                     <SortableItem key={strength.id} id={`strength-${index}`}>
-                                        <Card variant="outlined">
+                                        <Card variant="outlined" sx={{ opacity: strength.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -124,6 +132,14 @@ export const StrengthsEditor: React.FC = () => {
                                                     </Box>
                                                 </Box>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => toggleStrengthShow(strength.id)}
+                                                        color={strength.show ? 'primary' : 'default'}
+                                                        title={strength.show ? 'Hide item' : 'Show item'}
+                                                    >
+                                                        {strength.show ? <Visibility /> : <VisibilityOff />}
+                                                    </IconButton>
                                                     <Button
                                                         size="small"
                                                         onClick={() => toggleExpanded(strength.id)}

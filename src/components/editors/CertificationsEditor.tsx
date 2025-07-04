@@ -75,6 +75,7 @@ export const CertificationsEditor: React.FC = () => {
             showExpirationDate: false,
             showCredentialId: false,
             showCredentialUrl: false,
+            show: true,
         };
 
         const updatedCertifications = [...certifications, newCertification];
@@ -85,6 +86,13 @@ export const CertificationsEditor: React.FC = () => {
     const updateCertification = (id: string, field: keyof Certification, value: unknown) => {
         const updatedCertifications = certifications.map(cert =>
             cert.id === id ? { ...cert, [field]: value } : cert
+        );
+        updateResumeField('certifications', updatedCertifications);
+    };
+
+    const toggleCertificationShow = (id: string) => {
+        const updatedCertifications = certifications.map(cert =>
+            cert.id === id ? { ...cert, show: !cert.show } : cert
         );
         updateResumeField('certifications', updatedCertifications);
     };
@@ -165,7 +173,7 @@ export const CertificationsEditor: React.FC = () => {
 
                                 return (
                                     <SortableItem key={certification.id} id={`certification-${index}`}>
-                                        <Card variant="outlined">
+                                        <Card variant="outlined" sx={{ opacity: certification.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -180,6 +188,14 @@ export const CertificationsEditor: React.FC = () => {
                                                     </Box>
                                                 </Box>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => toggleCertificationShow(certification.id)}
+                                                        color={certification.show ? 'primary' : 'default'}
+                                                        title={certification.show ? 'Hide item' : 'Show item'}
+                                                    >
+                                                        {certification.show ? <Visibility /> : <VisibilityOff />}
+                                                    </IconButton>
                                                     <Button
                                                         size="small"
                                                         onClick={() => toggleExpanded(certification.id)}

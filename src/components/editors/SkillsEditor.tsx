@@ -44,6 +44,7 @@ interface SortableSkillItemProps {
     index: number;
     updateSkillLevel: (index: number, level: number) => void;
     removeSkill: (index: number) => void;
+    toggleSkillVisibility: (index: number) => void;
     getLevelText: (level: number) => string;
     getLevelColor: (level: number) => 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
 }
@@ -53,6 +54,7 @@ const SortableSkillItem: React.FC<SortableSkillItemProps> = ({
     index,
     updateSkillLevel,
     removeSkill,
+    toggleSkillVisibility,
     getLevelText,
     getLevelColor,
 }) => {
@@ -83,6 +85,7 @@ const SortableSkillItem: React.FC<SortableSkillItemProps> = ({
                 border: '1px solid',
                 borderColor: 'divider',
                 cursor: isDragging ? 'grabbing' : 'grab',
+                opacity: skill.show ? 1 : 0.5,
             }}
         >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
@@ -116,6 +119,14 @@ const SortableSkillItem: React.FC<SortableSkillItemProps> = ({
                         <MenuItem value={5}>Expert</MenuItem>
                     </Select>
                 </FormControl>
+                <IconButton
+                    size="small"
+                    onClick={() => toggleSkillVisibility(index)}
+                    color={skill.show ? 'primary' : 'default'}
+                    title={skill.show ? 'Hide skill' : 'Show skill'}
+                >
+                    {skill.show ? <Visibility /> : <VisibilityOff />}
+                </IconButton>
                 <IconButton
                     size="small"
                     onClick={() => removeSkill(index)}
@@ -161,6 +172,7 @@ export const SkillsEditor: React.FC = () => {
             const newSkill: Skill = {
                 name: newSkillName.trim(),
                 level: newSkillLevel,
+                show: true,
             };
             const updatedSkills = [...currentResume.skills, newSkill];
             updateResumeField('skills', updatedSkills);
@@ -177,6 +189,13 @@ export const SkillsEditor: React.FC = () => {
     const updateSkillLevel = (skillIndex: number, level: number) => {
         const updatedSkills = currentResume.skills.map((skill, index) =>
             index === skillIndex ? { ...skill, level } : skill
+        );
+        updateResumeField('skills', updatedSkills);
+    };
+
+    const toggleSkillVisibility = (skillIndex: number) => {
+        const updatedSkills = currentResume.skills.map((skill, index) =>
+            index === skillIndex ? { ...skill, show: !skill.show } : skill
         );
         updateResumeField('skills', updatedSkills);
     };
@@ -310,6 +329,7 @@ export const SkillsEditor: React.FC = () => {
                                                 index={index}
                                                 updateSkillLevel={updateSkillLevel}
                                                 removeSkill={removeSkill}
+                                                toggleSkillVisibility={toggleSkillVisibility}
                                                 getLevelText={getLevelText}
                                                 getLevelColor={getLevelColor}
                                             />

@@ -44,6 +44,7 @@ export const LanguagesEditor: React.FC = () => {
                 name: newLanguageName.trim(),
                 level: newLanguageLevel,
                 levelText: levelLabels[newLanguageLevel as keyof typeof levelLabels],
+                show: true,
             };
             const updatedLanguages = [...currentResume.languages, newLanguage];
             updateResumeField('languages', updatedLanguages);
@@ -68,6 +69,13 @@ export const LanguagesEditor: React.FC = () => {
                 level,
                 levelText: levelLabels[level as keyof typeof levelLabels]
             } : language
+        );
+        updateResumeField('languages', updatedLanguages);
+    };
+
+    const toggleLanguageVisibility = (languageIndex: number) => {
+        const updatedLanguages = currentResume.languages.map((language, index) =>
+            index === languageIndex ? { ...language, show: !language.show } : language
         );
         updateResumeField('languages', updatedLanguages);
     };
@@ -131,13 +139,23 @@ export const LanguagesEditor: React.FC = () => {
                         <Stack spacing={2} sx={{ mb: 3 }}>
                             {currentResume.languages.map((language, index) => (
                                 <SortableItem key={index} id={`language-${index}`}>
-                                    <Paper sx={{ p: 2, border: 1, borderColor: 'divider' }}>
+                                    <Paper sx={{ p: 2, border: 1, borderColor: 'divider', opacity: language.show ? 1 : 0.5 }}>
                                         <Stack spacing={2}>
                                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <Typography variant="h6">{language.name}</Typography>
-                                                <IconButton size="small" onClick={() => removeLanguage(index)}>
-                                                    <Close />
-                                                </IconButton>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => toggleLanguageVisibility(index)}
+                                                        color={language.show ? 'primary' : 'default'}
+                                                        title={language.show ? 'Hide language' : 'Show language'}
+                                                    >
+                                                        {language.show ? <Visibility /> : <VisibilityOff />}
+                                                    </IconButton>
+                                                    <IconButton size="small" onClick={() => removeLanguage(index)}>
+                                                        <Close />
+                                                    </IconButton>
+                                                </Box>
                                             </Box>
 
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

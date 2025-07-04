@@ -32,6 +32,7 @@ export const InterestsEditor: React.FC = () => {
             id: generateId(),
             title: '',
             description: '',
+            show: true,
         };
 
         const updatedInterests = [...currentResume.interests, newInterest];
@@ -39,9 +40,16 @@ export const InterestsEditor: React.FC = () => {
         setExpandedItems([...expandedItems, newInterest.id]);
     };
 
-    const updateInterest = (id: string, field: keyof InterestItem, value: string) => {
+    const updateInterest = (id: string, field: keyof InterestItem, value: string | boolean) => {
         const updatedInterests = currentResume.interests.map(interest =>
             interest.id === id ? { ...interest, [field]: value } : interest
+        );
+        updateResumeField('interests', updatedInterests);
+    };
+
+    const toggleInterestShow = (id: string) => {
+        const updatedInterests = currentResume.interests.map(interest =>
+            interest.id === id ? { ...interest, show: !interest.show } : interest
         );
         updateResumeField('interests', updatedInterests);
     };
@@ -106,7 +114,7 @@ export const InterestsEditor: React.FC = () => {
 
                                 return (
                                     <SortableItem key={interest.id} id={`interest-${index}`}>
-                                        <Card variant="outlined">
+                                        <Card variant="outlined" sx={{ opacity: interest.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -124,6 +132,14 @@ export const InterestsEditor: React.FC = () => {
                                                     </Box>
                                                 </Box>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => toggleInterestShow(interest.id)}
+                                                        color={interest.show ? 'primary' : 'default'}
+                                                        title={interest.show ? 'Hide item' : 'Show item'}
+                                                    >
+                                                        {interest.show ? <Visibility /> : <VisibilityOff />}
+                                                    </IconButton>
                                                     <Button
                                                         size="small"
                                                         onClick={() => toggleExpanded(interest.id)}

@@ -155,7 +155,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     )}
 
                     {/* Experience Section */}
-                    {data.showWorkExperience && data.workExperience.length > 0 && (
+                    {data.showWorkExperience && data.workExperience.filter(exp => exp.show).length > 0 && (
                         <div style={{ marginBottom: '12mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
@@ -170,7 +170,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 EXPERIENCE
                             </h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {data.workExperience.map((exp) => (
+                                {data.workExperience.filter(exp => exp.show).map((exp) => (
                                     <div key={exp.id}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
                                             <div>
@@ -241,7 +241,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     )}
 
                     {/* Education Section */}
-                    {data.showEducation && data.education.length > 0 && (
+                    {data.showEducation && data.education.filter(edu => edu.show).length > 0 && (
                         <div style={{ marginBottom: '12mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
@@ -256,7 +256,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 EDUCATION
                             </h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {data.education.map((edu) => (
+                                {data.education.filter(edu => edu.show).map((edu) => (
                                     <div key={edu.id}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <div>
@@ -311,7 +311,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     )}
 
                     {/* Certifications Section */}
-                    {data.showCertifications && Array.isArray(data.certifications) && data.certifications.length > 0 && (
+                    {data.showCertifications && Array.isArray(data.certifications) && data.certifications.filter(cert => cert.show).length > 0 && (
                         <div style={{ marginBottom: '12mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
@@ -326,7 +326,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 CERTIFICATIONS
                             </h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {data.certifications.map((cert) => (
+                                {data.certifications.filter(cert => cert.show).map((cert) => (
                                     <div key={cert.id}>
                                         <h4 style={{
                                             fontSize: '11px',
@@ -389,7 +389,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                 {/* Right Column */}
                 <div style={{ width: '35%', backgroundColor: '#ffffff', padding: '8mm 12mm 8mm 8mm', borderLeft: '1px solid #e5e7eb' }}>
                     {/* Skills Section */}
-                    {data.showSkills && data.skills.length > 0 && (
+                    {data.showSkills && data.skills.filter(skill => skill.show).length > 0 && (
                         <div style={{ marginBottom: '8mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
@@ -408,7 +408,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 justifyContent: 'flex-start',
                                 alignItems: 'flex-start'
                             }}>
-                                {data.skills.map((skill, index) => (
+                                {data.skills.filter(skill => skill.show).map((skill, index) => (
                                     <span
                                         key={index}
                                         style={{
@@ -433,7 +433,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     )}
 
                     {/* Strengths Section */}
-                    {data.showStrengths && Array.isArray(data.strengths) && data.strengths.length > 0 && (
+                    {data.showStrengths && Array.isArray(data.strengths) && data.strengths.filter(strength => strength.show).length > 0 && (
                         <div style={{ marginBottom: '8mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
@@ -446,7 +446,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 STRENGTHS
                             </h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {data.strengths.map((strength) => (
+                                {data.strengths.filter(strength => strength.show).map((strength) => (
                                     <div key={strength.id}>
                                         <h4 style={{
                                             fontSize: '10px',
@@ -473,7 +473,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     )}
 
                     {/* Languages Section */}
-                    {data.showLanguages && data.languages.length > 0 && (
+                    {data.showLanguages && data.languages.filter(lang => lang.show).length > 0 && (
                         <div style={{ marginBottom: '8mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
@@ -486,7 +486,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 LANGUAGES
                             </h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {data.languages.map((language, index) => (
+                                {data.languages.filter(lang => lang.show).map((language, index) => (
                                     <div key={index}>
                                         <div style={{
                                             display: 'flex',
@@ -516,7 +516,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     )}
 
                     {/* Projects Section */}
-                    {data.showProjects && data.projects.length > 0 && (
+                    {data.showProjects && data.projects.filter(project => project.show).length > 0 && (
                         <div style={{ marginBottom: '8mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
@@ -529,7 +529,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 PROJECTS
                             </h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {data.projects.map((project) => (
+                                {data.projects.filter(project => project.show).map((project) => (
                                     <div key={project.id}>
                                         <h4 style={{
                                             fontSize: '10px',
@@ -603,7 +603,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     )}
 
                     {/* Interests Section */}
-                    {data.showInterests && Array.isArray(data.interests) && data.interests.length > 0 && (
+                    {data.showInterests && Array.isArray(data.interests) && data.interests.filter(interest => interest.show).length > 0 && (
                         <div style={{ marginBottom: '8mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
@@ -616,7 +616,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 INTERESTS
                             </h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {data.interests.map((interest) => (
+                                {data.interests.filter(interest => interest.show).map((interest) => (
                                     <div key={interest.id}>
                                         <h4 style={{
                                             fontSize: '10px',
@@ -643,7 +643,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     )}
 
                     {/* Activities Section */}
-                    {data.showActivities && data.activities.length > 0 && (
+                    {data.showActivities && data.activities.filter(activity => activity.show).length > 0 && (
                         <div style={{ marginBottom: '8mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
@@ -656,7 +656,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 ACTIVITIES
                             </h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {data.activities.map((activity) => (
+                                {data.activities.filter(activity => activity.show).map((activity) => (
                                     <div key={activity.id}>
                                         <h4 style={{
                                             fontSize: '10px',
