@@ -1,3 +1,5 @@
+import { SortableItem } from '@/components/ui/SortableItem';
+import { SortableWrapper } from '@/components/ui/SortableWrapper';
 import { generateId } from '@/lib/utils';
 import { useResumeStore } from '@/stores/resume-store';
 import { InterestItem } from '@/types/resume';
@@ -60,12 +62,16 @@ export const InterestsEditor: React.FC = () => {
         updateResumeField('showInterests', !currentResume.showInterests);
     };
 
+    const reorderInterests = (reorderedInterests: InterestItem[]) => {
+        updateResumeField('interests', reorderedInterests);
+    };
+
     return (
         <Box sx={{ p: 3 }}>
             <Card>
                 <CardHeader
                     title="Interests & Hobbies"
-                    subheader="Share your personal interests, hobbies, and activities that showcase your personality."
+                    subheader="Share your personal interests, hobbies, and activities that showcase your personality. Drag to reorder."
                     action={
                         <FormControlLabel
                             control={
@@ -89,77 +95,85 @@ export const InterestsEditor: React.FC = () => {
                 />
                 <CardContent>
                     {/* Interest Items */}
-                    <Stack spacing={2}>
-                        {currentResume.interests.map((interest, index) => {
-                            const isExpanded = expandedItems.includes(interest.id);
+                    <SortableWrapper
+                        items={currentResume.interests}
+                        onReorder={reorderInterests}
+                        idPrefix="interest"
+                    >
+                        <Stack spacing={2}>
+                            {currentResume.interests.map((interest, index) => {
+                                const isExpanded = expandedItems.includes(interest.id);
 
-                            return (
-                                <Card key={interest.id} variant="outlined">
-                                    {/* Header */}
-                                    <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                            <EmojiEvents color="action" />
-                                            <Box>
-                                                <Typography variant="h6">
-                                                    {interest.title || `Interest ${index + 1}`}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {interest.description ?
-                                                        interest.description.substring(0, 80) + (interest.description.length > 80 ? '...' : '')
-                                                        : 'No description'
-                                                    }
-                                                </Typography>
+                                return (
+                                    <SortableItem key={interest.id} id={`interest-${index}`}>
+                                        <Card variant="outlined">
+                                            {/* Header */}
+                                            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                    <EmojiEvents color="action" />
+                                                    <Box>
+                                                        <Typography variant="h6">
+                                                            {interest.title || `Interest ${index + 1}`}
+                                                        </Typography>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            {interest.description ?
+                                                                interest.description.substring(0, 80) + (interest.description.length > 80 ? '...' : '')
+                                                                : 'No description'
+                                                            }
+                                                        </Typography>
+                                                    </Box>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Button
+                                                        size="small"
+                                                        onClick={() => toggleExpanded(interest.id)}
+                                                        endIcon={isExpanded ? <ExpandLess /> : <ExpandMore />}
+                                                    >
+                                                        {isExpanded ? 'Collapse' : 'Expand'}
+                                                    </Button>
+                                                    <IconButton
+                                                        size="small"
+                                                        color="error"
+                                                        onClick={() => deleteInterest(interest.id)}
+                                                    >
+                                                        <Delete />
+                                                    </IconButton>
+                                                </Box>
                                             </Box>
-                                        </Box>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <Button
-                                                size="small"
-                                                onClick={() => toggleExpanded(interest.id)}
-                                                endIcon={isExpanded ? <ExpandLess /> : <ExpandMore />}
-                                            >
-                                                {isExpanded ? 'Collapse' : 'Expand'}
-                                            </Button>
-                                            <IconButton
-                                                size="small"
-                                                color="error"
-                                                onClick={() => deleteInterest(interest.id)}
-                                            >
-                                                <Delete />
-                                            </IconButton>
-                                        </Box>
-                                    </Box>
 
-                                    {/* Expanded Content */}
-                                    <Collapse in={isExpanded}>
-                                        <Box sx={{ px: 2, pb: 2, borderTop: 1, borderColor: 'divider' }}>
-                                            <Stack spacing={3} sx={{ pt: 3 }}>
-                                                {/* Title */}
-                                                <TextField
-                                                    fullWidth
-                                                    label="Interest Title"
-                                                    value={interest.title}
-                                                    onChange={(e) => updateInterest(interest.id, 'title', e.target.value)}
-                                                    placeholder="e.g., Game Development, Reading, Sports, Music"
-                                                    required
-                                                />
+                                            {/* Expanded Content */}
+                                            <Collapse in={isExpanded}>
+                                                <Box sx={{ px: 2, pb: 2, borderTop: 1, borderColor: 'divider' }}>
+                                                    <Stack spacing={3} sx={{ pt: 3 }}>
+                                                        {/* Title */}
+                                                        <TextField
+                                                            fullWidth
+                                                            label="Interest Title"
+                                                            value={interest.title}
+                                                            onChange={(e) => updateInterest(interest.id, 'title', e.target.value)}
+                                                            placeholder="e.g., Game Development, Reading, Sports, Music"
+                                                            required
+                                                        />
 
-                                                {/* Description */}
-                                                <TextField
-                                                    fullWidth
-                                                    multiline
-                                                    rows={3}
-                                                    label="Description"
-                                                    value={interest.description}
-                                                    onChange={(e) => updateInterest(interest.id, 'description', e.target.value)}
-                                                    placeholder="Describe this interest in detail. For example: Game Development with Godot, Ebitengine, and Go programming."
-                                                />
-                                            </Stack>
-                                        </Box>
-                                    </Collapse>
-                                </Card>
-                            );
-                        })}
-                    </Stack>
+                                                        {/* Description */}
+                                                        <TextField
+                                                            fullWidth
+                                                            multiline
+                                                            rows={3}
+                                                            label="Description"
+                                                            value={interest.description}
+                                                            onChange={(e) => updateInterest(interest.id, 'description', e.target.value)}
+                                                            placeholder="Describe this interest in detail. For example: Game Development with Godot, Ebitengine, and Go programming."
+                                                        />
+                                                    </Stack>
+                                                </Box>
+                                            </Collapse>
+                                        </Card>
+                                    </SortableItem>
+                                );
+                            })}
+                        </Stack>
+                    </SortableWrapper>
 
                     {/* Add New Interest Button */}
                     <Paper

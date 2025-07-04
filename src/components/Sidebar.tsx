@@ -10,6 +10,7 @@ import {
     Person,
     School,
     Work,
+    WorkspacePremium,
 } from '@mui/icons-material';
 import {
     Box,
@@ -28,6 +29,7 @@ const sections = [
     { id: 'summary', label: 'Summary', icon: Description },
     { id: 'experience', label: 'Experience', icon: Work },
     { id: 'education', label: 'Education', icon: School },
+    { id: 'certifications', label: 'Certifications', icon: WorkspacePremium },
     { id: 'skills', label: 'Skills', icon: Build },
     { id: 'strengths', label: 'Strengths', icon: FitnessCenter },
     { id: 'languages', label: 'Languages', icon: Language },

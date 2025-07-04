@@ -155,7 +155,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     )}
 
                     {/* Experience Section */}
-                    {data.workExperience.length > 0 && (
+                    {data.showWorkExperience && data.workExperience.length > 0 && (
                         <div style={{ marginBottom: '12mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
@@ -241,7 +241,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     )}
 
                     {/* Education Section */}
-                    {data.education.length > 0 && (
+                    {data.showEducation && data.education.length > 0 && (
                         <div style={{ marginBottom: '12mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
@@ -309,34 +309,120 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                             </div>
                         </div>
                     )}
+
+                    {/* Certifications Section */}
+                    {data.showCertifications && Array.isArray(data.certifications) && data.certifications.length > 0 && (
+                        <div style={{ marginBottom: '12mm' }}>
+                            <h3 style={{
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                marginBottom: '8px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                                borderBottom: '2px solid #111827',
+                                paddingBottom: '2px'
+                            }}>
+                                CERTIFICATIONS
+                            </h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {data.certifications.map((cert) => (
+                                    <div key={cert.id}>
+                                        <h4 style={{
+                                            fontSize: '11px',
+                                            fontWeight: 'bold',
+                                            color: '#111827',
+                                            margin: '0 0 2px 0'
+                                        }}>
+                                            {cert.name}
+                                        </h4>
+                                        <p style={{
+                                            fontSize: '10px',
+                                            fontWeight: '600',
+                                            color: '#2563eb',
+                                            margin: '0 0 2px 0'
+                                        }}>
+                                            {cert.issuingOrganization}
+                                        </p>
+                                        {cert.showIssueDate && (
+                                            <p style={{
+                                                fontSize: '9px',
+                                                color: '#6b7280',
+                                                margin: '0 0 2px 0'
+                                            }}>
+                                                Issued: {cert.issueDate.month.toString().padStart(2, '0')}/{cert.issueDate.year}
+                                                {cert.showExpirationDate && cert.expirationDate && (
+                                                    <span> • Expires: {cert.expirationDate.month.toString().padStart(2, '0')}/{cert.expirationDate.year}</span>
+                                                )}
+                                            </p>
+                                        )}
+                                        {cert.showCredentialId && cert.credentialId && (
+                                            <p style={{
+                                                fontSize: '9px',
+                                                color: '#374151',
+                                                margin: '0 0 2px 0'
+                                            }}>
+                                                ID: {cert.credentialId}
+                                            </p>
+                                        )}
+                                        {cert.showCredentialUrl && cert.credentialUrl && (
+                                            <a
+                                                href={cert.credentialUrl}
+                                                style={{
+                                                    fontSize: '9px',
+                                                    color: '#2563eb',
+                                                    textDecoration: 'none'
+                                                }}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                Verify Certificate
+                                            </a>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Column */}
                 <div style={{ width: '35%', backgroundColor: '#ffffff', padding: '8mm 12mm 8mm 8mm', borderLeft: '1px solid #e5e7eb' }}>
                     {/* Skills Section */}
-                    {data.skills.length > 0 && (
+                    {data.showSkills && data.skills.length > 0 && (
                         <div style={{ marginBottom: '8mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
                                 fontWeight: 'bold',
                                 color: '#111827',
-                                marginBottom: '6px',
+                                marginBottom: '8px',
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px'
                             }}>
                                 SKILLS
                             </h3>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            <div style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '4px 6px',
+                                justifyContent: 'flex-start',
+                                alignItems: 'flex-start'
+                            }}>
                                 {data.skills.map((skill, index) => (
                                     <span
                                         key={index}
                                         style={{
-                                            padding: '2px 6px',
-                                            backgroundColor: '#e5e7eb',
+                                            padding: '3px 8px',
+                                            backgroundColor: '#ffffff',
                                             color: '#374151',
                                             fontSize: '9px',
                                             borderRadius: '3px',
-                                            fontWeight: '500'
+                                            fontWeight: '500',
+                                            border: '1px solid #d1d5db',
+                                            letterSpacing: '0.1px',
+                                            whiteSpace: 'nowrap',
+                                            display: 'inline-block',
+                                            minWidth: 'fit-content'
                                         }}
                                     >
                                         {skill.name}
@@ -387,7 +473,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     )}
 
                     {/* Languages Section */}
-                    {data.languages.length > 0 && (
+                    {data.showLanguages && data.languages.length > 0 && (
                         <div style={{ marginBottom: '8mm' }}>
                             <h3 style={{
                                 fontSize: '13px',
@@ -430,7 +516,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     )}
 
                     {/* Projects Section */}
-                    {data.projects.length > 0 && (
+                    {data.showProjects && data.projects.length > 0 && (
                         <div style={{ marginBottom: '8mm' }}>
                             <h3 style={{
                                 fontSize: '13px',

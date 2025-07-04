@@ -1,7 +1,9 @@
+import { SortableItem } from '@/components/ui/SortableItem';
+import { SortableWrapper } from '@/components/ui/SortableWrapper';
 import { generateId } from '@/lib/utils';
 import { useResumeStore } from '@/stores/resume-store';
 import { DateRange, WorkExperience } from '@/types/resume';
-import { Add, Business, Delete, ExpandLess, ExpandMore, LocationOn, Work } from '@mui/icons-material';
+import { Add, Business, Delete, ExpandLess, ExpandMore, LocationOn, Visibility, VisibilityOff, Work } from '@mui/icons-material';
 import {
     Box,
     Button,
@@ -15,6 +17,7 @@ import {
     InputAdornment,
     Paper,
     Stack,
+    Switch,
     TextField,
     Typography,
 } from '@mui/material';
@@ -55,6 +58,10 @@ export const ExperienceEditor: React.FC = () => {
             exp.id === id ? { ...exp, [field]: value } : exp
         );
         updateResumeField('workExperience', updatedExperience);
+    };
+
+    const reorderExperience = (reorderedItems: WorkExperience[]) => {
+        updateResumeField('workExperience', reorderedItems);
     };
 
     const deleteExperience = (id: string) => {
@@ -103,235 +110,267 @@ export const ExperienceEditor: React.FC = () => {
         }
     };
 
+    const handleToggleShow = () => {
+        updateResumeField('showWorkExperience', !currentResume.showWorkExperience);
+    };
+
     return (
         <Box sx={{ p: 3 }}>
             <Card>
                 <CardHeader
                     title="Work Experience"
-                    subheader="Add your professional work experience, including internships and freelance work."
+                    subheader="Add your professional work experience, including internships and freelance work. Drag to reorder."
+                    action={
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={currentResume.showWorkExperience}
+                                    onChange={handleToggleShow}
+                                />
+                            }
+                            label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <IconButton size="small" color={currentResume.showWorkExperience ? 'primary' : 'default'}>
+                                        {currentResume.showWorkExperience ? <Visibility /> : <VisibilityOff />}
+                                    </IconButton>
+                                    <Typography variant="body2">
+                                        Show Experience
+                                    </Typography>
+                                </Box>
+                            }
+                        />
+                    }
                 />
                 <CardContent>
                     {/* Experience Items */}
-                    <Stack spacing={2}>
-                        {currentResume.workExperience.map((experience, index) => {
-                            const isExpanded = expandedItems.includes(experience.id);
+                    <SortableWrapper
+                        items={currentResume.workExperience}
+                        onReorder={reorderExperience}
+                        idPrefix="experience"
+                    >
+                        <Stack spacing={2}>
+                            {currentResume.workExperience.map((experience, index) => {
+                                const isExpanded = expandedItems.includes(experience.id);
 
-                            return (
-                                <Card key={experience.id} variant="outlined">
-                                    {/* Header */}
-                                    <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                            <Work color="action" />
-                                            <Box>
-                                                <Typography variant="h6">
-                                                    {experience.position || `Experience ${index + 1}`}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {experience.company && experience.location
-                                                        ? `${experience.company} • ${experience.location}`
-                                                        : experience.company || experience.location || 'Company not specified'
-                                                    }
-                                                </Typography>
-                                            </Box>
-                                        </Box>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <Button
-                                                size="small"
-                                                onClick={() => toggleExpanded(experience.id)}
-                                                endIcon={isExpanded ? <ExpandLess /> : <ExpandMore />}
-                                            >
-                                                {isExpanded ? 'Collapse' : 'Expand'}
-                                            </Button>
-                                            <IconButton
-                                                size="small"
-                                                color="error"
-                                                onClick={() => deleteExperience(experience.id)}
-                                            >
-                                                <Delete />
-                                            </IconButton>
-                                        </Box>
-                                    </Box>
-
-                                    {/* Expanded Content */}
-                                    <Collapse in={isExpanded}>
-                                        <Box sx={{ px: 2, pb: 2, borderTop: 1, borderColor: 'divider' }}>
-                                            <Stack spacing={3} sx={{ pt: 3 }}>
-                                                {/* Position */}
-                                                <TextField
-                                                    fullWidth
-                                                    label="Position/Job Title"
-                                                    value={experience.position}
-                                                    onChange={(e) => updateExperience(experience.id, 'position', e.target.value)}
-                                                    placeholder="e.g., Software Engineer, Product Manager"
-                                                    required
-                                                />
-
-                                                {/* Company */}
-                                                <TextField
-                                                    fullWidth
-                                                    label="Company"
-                                                    value={experience.company}
-                                                    onChange={(e) => updateExperience(experience.id, 'company', e.target.value)}
-                                                    placeholder="Company name"
-                                                    required
-                                                    InputProps={{
-                                                        startAdornment: (
-                                                            <InputAdornment position="start">
-                                                                <Business />
-                                                            </InputAdornment>
-                                                        ),
-                                                    }}
-                                                />
-
-                                                {/* Location */}
-                                                <Box>
-                                                    <TextField
-                                                        fullWidth
-                                                        label="Location"
-                                                        value={experience.location}
-                                                        onChange={(e) => updateExperience(experience.id, 'location', e.target.value)}
-                                                        placeholder="City, State/Country"
-                                                        InputProps={{
-                                                            startAdornment: (
-                                                                <InputAdornment position="start">
-                                                                    <LocationOn />
-                                                                </InputAdornment>
-                                                            ),
-                                                        }}
-                                                    />
-                                                    <FormControlLabel
-                                                        control={
-                                                            <Checkbox
-                                                                checked={experience.showLocation}
-                                                                onChange={(e) => updateExperience(experience.id, 'showLocation', e.target.checked)}
-                                                            />
-                                                        }
-                                                        label="Show location"
-                                                    />
-                                                </Box>
-
-                                                {/* Date Range */}
-                                                <Box>
-                                                    <Typography variant="subtitle2" sx={{ mb: 2 }}>
-                                                        Employment Period
-                                                    </Typography>
-                                                    <Stack direction="row" spacing={2}>
-                                                        <TextField
-                                                            type="number"
-                                                            label="Start Year"
-                                                            value={experience.dateRange.startYear}
-                                                            onChange={(e) => updateDateRange(experience.id, 'startYear', parseInt(e.target.value))}
-                                                            inputProps={{ min: 1950, max: 2030 }}
-                                                        />
-                                                        <TextField
-                                                            type="number"
-                                                            label="End Year"
-                                                            value={experience.dateRange.endYear || ''}
-                                                            onChange={(e) => updateDateRange(experience.id, 'endYear', parseInt(e.target.value))}
-                                                            inputProps={{ min: 1950, max: 2030 }}
-                                                            disabled={experience.dateRange.isOngoing}
-                                                        />
-                                                    </Stack>
-                                                    <Stack sx={{ mt: 1 }}>
-                                                        <FormControlLabel
-                                                            control={
-                                                                <Checkbox
-                                                                    checked={experience.dateRange.isOngoing}
-                                                                    onChange={(e) => updateDateRange(experience.id, 'isOngoing', e.target.checked)}
-                                                                />
-                                                            }
-                                                            label="Currently working here"
-                                                        />
-                                                        <FormControlLabel
-                                                            control={
-                                                                <Checkbox
-                                                                    checked={experience.showDateRange}
-                                                                    onChange={(e) => updateExperience(experience.id, 'showDateRange', e.target.checked)}
-                                                                />
-                                                            }
-                                                            label="Show dates"
-                                                        />
-                                                    </Stack>
-                                                </Box>
-
-                                                {/* Description */}
-                                                <Box>
-                                                    <TextField
-                                                        fullWidth
-                                                        multiline
-                                                        rows={3}
-                                                        label="Job Description"
-                                                        value={experience.description}
-                                                        onChange={(e) => updateExperience(experience.id, 'description', e.target.value)}
-                                                        placeholder="Brief description of your role and responsibilities..."
-                                                    />
-                                                    <FormControlLabel
-                                                        control={
-                                                            <Checkbox
-                                                                checked={experience.showDescription}
-                                                                onChange={(e) => updateExperience(experience.id, 'showDescription', e.target.checked)}
-                                                            />
-                                                        }
-                                                        label="Show description"
-                                                    />
-                                                </Box>
-
-                                                {/* Achievements/Bullets */}
-                                                <Box>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                                                        <Typography variant="subtitle2">
-                                                            Key Achievements
+                                return (
+                                    <SortableItem key={experience.id} id={`experience-${index}`}>
+                                        <Card variant="outlined">
+                                            {/* Header */}
+                                            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                    <Work color="action" />
+                                                    <Box>
+                                                        <Typography variant="h6">
+                                                            {experience.position || `Experience ${index + 1}`}
                                                         </Typography>
-                                                        <Button
-                                                            size="small"
-                                                            onClick={() => addBullet(experience.id)}
-                                                            startIcon={<Add />}
-                                                        >
-                                                            Add Achievement
-                                                        </Button>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            {experience.company && experience.location
+                                                                ? `${experience.company} • ${experience.location}`
+                                                                : experience.company || experience.location || 'Company not specified'
+                                                            }
+                                                        </Typography>
                                                     </Box>
-
-                                                    <Stack spacing={2}>
-                                                        {experience.bullets.map((bullet, bulletIndex) => (
-                                                            <Box key={bulletIndex} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                                <Typography sx={{ color: 'text.secondary', lineHeight: 1, fontSize: '1.2rem' }}>•</Typography>
-                                                                <TextField
-                                                                    fullWidth
-                                                                    value={bullet}
-                                                                    onChange={(e) => updateBullet(experience.id, bulletIndex, e.target.value)}
-                                                                    placeholder="Describe your achievement or responsibility..."
-                                                                    size="small"
-                                                                    sx={{ flexGrow: 1 }}
-                                                                />
-                                                                <IconButton
-                                                                    size="small"
-                                                                    color="error"
-                                                                    onClick={() => deleteBullet(experience.id, bulletIndex)}
-                                                                >
-                                                                    <Delete />
-                                                                </IconButton>
-                                                            </Box>
-                                                        ))}
-                                                    </Stack>
-
-                                                    <FormControlLabel
-                                                        control={
-                                                            <Checkbox
-                                                                checked={experience.showBullets}
-                                                                onChange={(e) => updateExperience(experience.id, 'showBullets', e.target.checked)}
-                                                            />
-                                                        }
-                                                        label="Show achievements"
-                                                        sx={{ mt: 1 }}
-                                                    />
                                                 </Box>
-                                            </Stack>
-                                        </Box>
-                                    </Collapse>
-                                </Card>
-                            );
-                        })}
-                    </Stack>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Button
+                                                        size="small"
+                                                        onClick={() => toggleExpanded(experience.id)}
+                                                        endIcon={isExpanded ? <ExpandLess /> : <ExpandMore />}
+                                                    >
+                                                        {isExpanded ? 'Collapse' : 'Expand'}
+                                                    </Button>
+                                                    <IconButton
+                                                        size="small"
+                                                        color="error"
+                                                        onClick={() => deleteExperience(experience.id)}
+                                                    >
+                                                        <Delete />
+                                                    </IconButton>
+                                                </Box>
+                                            </Box>
+
+                                            {/* Expanded Content */}
+                                            <Collapse in={isExpanded}>
+                                                <Box sx={{ px: 2, pb: 2, borderTop: 1, borderColor: 'divider' }}>
+                                                    <Stack spacing={3} sx={{ pt: 3 }}>
+                                                        {/* Position */}
+                                                        <TextField
+                                                            fullWidth
+                                                            label="Position/Job Title"
+                                                            value={experience.position}
+                                                            onChange={(e) => updateExperience(experience.id, 'position', e.target.value)}
+                                                            placeholder="e.g., Software Engineer, Product Manager"
+                                                            required
+                                                        />
+
+                                                        {/* Company */}
+                                                        <TextField
+                                                            fullWidth
+                                                            label="Company"
+                                                            value={experience.company}
+                                                            onChange={(e) => updateExperience(experience.id, 'company', e.target.value)}
+                                                            placeholder="Company name"
+                                                            required
+                                                            InputProps={{
+                                                                startAdornment: (
+                                                                    <InputAdornment position="start">
+                                                                        <Business />
+                                                                    </InputAdornment>
+                                                                ),
+                                                            }}
+                                                        />
+
+                                                        {/* Location */}
+                                                        <Box>
+                                                            <TextField
+                                                                fullWidth
+                                                                label="Location"
+                                                                value={experience.location}
+                                                                onChange={(e) => updateExperience(experience.id, 'location', e.target.value)}
+                                                                placeholder="City, State/Country"
+                                                                InputProps={{
+                                                                    startAdornment: (
+                                                                        <InputAdornment position="start">
+                                                                            <LocationOn />
+                                                                        </InputAdornment>
+                                                                    ),
+                                                                }}
+                                                            />
+                                                            <FormControlLabel
+                                                                control={
+                                                                    <Checkbox
+                                                                        checked={experience.showLocation}
+                                                                        onChange={(e) => updateExperience(experience.id, 'showLocation', e.target.checked)}
+                                                                    />
+                                                                }
+                                                                label="Show location"
+                                                            />
+                                                        </Box>
+
+                                                        {/* Date Range */}
+                                                        <Box>
+                                                            <Typography variant="subtitle2" sx={{ mb: 2 }}>
+                                                                Employment Period
+                                                            </Typography>
+                                                            <Stack direction="row" spacing={2}>
+                                                                <TextField
+                                                                    type="number"
+                                                                    label="Start Year"
+                                                                    value={experience.dateRange.startYear}
+                                                                    onChange={(e) => updateDateRange(experience.id, 'startYear', parseInt(e.target.value))}
+                                                                    inputProps={{ min: 1950, max: 2030 }}
+                                                                />
+                                                                <TextField
+                                                                    type="number"
+                                                                    label="End Year"
+                                                                    value={experience.dateRange.endYear || ''}
+                                                                    onChange={(e) => updateDateRange(experience.id, 'endYear', parseInt(e.target.value))}
+                                                                    inputProps={{ min: 1950, max: 2030 }}
+                                                                    disabled={experience.dateRange.isOngoing}
+                                                                />
+                                                            </Stack>
+                                                            <Stack sx={{ mt: 1 }}>
+                                                                <FormControlLabel
+                                                                    control={
+                                                                        <Checkbox
+                                                                            checked={experience.dateRange.isOngoing}
+                                                                            onChange={(e) => updateDateRange(experience.id, 'isOngoing', e.target.checked)}
+                                                                        />
+                                                                    }
+                                                                    label="Currently working here"
+                                                                />
+                                                                <FormControlLabel
+                                                                    control={
+                                                                        <Checkbox
+                                                                            checked={experience.showDateRange}
+                                                                            onChange={(e) => updateExperience(experience.id, 'showDateRange', e.target.checked)}
+                                                                        />
+                                                                    }
+                                                                    label="Show dates"
+                                                                />
+                                                            </Stack>
+                                                        </Box>
+
+                                                        {/* Description */}
+                                                        <Box>
+                                                            <TextField
+                                                                fullWidth
+                                                                multiline
+                                                                rows={3}
+                                                                label="Job Description"
+                                                                value={experience.description}
+                                                                onChange={(e) => updateExperience(experience.id, 'description', e.target.value)}
+                                                                placeholder="Brief description of your role and responsibilities..."
+                                                            />
+                                                            <FormControlLabel
+                                                                control={
+                                                                    <Checkbox
+                                                                        checked={experience.showDescription}
+                                                                        onChange={(e) => updateExperience(experience.id, 'showDescription', e.target.checked)}
+                                                                    />
+                                                                }
+                                                                label="Show description"
+                                                            />
+                                                        </Box>
+
+                                                        {/* Achievements/Bullets */}
+                                                        <Box>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                                                                <Typography variant="subtitle2">
+                                                                    Key Achievements
+                                                                </Typography>
+                                                                <Button
+                                                                    size="small"
+                                                                    onClick={() => addBullet(experience.id)}
+                                                                    startIcon={<Add />}
+                                                                >
+                                                                    Add Achievement
+                                                                </Button>
+                                                            </Box>
+
+                                                            <Stack spacing={2}>
+                                                                {experience.bullets.map((bullet, bulletIndex) => (
+                                                                    <Box key={bulletIndex} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                        <Typography sx={{ color: 'text.secondary', lineHeight: 1, fontSize: '1.2rem' }}>•</Typography>
+                                                                        <TextField
+                                                                            fullWidth
+                                                                            value={bullet}
+                                                                            onChange={(e) => updateBullet(experience.id, bulletIndex, e.target.value)}
+                                                                            placeholder="Describe your achievement or responsibility..."
+                                                                            size="small"
+                                                                            sx={{ flexGrow: 1 }}
+                                                                        />
+                                                                        <IconButton
+                                                                            size="small"
+                                                                            color="error"
+                                                                            onClick={() => deleteBullet(experience.id, bulletIndex)}
+                                                                        >
+                                                                            <Delete />
+                                                                        </IconButton>
+                                                                    </Box>
+                                                                ))}
+                                                            </Stack>
+
+                                                            <FormControlLabel
+                                                                control={
+                                                                    <Checkbox
+                                                                        checked={experience.showBullets}
+                                                                        onChange={(e) => updateExperience(experience.id, 'showBullets', e.target.checked)}
+                                                                    />
+                                                                }
+                                                                label="Show achievements"
+                                                                sx={{ mt: 1 }}
+                                                            />
+                                                        </Box>
+                                                    </Stack>
+                                                </Box>
+                                            </Collapse>
+                                        </Card>
+                                    </SortableItem>
+                                );
+                            })}
+                        </Stack>
+                    </SortableWrapper>
 
                     {/* Add New Experience Button */}
                     <Paper

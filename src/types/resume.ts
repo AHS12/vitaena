@@ -113,6 +113,26 @@ export interface InterestItem {
   description: string;
 }
 
+export interface Certification {
+  id: string;
+  name: string;
+  issuingOrganization: string;
+  issueDate: {
+    month: number;
+    year: number;
+  };
+  expirationDate?: {
+    month: number;
+    year: number;
+  };
+  credentialId?: string;
+  credentialUrl?: string;
+  showIssueDate: boolean;
+  showExpirationDate: boolean;
+  showCredentialId: boolean;
+  showCredentialUrl: boolean;
+}
+
 export interface ResumeData {
   id: string;
   templateId: string;
@@ -126,11 +146,18 @@ export interface ResumeData {
   activities: Activity[];
   customSections: CustomSection[];
   showSummary: boolean;
+  showWorkExperience: boolean;
+  showEducation: boolean;
+  showSkills: boolean;
+  showLanguages: boolean;
+  showProjects: boolean;
   showActivities: boolean;
   strengths: StrengthItem[];
   showStrengths: boolean;
   interests: InterestItem[];
   showInterests: boolean;
+  certifications: Certification[];
+  showCertifications: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

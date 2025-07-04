@@ -2,6 +2,7 @@ import { useUIStore } from '@/stores/ui-store';
 import { Box } from '@mui/material';
 import React from 'react';
 import { ActivitiesEditor } from './editors/ActivitiesEditor';
+import { CertificationsEditor } from './editors/CertificationsEditor';
 import { EducationEditor } from './editors/EducationEditor';
 import { ExperienceEditor } from './editors/ExperienceEditor';
 import { InterestsEditor } from './editors/InterestsEditor';
@@ -31,6 +32,8 @@ export const ResumeEditor: React.FC = () => {
                 return <StrengthsEditor />;
             case 'languages':
                 return <LanguagesEditor />;
+            case 'certifications':
+                return <CertificationsEditor />;
             case 'projects':
                 return <ProjectsEditor />;
             case 'interests':

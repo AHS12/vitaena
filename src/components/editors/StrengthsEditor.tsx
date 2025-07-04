@@ -1,3 +1,5 @@
+import { SortableItem } from '@/components/ui/SortableItem';
+import { SortableWrapper } from '@/components/ui/SortableWrapper';
 import { generateId } from '@/lib/utils';
 import { useResumeStore } from '@/stores/resume-store';
 import { StrengthItem } from '@/types/resume';
@@ -60,12 +62,16 @@ export const StrengthsEditor: React.FC = () => {
         updateResumeField('showStrengths', !currentResume.showStrengths);
     };
 
+    const reorderStrengths = (reorderedStrengths: StrengthItem[]) => {
+        updateResumeField('strengths', reorderedStrengths);
+    };
+
     return (
         <Box sx={{ p: 3 }}>
             <Card>
                 <CardHeader
                     title="Professional Strengths"
-                    subheader="Highlight your key professional strengths and qualities that make you stand out."
+                    subheader="Highlight your key professional strengths and qualities that make you stand out. Drag to reorder."
                     action={
                         <FormControlLabel
                             control={
@@ -89,77 +95,85 @@ export const StrengthsEditor: React.FC = () => {
                 />
                 <CardContent>
                     {/* Strength Items */}
-                    <Stack spacing={2}>
-                        {currentResume.strengths.map((strength, index) => {
-                            const isExpanded = expandedItems.includes(strength.id);
+                    <SortableWrapper
+                        items={currentResume.strengths}
+                        onReorder={reorderStrengths}
+                        idPrefix="strength"
+                    >
+                        <Stack spacing={2}>
+                            {currentResume.strengths.map((strength, index) => {
+                                const isExpanded = expandedItems.includes(strength.id);
 
-                            return (
-                                <Card key={strength.id} variant="outlined">
-                                    {/* Header */}
-                                    <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                            <FitnessCenter color="action" />
-                                            <Box>
-                                                <Typography variant="h6">
-                                                    {strength.title || `Strength ${index + 1}`}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {strength.description ?
-                                                        strength.description.substring(0, 80) + (strength.description.length > 80 ? '...' : '')
-                                                        : 'No description'
-                                                    }
-                                                </Typography>
+                                return (
+                                    <SortableItem key={strength.id} id={`strength-${index}`}>
+                                        <Card variant="outlined">
+                                            {/* Header */}
+                                            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                    <FitnessCenter color="action" />
+                                                    <Box>
+                                                        <Typography variant="h6">
+                                                            {strength.title || `Strength ${index + 1}`}
+                                                        </Typography>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            {strength.description ?
+                                                                strength.description.substring(0, 80) + (strength.description.length > 80 ? '...' : '')
+                                                                : 'No description'
+                                                            }
+                                                        </Typography>
+                                                    </Box>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Button
+                                                        size="small"
+                                                        onClick={() => toggleExpanded(strength.id)}
+                                                        endIcon={isExpanded ? <ExpandLess /> : <ExpandMore />}
+                                                    >
+                                                        {isExpanded ? 'Collapse' : 'Expand'}
+                                                    </Button>
+                                                    <IconButton
+                                                        size="small"
+                                                        color="error"
+                                                        onClick={() => deleteStrength(strength.id)}
+                                                    >
+                                                        <Delete />
+                                                    </IconButton>
+                                                </Box>
                                             </Box>
-                                        </Box>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <Button
-                                                size="small"
-                                                onClick={() => toggleExpanded(strength.id)}
-                                                endIcon={isExpanded ? <ExpandLess /> : <ExpandMore />}
-                                            >
-                                                {isExpanded ? 'Collapse' : 'Expand'}
-                                            </Button>
-                                            <IconButton
-                                                size="small"
-                                                color="error"
-                                                onClick={() => deleteStrength(strength.id)}
-                                            >
-                                                <Delete />
-                                            </IconButton>
-                                        </Box>
-                                    </Box>
 
-                                    {/* Expanded Content */}
-                                    <Collapse in={isExpanded}>
-                                        <Box sx={{ px: 2, pb: 2, borderTop: 1, borderColor: 'divider' }}>
-                                            <Stack spacing={3} sx={{ pt: 3 }}>
-                                                {/* Title */}
-                                                <TextField
-                                                    fullWidth
-                                                    label="Strength Title"
-                                                    value={strength.title}
-                                                    onChange={(e) => updateStrength(strength.id, 'title', e.target.value)}
-                                                    placeholder="e.g., Professional Skills, Critical Thinking, Team Collaboration"
-                                                    required
-                                                />
+                                            {/* Expanded Content */}
+                                            <Collapse in={isExpanded}>
+                                                <Box sx={{ px: 2, pb: 2, borderTop: 1, borderColor: 'divider' }}>
+                                                    <Stack spacing={3} sx={{ pt: 3 }}>
+                                                        {/* Title */}
+                                                        <TextField
+                                                            fullWidth
+                                                            label="Strength Title"
+                                                            value={strength.title}
+                                                            onChange={(e) => updateStrength(strength.id, 'title', e.target.value)}
+                                                            placeholder="e.g., Professional Skills, Critical Thinking, Team Collaboration"
+                                                            required
+                                                        />
 
-                                                {/* Description */}
-                                                <TextField
-                                                    fullWidth
-                                                    multiline
-                                                    rows={3}
-                                                    label="Description"
-                                                    value={strength.description}
-                                                    onChange={(e) => updateStrength(strength.id, 'description', e.target.value)}
-                                                    placeholder="Describe this strength in detail. For example: Critical thinking, team collaboration, communication, time management, and leadership skills."
-                                                />
-                                            </Stack>
-                                        </Box>
-                                    </Collapse>
-                                </Card>
-                            );
-                        })}
-                    </Stack>
+                                                        {/* Description */}
+                                                        <TextField
+                                                            fullWidth
+                                                            multiline
+                                                            rows={3}
+                                                            label="Description"
+                                                            value={strength.description}
+                                                            onChange={(e) => updateStrength(strength.id, 'description', e.target.value)}
+                                                            placeholder="Describe this strength in detail. For example: Critical thinking, team collaboration, communication, time management, and leadership skills."
+                                                        />
+                                                    </Stack>
+                                                </Box>
+                                            </Collapse>
+                                        </Card>
+                                    </SortableItem>
+                                );
+                            })}
+                        </Stack>
+                    </SortableWrapper>
 
                     {/* Add New Strength Button */}
                     <Paper

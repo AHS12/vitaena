@@ -30,6 +30,7 @@ This is an offline resume maker web application built with Next.js, TypeScript, 
 - Use TypeScript with strict typing
 - Follow React 19 best practices with App Router
 - Use Tailwind CSS for all styling (avoid custom CSS files)
+- **Use Material UI (MUI) for all form components, inputs, buttons, and interactive elements**
 - Implement proper error handling for storage operations
 - Use Zustand for state management with proper TypeScript types
 - Create reusable components for resume sections

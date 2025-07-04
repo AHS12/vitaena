@@ -45,7 +45,7 @@ export class ResumeService {
       updatedAt: new Date(storedResume.updatedAt),
     };
 
-    // Data migration: Ensure strengths and interests are arrays
+    // Data migration: Ensure strengths, interests, and certifications are arrays
     let needsUpdate = false;
 
     if (!Array.isArray(resume.strengths)) {
@@ -55,6 +55,51 @@ export class ResumeService {
 
     if (!Array.isArray(resume.interests)) {
       resume.interests = [];
+      needsUpdate = true;
+    }
+
+    if (!Array.isArray(resume.certifications)) {
+      resume.certifications = [];
+      needsUpdate = true;
+    }
+
+    if (resume.showStrengths === undefined) {
+      resume.showStrengths = false;
+      needsUpdate = true;
+    }
+
+    if (resume.showInterests === undefined) {
+      resume.showInterests = false;
+      needsUpdate = true;
+    }
+
+    if (resume.showCertifications === undefined) {
+      resume.showCertifications = false;
+      needsUpdate = true;
+    }
+
+    if (resume.showWorkExperience === undefined) {
+      resume.showWorkExperience = true;
+      needsUpdate = true;
+    }
+
+    if (resume.showEducation === undefined) {
+      resume.showEducation = true;
+      needsUpdate = true;
+    }
+
+    if (resume.showSkills === undefined) {
+      resume.showSkills = true;
+      needsUpdate = true;
+    }
+
+    if (resume.showLanguages === undefined) {
+      resume.showLanguages = true;
+      needsUpdate = true;
+    }
+
+    if (resume.showProjects === undefined) {
+      resume.showProjects = true;
       needsUpdate = true;
     }
 
@@ -78,7 +123,7 @@ export class ResumeService {
       updatedAt: new Date(stored.updatedAt),
     }));
 
-    // Data migration: Ensure strengths and interests are arrays
+    // Data migration: Ensure strengths, interests, and certifications are arrays
     let needsUpdate = false;
     const migratedResumes = resumes.map((resume) => {
       const migrated = { ...resume };
@@ -90,6 +135,51 @@ export class ResumeService {
 
       if (!Array.isArray(migrated.interests)) {
         migrated.interests = [];
+        needsUpdate = true;
+      }
+
+      if (!Array.isArray(migrated.certifications)) {
+        migrated.certifications = [];
+        needsUpdate = true;
+      }
+
+      if (migrated.showStrengths === undefined) {
+        migrated.showStrengths = false;
+        needsUpdate = true;
+      }
+
+      if (migrated.showInterests === undefined) {
+        migrated.showInterests = false;
+        needsUpdate = true;
+      }
+
+      if (migrated.showCertifications === undefined) {
+        migrated.showCertifications = false;
+        needsUpdate = true;
+      }
+
+      if (migrated.showWorkExperience === undefined) {
+        migrated.showWorkExperience = true;
+        needsUpdate = true;
+      }
+
+      if (migrated.showEducation === undefined) {
+        migrated.showEducation = true;
+        needsUpdate = true;
+      }
+
+      if (migrated.showSkills === undefined) {
+        migrated.showSkills = true;
+        needsUpdate = true;
+      }
+
+      if (migrated.showLanguages === undefined) {
+        migrated.showLanguages = true;
+        needsUpdate = true;
+      }
+
+      if (migrated.showProjects === undefined) {
+        migrated.showProjects = true;
         needsUpdate = true;
       }
 

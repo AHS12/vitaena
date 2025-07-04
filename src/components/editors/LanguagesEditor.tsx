@@ -1,6 +1,8 @@
+import { SortableItem } from '@/components/ui/SortableItem';
+import { SortableWrapper } from '@/components/ui/SortableWrapper';
 import { useResumeStore } from '@/stores/resume-store';
 import { Language } from '@/types/resume';
-import { Add, Close } from '@mui/icons-material';
+import { Add, Close, Visibility, VisibilityOff } from '@mui/icons-material';
 import {
     Box,
     Button,
@@ -8,12 +10,14 @@ import {
     CardContent,
     CardHeader,
     FormControl,
+    FormControlLabel,
     IconButton,
     InputLabel,
     MenuItem,
     Paper,
     Select,
     Stack,
+    Switch,
     TextField,
     Typography,
 } from '@mui/material';
@@ -46,6 +50,10 @@ export const LanguagesEditor: React.FC = () => {
             setNewLanguageName('');
             setNewLanguageLevel(3);
         }
+    };
+
+    const reorderLanguages = (reorderedItems: Language[]) => {
+        updateResumeField('languages', reorderedItems);
     };
 
     const removeLanguage = (languageIndex: number) => {
@@ -82,51 +90,83 @@ export const LanguagesEditor: React.FC = () => {
         );
     };
 
+    const handleToggleShow = () => {
+        updateResumeField('showLanguages', !currentResume.showLanguages);
+    };
+
     return (
         <Box sx={{ p: 3 }}>
             <Card>
                 <CardHeader
                     title="Languages"
-                    subheader="Add languages you speak with proficiency levels."
+                    subheader="Add languages you speak with proficiency levels. Drag to reorder."
+                    action={
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={currentResume.showLanguages}
+                                    onChange={handleToggleShow}
+                                />
+                            }
+                            label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <IconButton size="small" color={currentResume.showLanguages ? 'primary' : 'default'}>
+                                        {currentResume.showLanguages ? <Visibility /> : <VisibilityOff />}
+                                    </IconButton>
+                                    <Typography variant="body2">
+                                        Show Languages
+                                    </Typography>
+                                </Box>
+                            }
+                        />
+                    }
                 />
                 <CardContent>
                     {/* Current Languages */}
-                    <Stack spacing={2} sx={{ mb: 3 }}>
-                        {currentResume.languages.map((language, index) => (
-                            <Paper key={index} sx={{ p: 2, border: 1, borderColor: 'divider' }}>
-                                <Stack spacing={2}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <Typography variant="h6">{language.name}</Typography>
-                                        <IconButton size="small" onClick={() => removeLanguage(index)}>
-                                            <Close />
-                                        </IconButton>
-                                    </Box>
+                    <SortableWrapper
+                        items={currentResume.languages}
+                        onReorder={reorderLanguages}
+                        idPrefix="language"
+                    >
+                        <Stack spacing={2} sx={{ mb: 3 }}>
+                            {currentResume.languages.map((language, index) => (
+                                <SortableItem key={index} id={`language-${index}`}>
+                                    <Paper sx={{ p: 2, border: 1, borderColor: 'divider' }}>
+                                        <Stack spacing={2}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <Typography variant="h6">{language.name}</Typography>
+                                                <IconButton size="small" onClick={() => removeLanguage(index)}>
+                                                    <Close />
+                                                </IconButton>
+                                            </Box>
 
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                        <Typography variant="body2" color="text.secondary">
-                                            {language.levelText}
-                                        </Typography>
-                                        {renderSkillLevel(language.level)}
-                                    </Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {language.levelText}
+                                                </Typography>
+                                                {renderSkillLevel(language.level)}
+                                            </Box>
 
-                                    <FormControl size="small" sx={{ minWidth: 120 }}>
-                                        <InputLabel>Proficiency Level</InputLabel>
-                                        <Select
-                                            value={language.level}
-                                            label="Proficiency Level"
-                                            onChange={(e) => updateLanguageLevel(index, Number(e.target.value))}
-                                        >
-                                            {Object.entries(levelLabels).map(([level, label]) => (
-                                                <MenuItem key={level} value={Number(level)}>
-                                                    {label}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Stack>
-                            </Paper>
-                        ))}
-                    </Stack>
+                                            <FormControl size="small" sx={{ minWidth: 120 }}>
+                                                <InputLabel>Proficiency Level</InputLabel>
+                                                <Select
+                                                    value={language.level}
+                                                    label="Proficiency Level"
+                                                    onChange={(e) => updateLanguageLevel(index, Number(e.target.value))}
+                                                >
+                                                    {Object.entries(levelLabels).map(([level, label]) => (
+                                                        <MenuItem key={level} value={Number(level)}>
+                                                            {label}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        </Stack>
+                                    </Paper>
+                                </SortableItem>
+                            ))}
+                        </Stack>
+                    </SortableWrapper>
 
                     {/* Add New Language */}
                     <Paper sx={{ p: 2, border: 1, borderColor: 'divider', backgroundColor: 'action.hover' }}>

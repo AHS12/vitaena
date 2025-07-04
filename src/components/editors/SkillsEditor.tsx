@@ -1,6 +1,23 @@
 import { useResumeStore } from '@/stores/resume-store';
 import { Skill } from '@/types/resume';
-import { Add, Close } from '@mui/icons-material';
+import {
+    closestCenter,
+    DndContext,
+    DragEndEvent,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Add, Close, DragIndicator, Visibility, VisibilityOff } from '@mui/icons-material';
 import {
     Box,
     Button,
@@ -9,23 +26,135 @@ import {
     CardHeader,
     Chip,
     FormControl,
+    FormControlLabel,
     IconButton,
     InputLabel,
     MenuItem,
     Paper,
     Select,
     Stack,
+    Switch,
     TextField,
     Typography,
 } from '@mui/material';
 import React, { useState } from 'react';
+
+interface SortableSkillItemProps {
+    skill: Skill;
+    index: number;
+    updateSkillLevel: (index: number, level: number) => void;
+    removeSkill: (index: number) => void;
+    getLevelText: (level: number) => string;
+    getLevelColor: (level: number) => 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+}
+
+const SortableSkillItem: React.FC<SortableSkillItemProps> = ({
+    skill,
+    index,
+    updateSkillLevel,
+    removeSkill,
+    getLevelText,
+    getLevelColor,
+}) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: `skill-${index}` });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <Paper
+            ref={setNodeRef}
+            style={style}
+            sx={{
+                p: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                border: '1px solid',
+                borderColor: 'divider',
+                cursor: isDragging ? 'grabbing' : 'grab',
+            }}
+        >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                <IconButton
+                    size="small"
+                    sx={{ cursor: 'grab' }}
+                    {...attributes}
+                    {...listeners}
+                >
+                    <DragIndicator />
+                </IconButton>
+                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                    {skill.name}
+                </Typography>
+                <Chip
+                    label={getLevelText(skill.level)}
+                    color={getLevelColor(skill.level)}
+                    size="small"
+                />
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <Select
+                        value={skill.level}
+                        onChange={(e) => updateSkillLevel(index, e.target.value as number)}
+                    >
+                        <MenuItem value={1}>Beginner</MenuItem>
+                        <MenuItem value={2}>Basic</MenuItem>
+                        <MenuItem value={3}>Intermediate</MenuItem>
+                        <MenuItem value={4}>Advanced</MenuItem>
+                        <MenuItem value={5}>Expert</MenuItem>
+                    </Select>
+                </FormControl>
+                <IconButton
+                    size="small"
+                    onClick={() => removeSkill(index)}
+                    color="error"
+                >
+                    <Close />
+                </IconButton>
+            </Box>
+        </Paper>
+    );
+};
 
 export const SkillsEditor: React.FC = () => {
     const { currentResume, updateResumeField } = useResumeStore();
     const [newSkillName, setNewSkillName] = useState('');
     const [newSkillLevel, setNewSkillLevel] = useState<number>(3);
 
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
     if (!currentResume) return null;
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (active.id !== over?.id) {
+            const oldIndex = currentResume.skills.findIndex((_, index) => `skill-${index}` === active.id);
+            const newIndex = currentResume.skills.findIndex((_, index) => `skill-${index}` === over?.id);
+
+            if (oldIndex !== -1 && newIndex !== -1) {
+                const updatedSkills = arrayMove(currentResume.skills, oldIndex, newIndex);
+                updateResumeField('skills', updatedSkills);
+            }
+        }
+    };
 
     const addSkill = () => {
         if (newSkillName.trim()) {
@@ -74,12 +203,36 @@ export const SkillsEditor: React.FC = () => {
         }
     };
 
+    const handleToggleShow = () => {
+        updateResumeField('showSkills', !currentResume.showSkills);
+    };
+
     return (
         <Box sx={{ p: 3 }}>
             <Card>
                 <CardHeader
                     title="Skills"
                     subheader="Add your technical and professional skills with proficiency levels."
+                    action={
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={currentResume.showSkills}
+                                    onChange={handleToggleShow}
+                                />
+                            }
+                            label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <IconButton size="small" color={currentResume.showSkills ? 'primary' : 'default'}>
+                                        {currentResume.showSkills ? <Visibility /> : <VisibilityOff />}
+                                    </IconButton>
+                                    <Typography variant="body2">
+                                        Show Skills
+                                    </Typography>
+                                </Box>
+                            }
+                        />
+                    }
                 />
                 <CardContent>
                     {/* Add New Skill */}
@@ -138,55 +291,32 @@ export const SkillsEditor: React.FC = () => {
                     {currentResume.skills.length > 0 && (
                         <Box>
                             <Typography variant="subtitle2" sx={{ mb: 2 }}>
-                                Current Skills ({currentResume.skills.length})
+                                Current Skills ({currentResume.skills.length}) - Drag to reorder
                             </Typography>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                {currentResume.skills.map((skill, index) => (
-                                    <Paper
-                                        key={`skill-${index}`}
-                                        sx={{
-                                            p: 2,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'space-between',
-                                            border: '1px solid',
-                                            borderColor: 'divider',
-                                        }}
-                                    >
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                                {skill.name}
-                                            </Typography>
-                                            <Chip
-                                                label={getLevelText(skill.level)}
-                                                color={getLevelColor(skill.level)}
-                                                size="small"
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <SortableContext
+                                    items={currentResume.skills.map((_, index) => `skill-${index}`)}
+                                    strategy={verticalListSortingStrategy}
+                                >
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                        {currentResume.skills.map((skill, index) => (
+                                            <SortableSkillItem
+                                                key={`skill-${index}`}
+                                                skill={skill}
+                                                index={index}
+                                                updateSkillLevel={updateSkillLevel}
+                                                removeSkill={removeSkill}
+                                                getLevelText={getLevelText}
+                                                getLevelColor={getLevelColor}
                                             />
-                                        </Box>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <FormControl size="small" sx={{ minWidth: 120 }}>
-                                                <Select
-                                                    value={skill.level}
-                                                    onChange={(e) => updateSkillLevel(index, e.target.value as number)}
-                                                >
-                                                    <MenuItem value={1}>Beginner</MenuItem>
-                                                    <MenuItem value={2}>Basic</MenuItem>
-                                                    <MenuItem value={3}>Intermediate</MenuItem>
-                                                    <MenuItem value={4}>Advanced</MenuItem>
-                                                    <MenuItem value={5}>Expert</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                            <IconButton
-                                                size="small"
-                                                onClick={() => removeSkill(index)}
-                                                color="error"
-                                            >
-                                                <Close />
-                                            </IconButton>
-                                        </Box>
-                                    </Paper>
-                                ))}
-                            </Box>
+                                        ))}
+                                    </Box>
+                                </SortableContext>
+                            </DndContext>
                         </Box>
                     )}
                 </CardContent>
