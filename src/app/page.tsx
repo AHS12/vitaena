@@ -45,6 +45,7 @@ export default function HomePage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [exportingResumeId, setExportingResumeId] = useState<string | null>(null);
 
   console.log('HomePage - templates:', templates, 'resumes:', resumes);
 
@@ -149,22 +150,85 @@ export default function HomePage() {
 
   const handleExportData = async (resumeId: string) => {
     try {
-      const jsonData = await ResumeService.exportResumeData(resumeId);
-      const blob = new Blob([jsonData], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
+      setExportingResumeId(resumeId);
 
       const resume = resumes.find(r => r.id === resumeId);
-      const filename = `${resume?.personalInfo.name || 'resume'}_data.json`;
+      if (!resume) {
+        console.error('Resume not found');
+        return;
+      }
 
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Create a temporary element to render the resume template
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '-9999px';
+      document.body.appendChild(tempContainer);
+
+      try {
+        // Import the template component dynamically
+        const { AzizulClassicTemplate } = await import('@/templates/AzizulClassicTemplate');
+        const React = await import('react');
+        const { createRoot } = await import('react-dom/client');
+
+        // Create a root and render the resume
+        const root = createRoot(tempContainer);
+        const templateElement = React.createElement(AzizulClassicTemplate, { data: resume });
+
+        root.render(templateElement);
+
+        // Wait for rendering to complete
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Get the rendered HTML
+        const renderedHTML = tempContainer.innerHTML;
+
+        if (!renderedHTML) {
+          throw new Error('Failed to render resume template');
+        }
+
+        // Call the PDF export API route with HTML content
+        const response = await fetch('/api/export-pdf', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            html: renderedHTML,
+            filename: `${resume.personalInfo.name || 'resume'}.pdf`
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Export failed: ${errorData.error || response.statusText}`);
+        }
+
+        // Get the PDF blob
+        const pdfBlob = await response.blob();
+
+        // Create download link
+        const url = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${resume.personalInfo.name || 'resume'}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        // Cleanup
+        root.unmount();
+      } finally {
+        // Always cleanup the temp container
+        document.body.removeChild(tempContainer);
+      }
+
     } catch (error) {
-      console.error('Failed to export resume data:', error);
+      console.error('Failed to export PDF:', error);
+      alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setExportingResumeId(null);
     }
   };
 
@@ -426,9 +490,14 @@ export default function HomePage() {
                     <IconButton
                       size="small"
                       onClick={() => handleExportData(resume.id)}
-                      title="Export"
+                      title="Download PDF"
+                      disabled={exportingResumeId === resume.id}
                     >
-                      <Download />
+                      {exportingResumeId === resume.id ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <Download />
+                      )}
                     </IconButton>
                     <IconButton
                       size="small"
