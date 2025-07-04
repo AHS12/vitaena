@@ -17,8 +17,6 @@ import {
     Paper,
     Typography,
 } from '@mui/material';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import React, { useState } from 'react';
 
 interface ExportModalProps {
@@ -27,82 +25,100 @@ interface ExportModalProps {
 }
 
 export const ExportModal: React.FC<ExportModalProps> = ({ resume, onClose }) => {
-    const [isExporting, setIsExporting] = useState(false);
-
-    const handleExportPDF = async () => {
+    const [isExporting, setIsExporting] = useState(false); const handleExportPDF = async () => {
         setIsExporting(true);
         try {
             console.log('Exporting PDF for:', resume.personalInfo.name);
 
-            // Find the resume template element
-            const element = document.querySelector('[data-resume-template]') as HTMLElement;
-            if (!element) {
-                throw new Error('Resume template not found. Please make sure the preview is visible.');
+            // Import html2pdf dynamically
+            const html2pdf = (await import('html2pdf.js')).default;
+
+            // Get the resume template element
+            const resumeElement = document.querySelector('[data-resume-template]') as HTMLElement;
+
+            if (!resumeElement) {
+                throw new Error('Resume template not found. Please make sure the resume is visible on screen.');
             }
 
-            // Create canvas from HTML element with optimized settings
-            const canvas = await html2canvas(element, {
-                scale: 3, // Higher resolution for better font quality
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                height: element.offsetHeight,
-                width: element.offsetWidth,
-                scrollX: 0,
-                scrollY: 0,
-                logging: false,
-                onclone: (clonedDoc) => {
-                    // Ensure fonts are properly loaded
-                    const body = clonedDoc.body;
-                    body.style.fontFamily = '"Segoe UI", "Helvetica Neue", Arial, sans-serif';
-                    body.style.setProperty('-webkit-font-smoothing', 'antialiased');
-                    body.style.setProperty('-moz-osx-font-smoothing', 'grayscale');
-                    body.style.setProperty('text-rendering', 'optimizeLegibility');
+            // Configure html2pdf options for single page output
+            const options = {
+                margin: [0, 0, 0, 0], // No margins
+                filename: `${resume.personalInfo.name?.replace(/\s+/g, '_') || 'resume'}_${new Date().toISOString().split('T')[0]}.pdf`,
+                image: {
+                    type: 'jpeg',
+                    quality: 0.98
+                },
+                html2canvas: {
+                    scale: 1.5, // Reduced scale for better single-page fit
+                    useCORS: true,
+                    allowTaint: false,
+                    backgroundColor: '#ffffff',
+                    width: 794, // A4 width in pixels (210mm at 96 DPI)
+                    height: 1123, // A4 height in pixels (297mm at 96 DPI)
+                    scrollX: 0,
+                    scrollY: 0,
+                    letterRendering: true,
+                    logging: false,
+                    onclone: (clonedDoc: Document) => {
+                        console.log('Cloning document for PDF export');
+                        const resumeEl = clonedDoc.querySelector('[data-resume-template]') as HTMLElement;
+                        if (resumeEl) {
+                            // Force the template to fit on a single page
+                            resumeEl.style.width = '210mm';
+                            resumeEl.style.height = '297mm';
+                            resumeEl.style.maxHeight = '297mm';
+                            resumeEl.style.overflow = 'hidden';
+                            resumeEl.style.pageBreakInside = 'avoid';
+                            resumeEl.style.pageBreakAfter = 'auto';
+                            resumeEl.style.pageBreakBefore = 'auto';
+                            resumeEl.style.margin = '0';
+                            resumeEl.style.padding = '0';
+                            resumeEl.style.boxSizing = 'border-box';
+                            resumeEl.style.backgroundColor = '#ffffff';
+                            resumeEl.style.fontSize = '11px'; // Slightly smaller font for better fit
+                            resumeEl.style.lineHeight = '1.3';
+
+                            // Scale down content if needed for single page
+                            const contentHeight = resumeEl.scrollHeight;
+                            const maxHeight = 1123; // A4 height in pixels
+
+                            if (contentHeight > maxHeight) {
+                                const scale = maxHeight / contentHeight;
+                                resumeEl.style.transform = `scale(${scale})`;
+                                resumeEl.style.transformOrigin = 'top left';
+                                resumeEl.style.width = `${210 / scale}mm`;
+                                resumeEl.style.height = `${297 / scale}mm`;
+                            }
+
+                            // Ensure all images are properly sized
+                            const images = resumeEl.querySelectorAll('img');
+                            images.forEach((img) => {
+                                img.style.maxWidth = '100%';
+                                img.style.height = 'auto';
+                                img.style.display = 'block';
+                            });
+                        }
+                    }
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait',
+                    compress: true,
+                    precision: 16
+                },
+                pagebreak: {
+                    mode: 'avoid-all', // Avoid page breaks
+                    before: '',
+                    after: ''
                 }
-            });
+            };
 
-            // A4 dimensions in mm
-            const pdfWidth = 210;
-            const pdfHeight = 297;
-
-            // Calculate scaling to fit A4 page
-            const canvasWidth = canvas.width;
-            const canvasHeight = canvas.height;
-
-            // Calculate scale to fit width
-            const scaleX = (pdfWidth / canvasWidth) * 72 / 25.4 * 2; // Convert mm to points and apply scale
-            const scaleY = (pdfHeight / canvasHeight) * 72 / 25.4 * 2;
-
-            // Use the smaller scale to ensure everything fits
-            const scale = Math.min(scaleX, scaleY);
-
-            // Calculate final dimensions
-            const finalWidth = (canvasWidth * scale * 25.4) / 72 / 2;
-            const finalHeight = (canvasHeight * scale * 25.4) / 72 / 2;
-
-            // Create PDF with A4 dimensions
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4',
-                compress: true
-            });
-
-            // Get image data
-            const imgData = canvas.toDataURL('image/png', 1.0);
-
-            // Center the content on the page
-            const xOffset = (pdfWidth - finalWidth) / 2;
-            const yOffset = (pdfHeight - finalHeight) / 2;
-
-            // Add the image to PDF - ensure it fits on one page
-            pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight, '', 'FAST');
-
-            // Generate filename
-            const fileName = `${resume.personalInfo.name?.replace(/\s+/g, '_') || 'resume'}_${new Date().toISOString().split('T')[0]}.pdf`;
-
-            // Save the PDF
-            pdf.save(fileName);
+            // Generate and save PDF directly from the visible element
+            await html2pdf()
+                .set(options)
+                .from(resumeElement)
+                .save();
 
             console.log('PDF exported successfully');
         } catch (error) {

@@ -35,8 +35,8 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
         backgroundColor: '#ffffff',
         width: '210mm', // A4 width
         maxWidth: '210mm',
-        minHeight: '297mm', // A4 height
         height: '297mm', // Fixed height for A4
+        maxHeight: '297mm',
         margin: '0 auto',
         fontFamily: '"Segoe UI", "Helvetica Neue", Arial, sans-serif',
         color: '#111827',
@@ -44,11 +44,18 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
         lineHeight: '1.3',
         overflow: 'hidden',
         pageBreakInside: 'avoid',
+        pageBreakAfter: 'auto',
+        pageBreakBefore: 'auto',
         boxSizing: 'border-box',
         position: 'relative',
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
-        textRendering: 'optimizeLegibility'
+        textRendering: 'optimizeLegibility',
+        WebkitPrintColorAdjust: 'exact',
+        colorAdjust: 'exact',
+        printColorAdjust: 'exact',
+        display: 'flex',
+        flexDirection: 'column'
     };
 
     return (
@@ -132,9 +139,9 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                 )}
             </div>
 
-            <div style={{ display: 'flex', height: 'calc(100% - 80px)' }}>
+            <div style={{ display: 'flex', flex: 1 }}>
                 {/* Left Column */}
-                <div style={{ width: '65%', padding: '6mm 10mm 6mm 15mm' }}>
+                <div style={{ width: '65%', padding: '6mm 10mm 6mm 15mm', overflow: 'hidden' }}>
                     {/* Summary Section */}
                     {data.showSummary && data.summary && (
                         <div style={{ marginBottom: '10mm' }}>
@@ -400,7 +407,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                 </div>
 
                 {/* Right Column */}
-                <div style={{ width: '35%', backgroundColor: '#ffffff', padding: '6mm 10mm 6mm 6mm', borderLeft: '1px solid #e5e7eb' }}>
+                <div style={{ width: '35%', backgroundColor: '#ffffff', padding: '6mm 10mm 6mm 6mm', borderLeft: '1px solid #e5e7eb', overflow: 'hidden' }}>
                     {/* Skills Section */}
                     {data.showSkills && data.skills.filter(skill => skill.show).length > 0 && (
                         <div style={{ marginBottom: '7mm' }}>
