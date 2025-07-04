@@ -63,15 +63,18 @@ export const Sidebar: React.FC = () => {
                         return (
                             <ListItem key={section.id} disablePadding sx={{ mb: 0.5 }}>
                                 <ListItemButton
-                                    selected={isActive}
                                     onClick={() => setActiveSection(section.id)}
+                                    selected={isActive}
                                     sx={{
-                                        borderRadius: 2,
+                                        borderRadius: 1,
                                         '&.Mui-selected': {
                                             backgroundColor: 'primary.main',
                                             color: 'primary.contrastText',
                                             '&:hover': {
                                                 backgroundColor: 'primary.dark',
+                                            },
+                                            '& .MuiListItemIcon-root': {
+                                                color: 'primary.contrastText',
                                             },
                                         },
                                         '&:hover': {
@@ -79,17 +82,13 @@ export const Sidebar: React.FC = () => {
                                         },
                                     }}
                                 >
-                                    <ListItemIcon
-                                        sx={{
-                                            color: isActive ? 'inherit' : 'text.secondary',
-                                            minWidth: 40,
-                                        }}
-                                    >
-                                        <Icon />
+                                    <ListItemIcon sx={{ minWidth: 36 }}>
+                                        <Icon fontSize="small" />
                                     </ListItemIcon>
                                     <ListItemText
                                         primary={section.label}
                                         primaryTypographyProps={{
+                                            fontSize: '0.875rem',
                                             fontWeight: isActive ? 600 : 400,
                                         }}
                                     />

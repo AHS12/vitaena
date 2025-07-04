@@ -17,6 +17,8 @@ import {
     Paper,
     Typography,
 } from '@mui/material';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import React, { useState } from 'react';
 
 interface ExportModalProps {
@@ -30,17 +32,82 @@ export const ExportModal: React.FC<ExportModalProps> = ({ resume, onClose }) => 
     const handleExportPDF = async () => {
         setIsExporting(true);
         try {
-            // TODO: Implement PDF export with jsPDF + html2canvas
             console.log('Exporting PDF for:', resume.personalInfo.name);
 
-            // Placeholder: Create a simple download
+            // Find the resume template element
             const element = document.querySelector('[data-resume-template]') as HTMLElement;
-            if (element) {
-                // This will be implemented with html2canvas and jsPDF
-                alert('PDF export will be implemented with html2canvas and jsPDF');
+            if (!element) {
+                throw new Error('Resume template not found. Please make sure the preview is visible.');
             }
+
+            // Create canvas from HTML element with optimized settings
+            const canvas = await html2canvas(element, {
+                scale: 3, // Higher resolution for better font quality
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                height: element.offsetHeight,
+                width: element.offsetWidth,
+                scrollX: 0,
+                scrollY: 0,
+                logging: false,
+                onclone: (clonedDoc) => {
+                    // Ensure fonts are properly loaded
+                    const body = clonedDoc.body;
+                    body.style.fontFamily = '"Segoe UI", "Helvetica Neue", Arial, sans-serif';
+                    body.style.setProperty('-webkit-font-smoothing', 'antialiased');
+                    body.style.setProperty('-moz-osx-font-smoothing', 'grayscale');
+                    body.style.setProperty('text-rendering', 'optimizeLegibility');
+                }
+            });
+
+            // A4 dimensions in mm
+            const pdfWidth = 210;
+            const pdfHeight = 297;
+
+            // Calculate scaling to fit A4 page
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+
+            // Calculate scale to fit width
+            const scaleX = (pdfWidth / canvasWidth) * 72 / 25.4 * 2; // Convert mm to points and apply scale
+            const scaleY = (pdfHeight / canvasHeight) * 72 / 25.4 * 2;
+
+            // Use the smaller scale to ensure everything fits
+            const scale = Math.min(scaleX, scaleY);
+
+            // Calculate final dimensions
+            const finalWidth = (canvasWidth * scale * 25.4) / 72 / 2;
+            const finalHeight = (canvasHeight * scale * 25.4) / 72 / 2;
+
+            // Create PDF with A4 dimensions
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+
+            // Get image data
+            const imgData = canvas.toDataURL('image/png', 1.0);
+
+            // Center the content on the page
+            const xOffset = (pdfWidth - finalWidth) / 2;
+            const yOffset = (pdfHeight - finalHeight) / 2;
+
+            // Add the image to PDF - ensure it fits on one page
+            pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight, '', 'FAST');
+
+            // Generate filename
+            const fileName = `${resume.personalInfo.name?.replace(/\s+/g, '_') || 'resume'}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+            // Save the PDF
+            pdf.save(fileName);
+
+            console.log('PDF exported successfully');
         } catch (error) {
             console.error('Export failed:', error);
+            alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setIsExporting(false);
         }

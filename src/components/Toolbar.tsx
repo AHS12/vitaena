@@ -99,7 +99,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                         onClick={onExport}
                         startIcon={<Download />}
                     >
-                        Export PDF
+                        Export
                     </Button>
                 </Box>
             </MuiToolbar>
