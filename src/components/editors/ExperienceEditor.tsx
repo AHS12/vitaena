@@ -125,7 +125,7 @@ export const ExperienceEditor: React.FC = () => {
     };
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
             <Card>
                 <CardHeader
                     title="Work Experience"
@@ -142,20 +142,21 @@ export const ExperienceEditor: React.FC = () => {
                                     <IconButton size="small" color={currentResume.showWorkExperience ? 'primary' : 'default'}>
                                         {currentResume.showWorkExperience ? <Visibility /> : <VisibilityOff />}
                                     </IconButton>
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
                                         Show Experience
                                     </Typography>
                                 </Box>
                             }
                         />
                     }
+                    sx={{ pb: { xs: 1, sm: 2 } }}
                 />
-                <Box sx={{ px: 2, pb: 2 }}>
+                <Box sx={{ px: { xs: 2, sm: 2 }, pb: 2 }}>
                     <Typography variant="body2" color="text.secondary">
                         Add your professional work experience, including internships and freelance work. Drag to reorder.
                     </Typography>
                 </Box>
-                <CardContent>
+                <CardContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 3 } }}>
                     {/* Touch Device Information */}
                     {isTouchDevice && currentResume.workExperience.length > 1 && (
                         <Box sx={{ mb: 2 }}>
@@ -179,11 +180,18 @@ export const ExperienceEditor: React.FC = () => {
                                     <SortableItem key={experience.id} id={`experience-${index}`}>
                                         <Card variant="outlined" sx={{ opacity: experience.show ? 1 : 0.5 }}>
                                             {/* Header */}
-                                            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <Box sx={{
+                                                p: { xs: 1.5, sm: 2 },
+                                                display: 'flex',
+                                                flexDirection: { xs: 'column', sm: 'row' },
+                                                alignItems: { xs: 'stretch', sm: 'center' },
+                                                justifyContent: 'space-between',
+                                                gap: { xs: 1.5, sm: 2 }
+                                            }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                                     <Work color="action" />
                                                     <Box>
-                                                        <Typography variant="h6">
+                                                        <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                                                             {experience.position || `Experience ${index + 1}`}
                                                         </Typography>
                                                         <Typography variant="body2" color="text.secondary">
@@ -194,7 +202,12 @@ export const ExperienceEditor: React.FC = () => {
                                                         </Typography>
                                                     </Box>
                                                 </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    justifyContent: { xs: 'space-between', sm: 'flex-end' }
+                                                }}>
                                                     <Button
                                                         size="small"
                                                         onClick={() => toggleExpanded(experience.id)}
@@ -202,27 +215,29 @@ export const ExperienceEditor: React.FC = () => {
                                                     >
                                                         {isExpanded ? 'Collapse' : 'Expand'}
                                                     </Button>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => toggleExperienceVisibility(experience.id)}
-                                                        color={experience.show ? 'primary' : 'default'}
-                                                        title={experience.show ? 'Hide experience' : 'Show experience'}
-                                                    >
-                                                        {experience.show ? <Visibility /> : <VisibilityOff />}
-                                                    </IconButton>
-                                                    <IconButton
-                                                        size="small"
-                                                        color="error"
-                                                        onClick={() => deleteExperience(experience.id)}
-                                                    >
-                                                        <Delete />
-                                                    </IconButton>
+                                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => toggleExperienceVisibility(experience.id)}
+                                                            color={experience.show ? 'primary' : 'default'}
+                                                            title={experience.show ? 'Hide experience' : 'Show experience'}
+                                                        >
+                                                            {experience.show ? <Visibility /> : <VisibilityOff />}
+                                                        </IconButton>
+                                                        <IconButton
+                                                            size="small"
+                                                            color="error"
+                                                            onClick={() => deleteExperience(experience.id)}
+                                                        >
+                                                            <Delete />
+                                                        </IconButton>
+                                                    </Box>
                                                 </Box>
                                             </Box>
 
                                             {/* Expanded Content */}
                                             <Collapse in={isExpanded}>
-                                                <Box sx={{ px: 2, pb: 2, borderTop: 1, borderColor: 'divider' }}>
+                                                <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: { xs: 1.5, sm: 2 }, borderTop: 1, borderColor: 'divider' }}>
                                                     <Stack spacing={3} sx={{ pt: 3 }}>
                                                         {/* Position */}
                                                         <TextField
@@ -232,6 +247,7 @@ export const ExperienceEditor: React.FC = () => {
                                                             onChange={(e) => updateExperience(experience.id, 'position', e.target.value)}
                                                             placeholder="e.g., Software Engineer, Product Manager"
                                                             required
+                                                            size="small"
                                                         />
 
                                                         {/* Company */}
@@ -242,6 +258,7 @@ export const ExperienceEditor: React.FC = () => {
                                                             onChange={(e) => updateExperience(experience.id, 'company', e.target.value)}
                                                             placeholder="Company name"
                                                             required
+                                                            size="small"
                                                             InputProps={{
                                                                 startAdornment: (
                                                                     <InputAdornment position="start">
@@ -259,6 +276,7 @@ export const ExperienceEditor: React.FC = () => {
                                                                 value={experience.location}
                                                                 onChange={(e) => updateExperience(experience.id, 'location', e.target.value)}
                                                                 placeholder="City, State/Country"
+                                                                size="small"
                                                                 InputProps={{
                                                                     startAdornment: (
                                                                         <InputAdornment position="start">

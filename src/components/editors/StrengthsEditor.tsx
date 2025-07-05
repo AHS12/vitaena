@@ -75,7 +75,7 @@ export const StrengthsEditor: React.FC = () => {
     };
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
             <Card>
                 <CardHeader
                     title="Professional Strengths"
@@ -92,20 +92,21 @@ export const StrengthsEditor: React.FC = () => {
                                     <IconButton size="small" color={currentResume.showStrengths ? 'primary' : 'default'}>
                                         {currentResume.showStrengths ? <Visibility /> : <VisibilityOff />}
                                     </IconButton>
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
                                         Show Strengths
                                     </Typography>
                                 </Box>
                             }
                         />
                     }
+                    sx={{ pb: { xs: 1, sm: 2 } }}
                 />
-                <Box sx={{ px: 2, pb: 2 }}>
+                <Box sx={{ px: { xs: 2, sm: 2 }, pb: 2 }}>
                     <Typography variant="body2" color="text.secondary">
                         Highlight your key professional strengths and qualities that make you stand out. Drag to reorder.
                     </Typography>
                 </Box>
-                <CardContent>
+                <CardContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 3 } }}>
                     {/* Strength Items */}
                     <SortableWrapper
                         items={currentResume.strengths}
@@ -120,14 +121,26 @@ export const StrengthsEditor: React.FC = () => {
                                     <SortableItem key={strength.id} id={`strength-${index}`}>
                                         <Card variant="outlined" sx={{ opacity: strength.show ? 1 : 0.5 }}>
                                             {/* Header */}
-                                            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                            <Box sx={{
+                                                p: { xs: 1.5, sm: 2 },
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                flexDirection: { xs: 'column', sm: 'row' },
+                                                gap: { xs: 1, sm: 0 }
+                                            }}>
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: { xs: 1, sm: 2 },
+                                                    width: { xs: '100%', sm: 'auto' }
+                                                }}>
                                                     <FitnessCenter color="action" />
-                                                    <Box>
-                                                        <Typography variant="h6">
+                                                    <Box sx={{ flex: 1 }}>
+                                                        <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                                                             {strength.title || `Strength ${index + 1}`}
                                                         </Typography>
-                                                        <Typography variant="body2" color="text.secondary">
+                                                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                                             {strength.description ?
                                                                 strength.description.substring(0, 80) + (strength.description.length > 80 ? '...' : '')
                                                                 : 'No description'
@@ -135,7 +148,13 @@ export const StrengthsEditor: React.FC = () => {
                                                         </Typography>
                                                     </Box>
                                                 </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: { xs: 0.5, sm: 1 },
+                                                    width: { xs: '100%', sm: 'auto' },
+                                                    justifyContent: { xs: 'flex-end', sm: 'flex-start' }
+                                                }}>
                                                     <IconButton
                                                         size="small"
                                                         onClick={() => toggleStrengthShow(strength.id)}
@@ -148,8 +167,11 @@ export const StrengthsEditor: React.FC = () => {
                                                         size="small"
                                                         onClick={() => toggleExpanded(strength.id)}
                                                         endIcon={isExpanded ? <ExpandLess /> : <ExpandMore />}
+                                                        sx={{ minWidth: { xs: 'auto', sm: 'inherit' } }}
                                                     >
-                                                        {isExpanded ? 'Collapse' : 'Expand'}
+                                                        <Typography sx={{ display: { xs: 'none', sm: 'block' } }}>
+                                                            {isExpanded ? 'Collapse' : 'Expand'}
+                                                        </Typography>
                                                     </Button>
                                                     <IconButton
                                                         size="small"
@@ -163,11 +185,12 @@ export const StrengthsEditor: React.FC = () => {
 
                                             {/* Expanded Content */}
                                             <Collapse in={isExpanded}>
-                                                <Box sx={{ px: 2, pb: 2, borderTop: 1, borderColor: 'divider' }}>
-                                                    <Stack spacing={3} sx={{ pt: 3 }}>
+                                                <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: { xs: 1.5, sm: 2 }, borderTop: 1, borderColor: 'divider' }}>
+                                                    <Stack spacing={{ xs: 2, sm: 3 }} sx={{ pt: { xs: 2, sm: 3 } }}>
                                                         {/* Title */}
                                                         <TextField
                                                             fullWidth
+                                                            size="small"
                                                             label="Strength Title"
                                                             value={strength.title}
                                                             onChange={(e) => updateStrength(strength.id, 'title', e.target.value)}
@@ -180,6 +203,7 @@ export const StrengthsEditor: React.FC = () => {
                                                             fullWidth
                                                             multiline
                                                             rows={3}
+                                                            size="small"
                                                             label="Description"
                                                             value={strength.description}
                                                             onChange={(e) => updateStrength(strength.id, 'description', e.target.value)}
@@ -199,7 +223,7 @@ export const StrengthsEditor: React.FC = () => {
                     <Paper
                         sx={{
                             mt: 3,
-                            p: 3,
+                            p: { xs: 2, sm: 3 },
                             textAlign: 'center',
                             border: '2px dashed',
                             borderColor: 'divider',
@@ -212,8 +236,8 @@ export const StrengthsEditor: React.FC = () => {
                         }}
                         onClick={addStrength}
                     >
-                        <Add sx={{ fontSize: 32, color: 'text.secondary', mb: 1 }} />
-                        <Typography variant="body1" color="text.secondary">
+                        <Add sx={{ fontSize: { xs: 24, sm: 32 }, color: 'text.secondary', mb: 1 }} />
+                        <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                             Add Strength
                         </Typography>
                     </Paper>

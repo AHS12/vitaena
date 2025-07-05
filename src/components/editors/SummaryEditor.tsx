@@ -1,11 +1,12 @@
 import { useResumeStore } from '@/stores/resume-store';
-import { Description } from '@mui/icons-material';
+import { Description, Visibility, VisibilityOff } from '@mui/icons-material';
 import {
     Box,
     Card,
     CardContent,
     CardHeader,
     FormControlLabel,
+    IconButton,
     Paper,
     Switch,
     TextField,
@@ -27,17 +28,38 @@ export const SummaryEditor: React.FC = () => {
     };
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
             <Card>
                 <CardHeader
                     title="Professional Summary"
+                    action={
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={currentResume.showSummary}
+                                    onChange={(e) => handleShowSummaryChange(e.target.checked)}
+                                />
+                            }
+                            label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <IconButton size="small" color={currentResume.showSummary ? 'primary' : 'default'}>
+                                        {currentResume.showSummary ? <Visibility /> : <VisibilityOff />}
+                                    </IconButton>
+                                    <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
+                                        Show Summary
+                                    </Typography>
+                                </Box>
+                            }
+                        />
+                    }
+                    sx={{ pb: { xs: 1, sm: 2 } }}
                 />
-                <Box sx={{ px: 2, pb: 2 }}>
+                <Box sx={{ px: { xs: 2, sm: 2 }, pb: 2 }}>
                     <Typography variant="body2" color="text.secondary">
                         Write a brief overview of your professional background, key skills, and career objectives.
                     </Typography>
                 </Box>
-                <CardContent sx={{ space: 3 }}>
+                <CardContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 3 } }}>
                     {/* Show Summary Toggle */}
                     <FormControlLabel
                         control={
@@ -60,6 +82,7 @@ export const SummaryEditor: React.FC = () => {
                         onChange={(e) => handleSummaryChange(e.target.value)}
                         placeholder="Write a compelling professional summary that highlights your experience, skills, and career goals. Keep it concise and impactful..."
                         disabled={!currentResume.showSummary}
+                        size="small"
                         InputProps={{
                             startAdornment: <Description sx={{ mr: 1, color: 'text.secondary' }} />,
                         }}
@@ -73,7 +96,7 @@ export const SummaryEditor: React.FC = () => {
                     {/* Tips */}
                     <Paper
                         sx={{
-                            p: 3,
+                            p: { xs: 2, sm: 3 },
                             backgroundColor: 'action.hover',
                             border: '1px solid',
                             borderColor: 'divider',

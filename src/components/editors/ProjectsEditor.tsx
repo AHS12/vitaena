@@ -122,7 +122,7 @@ export const ProjectsEditor: React.FC = () => {
     };
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
             <Card>
                 <CardHeader
                     title="Projects"
@@ -139,20 +139,21 @@ export const ProjectsEditor: React.FC = () => {
                                     <IconButton size="small" color={currentResume.showProjects ? 'primary' : 'default'}>
                                         {currentResume.showProjects ? <Visibility /> : <VisibilityOff />}
                                     </IconButton>
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
                                         Show Projects
                                     </Typography>
                                 </Box>
                             }
                         />
                     }
+                    sx={{ pb: { xs: 1, sm: 2 } }}
                 />
-                <Box sx={{ px: 2, pb: 2 }}>
+                <Box sx={{ px: { xs: 2, sm: 2 }, pb: 2 }}>
                     <Typography variant="body2" color="text.secondary">
                         Showcase your personal or professional projects. Drag to reorder.
                     </Typography>
                 </Box>
-                <CardContent>
+                <CardContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 3 } }}>
                     {/* Project Items */}
                     <SortableWrapper
                         items={currentResume.projects}
@@ -167,11 +168,18 @@ export const ProjectsEditor: React.FC = () => {
                                     <SortableItem key={project.id} id={`project-${index}`}>
                                         <Card variant="outlined" sx={{ opacity: project.show ? 1 : 0.5 }}>
                                             {/* Header */}
-                                            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <Box sx={{
+                                                p: { xs: 1.5, sm: 2 },
+                                                display: 'flex',
+                                                flexDirection: { xs: 'column', sm: 'row' },
+                                                alignItems: { xs: 'stretch', sm: 'center' },
+                                                justifyContent: 'space-between',
+                                                gap: { xs: 1.5, sm: 2 }
+                                            }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                                     <Title color="action" />
                                                     <Box>
-                                                        <Typography variant="h6">
+                                                        <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                                                             {project.title || `Project ${index + 1}`}
                                                         </Typography>
                                                         <Typography variant="body2" color="text.secondary">
@@ -182,7 +190,12 @@ export const ProjectsEditor: React.FC = () => {
                                                         </Typography>
                                                     </Box>
                                                 </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    justifyContent: { xs: 'space-between', sm: 'flex-end' }
+                                                }}>
                                                     <Button
                                                         size="small"
                                                         onClick={() => toggleExpanded(project.id)}
@@ -191,29 +204,31 @@ export const ProjectsEditor: React.FC = () => {
                                                     >
                                                         {isExpanded ? 'Collapse' : 'Expand'}
                                                     </Button>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => toggleProjectVisibility(project.id)}
-                                                        color={project.show ? 'primary' : 'default'}
-                                                        title={project.show ? 'Hide project' : 'Show project'}
-                                                        disabled={!currentResume.showProjects}
-                                                    >
-                                                        {project.show ? <Visibility /> : <VisibilityOff />}
-                                                    </IconButton>
-                                                    <IconButton
-                                                        size="small"
-                                                        color="error"
-                                                        onClick={() => deleteProject(project.id)}
-                                                        disabled={!currentResume.showProjects}
-                                                    >
-                                                        <Delete />
-                                                    </IconButton>
+                                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => toggleProjectVisibility(project.id)}
+                                                            color={project.show ? 'primary' : 'default'}
+                                                            title={project.show ? 'Hide project' : 'Show project'}
+                                                            disabled={!currentResume.showProjects}
+                                                        >
+                                                            {project.show ? <Visibility /> : <VisibilityOff />}
+                                                        </IconButton>
+                                                        <IconButton
+                                                            size="small"
+                                                            color="error"
+                                                            onClick={() => deleteProject(project.id)}
+                                                            disabled={!currentResume.showProjects}
+                                                        >
+                                                            <Delete />
+                                                        </IconButton>
+                                                    </Box>
                                                 </Box>
                                             </Box>
 
                                             {/* Expanded Content */}
                                             <Collapse in={isExpanded}>
-                                                <Box sx={{ px: 2, pb: 2, borderTop: 1, borderColor: 'divider' }}>
+                                                <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: { xs: 1.5, sm: 2 }, borderTop: 1, borderColor: 'divider' }}>
                                                     <Stack spacing={3} sx={{ pt: 3 }}>
                                                         {/* Title */}
                                                         <TextField
@@ -224,6 +239,7 @@ export const ProjectsEditor: React.FC = () => {
                                                             placeholder="e.g., Personal Portfolio Website"
                                                             required
                                                             disabled={!currentResume.showProjects}
+                                                            size="small"
                                                         />
 
                                                         {/* Description */}
@@ -237,6 +253,7 @@ export const ProjectsEditor: React.FC = () => {
                                                                 multiline
                                                                 rows={3}
                                                                 disabled={!currentResume.showProjects}
+                                                                size="small"
                                                             />
                                                             <FormControlLabel
                                                                 control={
@@ -253,6 +270,7 @@ export const ProjectsEditor: React.FC = () => {
                                                         {/* Link */}
                                                         <Box>
                                                             <TextField
+                                                                size="small"
                                                                 fullWidth
                                                                 label="Project Link"
                                                                 value={project.link}

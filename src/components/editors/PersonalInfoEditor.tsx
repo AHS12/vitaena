@@ -52,31 +52,38 @@ export const PersonalInfoEditor: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Card>
         <CardHeader
           title="Personal Information"
+          sx={{ pb: { xs: 1, sm: 2 } }}
         />
-        <Box sx={{ px: 2, pb: 2 }}>
+        <Box sx={{ px: { xs: 2, sm: 2 }, pb: 2 }}>
           <Typography variant="body2" color="text.secondary">
             Add your basic contact information and professional details.
           </Typography>
         </Box>
-        <CardContent>
+        <CardContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 3 } }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Photo Upload */}
             <Box>
               <Typography variant="subtitle1" sx={{ mb: 2 }}>
                 Profile Photo
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'center', sm: 'center' },
+                gap: 2,
+                textAlign: { xs: 'center', sm: 'left' }
+              }}>
                 <Avatar
                   src={personalInfo.photo || undefined}
-                  sx={{ width: 80, height: 80 }}
+                  sx={{ width: { xs: 64, sm: 80 }, height: { xs: 64, sm: 80 } }}
                 >
                   <Person />
                 </Avatar>
-                <Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'center', sm: 'flex-start' } }}>
                   <input
                     accept="image/*"
                     style={{ display: 'none' }}
@@ -89,6 +96,7 @@ export const PersonalInfoEditor: React.FC = () => {
                       color="primary"
                       aria-label="upload picture"
                       component="span"
+                      size="small"
                     >
                       <PhotoCamera />
                     </IconButton>
@@ -111,13 +119,14 @@ export const PersonalInfoEditor: React.FC = () => {
             </Box>
 
             {/* Basic Information */}
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
               <TextField
                 fullWidth
                 label="Full Name"
                 required
                 value={personalInfo.name}
                 onChange={(e) => updatePersonalInfo('name', e.target.value)}
+                size="small"
                 InputProps={{
                   startAdornment: <Person sx={{ mr: 1, color: 'text.secondary' }} />,
                 }}
@@ -130,16 +139,18 @@ export const PersonalInfoEditor: React.FC = () => {
                 value={personalInfo.title}
                 onChange={(e) => updatePersonalInfo('title', e.target.value)}
                 placeholder="e.g., Software Engineer, Marketing Manager"
+                size="small"
               />
             </Stack>
 
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
               <Box sx={{ flex: 1 }}>
                 <TextField
                   fullWidth
                   label="Email"
                   type="email"
                   value={personalInfo.email}
+                  size="small"
                   onChange={(e) => updatePersonalInfo('email', e.target.value)}
                   InputProps={{
                     startAdornment: <Email sx={{ mr: 1, color: 'text.secondary' }} />,
@@ -163,6 +174,7 @@ export const PersonalInfoEditor: React.FC = () => {
                   label="Phone"
                   value={personalInfo.phone}
                   onChange={(e) => updatePersonalInfo('phone', e.target.value)}
+                  size="small"
                   InputProps={{
                     startAdornment: <Phone sx={{ mr: 1, color: 'text.secondary' }} />,
                   }}
@@ -187,6 +199,7 @@ export const PersonalInfoEditor: React.FC = () => {
                 value={personalInfo.location}
                 onChange={(e) => updatePersonalInfo('location', e.target.value)}
                 placeholder="City, Country"
+                size="small"
                 InputProps={{
                   startAdornment: <LocationOn sx={{ mr: 1, color: 'text.secondary' }} />,
                 }}
@@ -208,7 +221,7 @@ export const PersonalInfoEditor: React.FC = () => {
               Additional Information
             </Typography>
 
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
               <Box sx={{ flex: 1 }}>
                 <TextField
                   fullWidth
@@ -216,6 +229,7 @@ export const PersonalInfoEditor: React.FC = () => {
                   value={personalInfo.linkedIn || ''}
                   onChange={(e) => updatePersonalInfo('linkedIn', e.target.value)}
                   placeholder="linkedin.com/in/username"
+                  size="small"
                   InputProps={{
                     startAdornment: <LinkedIn sx={{ mr: 1, color: 'text.secondary' }} />,
                   }}
@@ -235,6 +249,7 @@ export const PersonalInfoEditor: React.FC = () => {
               <Box sx={{ flex: 1 }}>
                 <TextField
                   fullWidth
+                  size="small"
                   label="Website"
                   value={personalInfo.website || ''}
                   onChange={(e) => updatePersonalInfo('website', e.target.value)}

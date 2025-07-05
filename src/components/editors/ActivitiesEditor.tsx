@@ -96,7 +96,7 @@ export const ActivitiesEditor: React.FC = () => {
     };
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
             <Card>
                 <CardHeader
                     title="Activities"
@@ -113,20 +113,21 @@ export const ActivitiesEditor: React.FC = () => {
                                     <IconButton size="small" color={currentResume.showActivities ? 'primary' : 'default'}>
                                         {currentResume.showActivities ? <Visibility /> : <VisibilityOff />}
                                     </IconButton>
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
                                         Show Activities
                                     </Typography>
                                 </Box>
                             }
                         />
                     }
+                    sx={{ pb: { xs: 1, sm: 2 } }}
                 />
-                <Box sx={{ px: 2, pb: 2 }}>
+                <Box sx={{ px: { xs: 2, sm: 2 }, pb: 2 }}>
                     <Typography variant="body2" color="text.secondary">
                         Add extracurricular activities, volunteer work, and achievements. Drag to reorder.
                     </Typography>
                 </Box>
-                <CardContent>
+                <CardContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 3 } }}>
                     {/* Activity Items */}
                     <SortableWrapper
                         items={currentResume.activities}
@@ -141,11 +142,18 @@ export const ActivitiesEditor: React.FC = () => {
                                     <SortableItem key={activity.id} id={`activity-${index}`}>
                                         <Card variant="outlined" sx={{ opacity: activity.show ? 1 : 0.5 }}>
                                             {/* Header */}
-                                            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <Box sx={{
+                                                p: { xs: 1.5, sm: 2 },
+                                                display: 'flex',
+                                                flexDirection: { xs: 'column', sm: 'row' },
+                                                alignItems: { xs: 'stretch', sm: 'center' },
+                                                justifyContent: 'space-between',
+                                                gap: { xs: 1.5, sm: 2 }
+                                            }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                                     <Event color="action" />
                                                     <Box>
-                                                        <Typography variant="h6">
+                                                        <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                                                             {activity.title || `Activity ${index + 1}`}
                                                         </Typography>
                                                         <Typography variant="body2" color="text.secondary">
@@ -156,7 +164,12 @@ export const ActivitiesEditor: React.FC = () => {
                                                         </Typography>
                                                     </Box>
                                                 </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    justifyContent: { xs: 'space-between', sm: 'flex-end' }
+                                                }}>
                                                     <Button
                                                         size="small"
                                                         onClick={() => toggleExpanded(activity.id)}
@@ -164,27 +177,29 @@ export const ActivitiesEditor: React.FC = () => {
                                                     >
                                                         {isExpanded ? 'Collapse' : 'Expand'}
                                                     </Button>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => toggleActivityVisibility(activity.id)}
-                                                        color={activity.show ? 'primary' : 'default'}
-                                                        title={activity.show ? 'Hide activity' : 'Show activity'}
-                                                    >
-                                                        {activity.show ? <Visibility /> : <VisibilityOff />}
-                                                    </IconButton>
-                                                    <IconButton
-                                                        size="small"
-                                                        color="error"
-                                                        onClick={() => deleteActivity(activity.id)}
-                                                    >
-                                                        <Delete />
-                                                    </IconButton>
+                                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => toggleActivityVisibility(activity.id)}
+                                                            color={activity.show ? 'primary' : 'default'}
+                                                            title={activity.show ? 'Hide activity' : 'Show activity'}
+                                                        >
+                                                            {activity.show ? <Visibility /> : <VisibilityOff />}
+                                                        </IconButton>
+                                                        <IconButton
+                                                            size="small"
+                                                            color="error"
+                                                            onClick={() => deleteActivity(activity.id)}
+                                                        >
+                                                            <Delete />
+                                                        </IconButton>
+                                                    </Box>
                                                 </Box>
                                             </Box>
 
                                             {/* Expanded Content */}
                                             <Collapse in={isExpanded}>
-                                                <Box sx={{ px: 2, pb: 2, borderTop: 1, borderColor: 'divider' }}>
+                                                <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: { xs: 1.5, sm: 2 }, borderTop: 1, borderColor: 'divider' }}>
                                                     <Stack spacing={3} sx={{ pt: 3 }}>
                                                         {/* Title */}
                                                         <TextField
@@ -194,6 +209,7 @@ export const ActivitiesEditor: React.FC = () => {
                                                             onChange={(e) => updateActivity(activity.id, 'title', e.target.value)}
                                                             placeholder="e.g., Volunteer at Local Food Bank"
                                                             required
+                                                            size="small"
                                                         />
 
                                                         {/* Location */}
@@ -203,6 +219,7 @@ export const ActivitiesEditor: React.FC = () => {
                                                                 label="Location"
                                                                 value={activity.location}
                                                                 onChange={(e) => updateActivity(activity.id, 'location', e.target.value)}
+                                                                size="small"
                                                                 placeholder="City, State/Country or Organization"
                                                                 InputProps={{
                                                                     startAdornment: (
@@ -329,7 +346,7 @@ export const ActivitiesEditor: React.FC = () => {
                     <Paper
                         sx={{
                             mt: 3,
-                            p: 3,
+                            p: { xs: 2, sm: 3 },
                             textAlign: 'center',
                             border: '2px dashed',
                             borderColor: 'divider',

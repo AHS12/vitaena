@@ -103,7 +103,7 @@ export const LanguagesEditor: React.FC = () => {
     };
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
             <Card>
                 <CardHeader
                     title="Languages"
@@ -120,20 +120,21 @@ export const LanguagesEditor: React.FC = () => {
                                     <IconButton size="small" color={currentResume.showLanguages ? 'primary' : 'default'}>
                                         {currentResume.showLanguages ? <Visibility /> : <VisibilityOff />}
                                     </IconButton>
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
                                         Show Languages
                                     </Typography>
                                 </Box>
                             }
                         />
                     }
+                    sx={{ pb: { xs: 1, sm: 2 } }}
                 />
-                <Box sx={{ px: 2, pb: 2 }}>
+                <Box sx={{ px: { xs: 2, sm: 2 }, pb: 2 }}>
                     <Typography variant="body2" color="text.secondary">
                         Add languages you speak with proficiency levels. Drag to reorder.
                     </Typography>
                 </Box>
-                <CardContent>
+                <CardContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 3 } }}>
                     {/* Current Languages */}
                     <SortableWrapper
                         items={currentResume.languages}
@@ -200,6 +201,7 @@ export const LanguagesEditor: React.FC = () => {
                                 onChange={(e) => setNewLanguageName(e.target.value)}
                                 placeholder="e.g., English, Spanish, French"
                                 fullWidth
+                                size="small"
                                 onKeyPress={(e) => {
                                     if (e.key === 'Enter') {
                                         addLanguage();
@@ -207,10 +209,10 @@ export const LanguagesEditor: React.FC = () => {
                                 }}
                             />
                             <FormControl size="small" sx={{ minWidth: 120 }}>
-                                <InputLabel>Proficiency Level</InputLabel>
+                                <InputLabel>Level</InputLabel>
                                 <Select
                                     value={newLanguageLevel}
-                                    label="Proficiency Level"
+                                    label="Level"
                                     onChange={(e) => setNewLanguageLevel(Number(e.target.value))}
                                 >
                                     {Object.entries(levelLabels).map(([level, label]) => (

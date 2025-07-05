@@ -134,7 +134,7 @@ export const CertificationsEditor: React.FC = () => {
     };
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
             <Card>
                 <CardHeader
                     title="Licenses & Certifications"
@@ -151,20 +151,21 @@ export const CertificationsEditor: React.FC = () => {
                                     <IconButton size="small" color={showCertifications ? 'primary' : 'default'}>
                                         {showCertifications ? <Visibility /> : <VisibilityOff />}
                                     </IconButton>
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
                                         Show Certifications
                                     </Typography>
                                 </Box>
                             }
                         />
                     }
+                    sx={{ pb: { xs: 1, sm: 2 } }}
                 />
-                <Box sx={{ px: 2, pb: 2 }}>
+                <Box sx={{ px: { xs: 2, sm: 2 }, pb: 2 }}>
                     <Typography variant="body2" color="text.secondary">
                         Add professional certifications, licenses, and achievements. Drag to reorder.
                     </Typography>
                 </Box>
-                <CardContent>
+                <CardContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 3 } }}>
                     {/* Certification Items */}
                     <SortableWrapper
                         items={certifications}
@@ -179,11 +180,18 @@ export const CertificationsEditor: React.FC = () => {
                                     <SortableItem key={certification.id} id={`certification-${index}`}>
                                         <Card variant="outlined" sx={{ opacity: certification.show ? 1 : 0.5 }}>
                                             {/* Header */}
-                                            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <Box sx={{
+                                                p: { xs: 1.5, sm: 2 },
+                                                display: 'flex',
+                                                flexDirection: { xs: 'column', sm: 'row' },
+                                                alignItems: { xs: 'stretch', sm: 'center' },
+                                                justifyContent: 'space-between',
+                                                gap: { xs: 1.5, sm: 2 }
+                                            }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                                     <WorkspacePremium color="action" />
                                                     <Box>
-                                                        <Typography variant="h6">
+                                                        <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                                                             {certification.name || `Certification ${index + 1}`}
                                                         </Typography>
                                                         <Typography variant="body2" color="text.secondary">
@@ -191,15 +199,12 @@ export const CertificationsEditor: React.FC = () => {
                                                         </Typography>
                                                     </Box>
                                                 </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => toggleCertificationShow(certification.id)}
-                                                        color={certification.show ? 'primary' : 'default'}
-                                                        title={certification.show ? 'Hide item' : 'Show item'}
-                                                    >
-                                                        {certification.show ? <Visibility /> : <VisibilityOff />}
-                                                    </IconButton>
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    justifyContent: { xs: 'space-between', sm: 'flex-end' }
+                                                }}>
                                                     <Button
                                                         size="small"
                                                         onClick={() => toggleExpanded(certification.id)}
@@ -207,19 +212,29 @@ export const CertificationsEditor: React.FC = () => {
                                                     >
                                                         {isExpanded ? 'Collapse' : 'Expand'}
                                                     </Button>
-                                                    <IconButton
-                                                        size="small"
-                                                        color="error"
-                                                        onClick={() => deleteCertification(certification.id)}
-                                                    >
-                                                        <Delete />
-                                                    </IconButton>
+                                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => toggleCertificationShow(certification.id)}
+                                                            color={certification.show ? 'primary' : 'default'}
+                                                            title={certification.show ? 'Hide item' : 'Show item'}
+                                                        >
+                                                            {certification.show ? <Visibility /> : <VisibilityOff />}
+                                                        </IconButton>
+                                                        <IconButton
+                                                            size="small"
+                                                            color="error"
+                                                            onClick={() => deleteCertification(certification.id)}
+                                                        >
+                                                            <Delete />
+                                                        </IconButton>
+                                                    </Box>
                                                 </Box>
                                             </Box>
 
                                             {/* Expanded Content */}
                                             <Collapse in={isExpanded}>
-                                                <Box sx={{ px: 2, pb: 2, borderTop: 1, borderColor: 'divider' }}>
+                                                <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: { xs: 1.5, sm: 2 }, borderTop: 1, borderColor: 'divider' }}>
                                                     <Stack spacing={3} sx={{ pt: 3 }}>
                                                         {/* Certification Name */}
                                                         <TextField
@@ -229,6 +244,7 @@ export const CertificationsEditor: React.FC = () => {
                                                             onChange={(e) => updateCertification(certification.id, 'name', e.target.value)}
                                                             placeholder="e.g., Microsoft certified network associate security"
                                                             required
+                                                            size="small"
                                                         />
 
                                                         {/* Issuing Organization */}
@@ -239,6 +255,7 @@ export const CertificationsEditor: React.FC = () => {
                                                             onChange={(e) => updateCertification(certification.id, 'issuingOrganization', e.target.value)}
                                                             placeholder="e.g., Microsoft"
                                                             required
+                                                            size="small"
                                                         />
 
                                                         {/* Issue Date */}
@@ -246,8 +263,8 @@ export const CertificationsEditor: React.FC = () => {
                                                             <Typography variant="subtitle2" sx={{ mb: 2 }}>
                                                                 Issue Date
                                                             </Typography>
-                                                            <Stack direction="row" spacing={2}>
-                                                                <FormControl fullWidth>
+                                                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                                                                <FormControl fullWidth size="small">
                                                                     <InputLabel>Month</InputLabel>
                                                                     <Select
                                                                         value={certification.issueDate.month}
@@ -263,6 +280,7 @@ export const CertificationsEditor: React.FC = () => {
                                                                 </FormControl>
                                                                 <TextField
                                                                     type="number"
+                                                                    size="small"
                                                                     label="Year"
                                                                     value={certification.issueDate.year}
                                                                     onChange={(e) => updateIssueDate(certification.id, 'year', parseInt(e.target.value))}
@@ -381,7 +399,7 @@ export const CertificationsEditor: React.FC = () => {
                     <Paper
                         sx={{
                             mt: 3,
-                            p: 3,
+                            p: { xs: 2, sm: 3 },
                             textAlign: 'center',
                             border: '2px dashed',
                             borderColor: 'divider',

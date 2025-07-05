@@ -107,7 +107,7 @@ export const SkillsEditor: React.FC = () => {
     if (!currentResume) return null;
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
             <Card>
                 <CardHeader
                     title="Skills"
@@ -124,25 +124,26 @@ export const SkillsEditor: React.FC = () => {
                                     <IconButton size="small" color={currentResume.showSkills ? 'primary' : 'default'}>
                                         {currentResume.showSkills ? <Visibility /> : <VisibilityOff />}
                                     </IconButton>
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
                                         Show Skills
                                     </Typography>
                                 </Box>
                             }
                         />
                     }
+                    sx={{ pb: { xs: 1, sm: 2 } }}
                 />
-                <Box sx={{ px: 2, pb: 2 }}>
+                <Box sx={{ px: { xs: 2, sm: 2 }, pb: 2 }}>
                     <Typography variant="body2" color="text.secondary">
                         Add your technical and professional skills with proficiency levels.
                     </Typography>
                 </Box>
-                <CardContent>
+                <CardContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 3 } }}>
                     {/* Add New Skill */}
                     <Paper
                         sx={{
-                            p: 3,
-                            mb: 3,
+                            p: { xs: 2, sm: 3 },
+                            mb: { xs: 2, sm: 3 },
                             border: '2px dashed',
                             borderColor: 'divider',
                             backgroundColor: 'action.hover',
@@ -151,8 +152,8 @@ export const SkillsEditor: React.FC = () => {
                         <Typography variant="subtitle2" sx={{ mb: 2 }}>
                             Add New Skill
                         </Typography>
-                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 2 }}>
-                            <Box sx={{ flex: { xs: 1, md: 2 } }}>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
+                            <Box sx={{ flex: 1 }}>
                                 <TextField
                                     fullWidth
                                     label="Skill Name"
@@ -160,14 +161,15 @@ export const SkillsEditor: React.FC = () => {
                                     onChange={(e) => setNewSkillName(e.target.value)}
                                     placeholder="e.g., JavaScript, Project Management"
                                     onKeyPress={(e) => e.key === 'Enter' && addSkill()}
+                                    size="small"
                                 />
                             </Box>
-                            <Box sx={{ flex: { xs: 1, md: 1 } }}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Proficiency Level</InputLabel>
+                            <Box sx={{ flex: { xs: 1, sm: 0.8 } }}>
+                                <FormControl fullWidth size="small">
+                                    <InputLabel>Level</InputLabel>
                                     <Select
                                         value={newSkillLevel}
-                                        label="Proficiency Level"
+                                        label="Level"
                                         onChange={(e) => setNewSkillLevel(e.target.value as number)}
                                     >
                                         <MenuItem value={1}>Beginner</MenuItem>
@@ -185,6 +187,7 @@ export const SkillsEditor: React.FC = () => {
                             onClick={addSkill}
                             disabled={!newSkillName.trim()}
                             startIcon={<Add />}
+                            size="small"
                         >
                             Add Skill
                         </Button>
@@ -215,18 +218,32 @@ export const SkillsEditor: React.FC = () => {
                                         <SortableItem key={skill.id} id={`skill-${index}`}>
                                             <Paper
                                                 sx={{
-                                                    p: 2,
+                                                    p: { xs: 1.5, sm: 2 },
                                                     display: 'flex',
-                                                    alignItems: 'center',
+                                                    flexDirection: { xs: 'column', sm: 'row' },
+                                                    alignItems: { xs: 'stretch', sm: 'center' },
                                                     justifyContent: 'space-between',
+                                                    gap: { xs: 1.5, sm: 2 },
                                                     border: '1px solid',
                                                     borderColor: 'divider',
                                                     opacity: skill.show ? 1 : 0.5,
                                                     transition: 'opacity 0.2s ease-in-out',
                                                 }}
                                             >
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: { xs: 1, sm: 2 },
+                                                    flex: 1,
+                                                    flexWrap: 'wrap'
+                                                }}>
+                                                    <Typography
+                                                        variant="body1"
+                                                        sx={{
+                                                            fontWeight: 500,
+                                                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                                                        }}
+                                                    >
                                                         {skill.name}
                                                     </Typography>
                                                     <Chip
@@ -235,8 +252,14 @@ export const SkillsEditor: React.FC = () => {
                                                         size="small"
                                                     />
                                                 </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <FormControl size="small" sx={{ minWidth: 120 }}>
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: { xs: 1, sm: 1 },
+                                                    flexDirection: { xs: 'row', sm: 'row' },
+                                                    justifyContent: { xs: 'space-between', sm: 'flex-end' }
+                                                }}>
+                                                    <FormControl size="small" sx={{ minWidth: { xs: 100, sm: 120 } }}>
                                                         <Select
                                                             value={skill.level}
                                                             onChange={(e) => updateSkillLevel(skill.id, e.target.value as number)}
@@ -248,21 +271,23 @@ export const SkillsEditor: React.FC = () => {
                                                             <MenuItem value={5}>Expert</MenuItem>
                                                         </Select>
                                                     </FormControl>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => toggleSkillVisibility(skill.id)}
-                                                        color={skill.show ? 'primary' : 'default'}
-                                                        title={skill.show ? 'Hide skill' : 'Show skill'}
-                                                    >
-                                                        {skill.show ? <Visibility /> : <VisibilityOff />}
-                                                    </IconButton>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => removeSkill(skill.id)}
-                                                        color="error"
-                                                    >
-                                                        <Close />
-                                                    </IconButton>
+                                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => toggleSkillVisibility(skill.id)}
+                                                            color={skill.show ? 'primary' : 'default'}
+                                                            title={skill.show ? 'Hide skill' : 'Show skill'}
+                                                        >
+                                                            {skill.show ? <Visibility /> : <VisibilityOff />}
+                                                        </IconButton>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => removeSkill(skill.id)}
+                                                            color="error"
+                                                        >
+                                                            <Close />
+                                                        </IconButton>
+                                                    </Box>
                                                 </Box>
                                             </Paper>
                                         </SortableItem>
