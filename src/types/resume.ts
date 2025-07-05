@@ -214,6 +214,7 @@ export interface UIStore {
   setActiveSection: (section: string) => void;
   setPreviewMode: (enabled: boolean) => void;
   setExporting: (exporting: boolean) => void;
+  initializeSidebarState: (isDesktop: boolean) => void;
 }
 
 // Color schemes for templates

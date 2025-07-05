@@ -1,9 +1,10 @@
 'use client';
 
 import { ExportModal } from '@/components/ExportModal';
+import { ResponsiveSidebar } from '@/components/ResponsiveSidebar';
 import { ResumeEditor } from '@/components/ResumeEditor';
-import { Sidebar } from '@/components/Sidebar';
 import { Toolbar } from '@/components/Toolbar';
+import { useResponsive } from '@/hooks';
 import { useResumeStore } from '@/stores/resume-store';
 import { useUIStore } from '@/stores/ui-store';
 import { AzizulClassicTemplate } from '@/templates/AzizulClassicTemplate';
@@ -11,7 +12,6 @@ import {
     Box,
     Button,
     CircularProgress,
-    Drawer,
     Paper,
     Typography,
 } from '@mui/material';
@@ -24,9 +24,14 @@ export default function EditorPage() {
     const resumeId = params.id as string;
 
     const { currentResume, loadResume, isLoading, error } = useResumeStore();
-    const { sidebarOpen, previewMode } = useUIStore();
+    const { previewMode } = useUIStore();
+    const { deviceType } = useResponsive();
     const [showExportModal, setShowExportModal] = useState(false);
-    const [previewScale, setPreviewScale] = useState(0.6);    // Calculate responsive scale based on screen size
+    const [previewScale, setPreviewScale] = useState(0.6);
+
+    // Check if we should show realtime preview
+    const shouldShowRealtimePreview = deviceType === 'desktop' ||
+        (deviceType === 'tablet' && typeof window !== 'undefined' && window.innerWidth > window.innerHeight); // Tablet landscape    // Calculate responsive scale based on screen size
     useEffect(() => {
         const updateScale = () => {
             const screenWidth = window.innerWidth;
@@ -135,33 +140,32 @@ export default function EditorPage() {
             <Toolbar onExport={() => setShowExportModal(true)} />
 
             <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100vh - 64px)' }}>
-                {/* Sidebar */}
-                <Drawer
-                    variant="persistent"
-                    open={sidebarOpen && !previewMode}
-                    sx={{
-                        width: sidebarOpen && !previewMode ? 320 : 0,
-                        flexShrink: 0,
-                        '& .MuiDrawer-paper': {
-                            width: 320,
-                            boxSizing: 'border-box',
-                            position: 'relative',
-                        },
-                    }}
-                >
-                    <Sidebar />
-                </Drawer>
+                {/* Responsive Sidebar */}
+                <ResponsiveSidebar isPreviewMode={previewMode} />
 
                 {/* Main Content */}
-                <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', height: '100%' }}>
+                <Box sx={{
+                    display: 'flex',
+                    flex: 1,
+                    overflow: 'hidden',
+                    height: '100%',
+                    flexDirection: { xs: 'column', md: 'row' }, // Stack on mobile, side-by-side on tablet+
+                }}>
                     {/* Editor Panel */}
-                    {!previewMode && (
+                    {(!previewMode || shouldShowRealtimePreview) && (
                         <Box
                             sx={{
-                                width: '50%',
-                                height: '100%',
+                                width: {
+                                    xs: '100%',
+                                    md: shouldShowRealtimePreview ? (previewMode ? '0%' : '50%') : '100%'
+                                },
+                                height: {
+                                    xs: shouldShowRealtimePreview ? '50%' : '100%',
+                                    md: '100%'
+                                },
                                 backgroundColor: 'background.paper',
-                                borderRight: '1px solid',
+                                borderRight: { xs: 'none', md: shouldShowRealtimePreview ? '1px solid' : 'none' },
+                                borderBottom: { xs: shouldShowRealtimePreview ? '1px solid' : 'none', md: 'none' },
                                 borderColor: 'divider',
                                 overflow: 'auto',
                                 display: 'flex',
@@ -173,54 +177,62 @@ export default function EditorPage() {
                     )}
 
                     {/* Preview Panel */}
-                    <Box
-                        sx={{
-                            width: previewMode ? '100%' : '50%',
-                            height: '100%',
-                            backgroundColor: 'grey.50',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            overflow: 'hidden',
-                            position: 'relative',
-                        }}
-                    >
+                    {(previewMode || shouldShowRealtimePreview) && (
                         <Box
                             sx={{
-                                flex: 1,
-                                overflow: 'auto',
+                                width: {
+                                    xs: '100%',
+                                    md: shouldShowRealtimePreview ? (previewMode ? '100%' : '50%') : '100%'
+                                },
+                                height: {
+                                    xs: shouldShowRealtimePreview ? '50%' : '100%',
+                                    md: '100%'
+                                },
+                                backgroundColor: 'grey.50',
                                 display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'flex-start',
-                                py: { xs: 2, sm: 3, md: 4 },
-                                px: { xs: 1, sm: 2, md: 3 },
-                                '&::-webkit-scrollbar': {
-                                    width: '8px',
-                                },
-                                '&::-webkit-scrollbar-track': {
-                                    backgroundColor: '#f1f1f1',
-                                    borderRadius: '4px',
-                                },
-                                '&::-webkit-scrollbar-thumb': {
-                                    backgroundColor: '#c1c1c1',
-                                    borderRadius: '4px',
-                                    '&:hover': {
-                                        backgroundColor: '#a8a8a8',
-                                    },
-                                },
+                                flexDirection: 'column',
+                                overflow: 'hidden',
+                                position: 'relative',
                             }}
                         >
-                            <Box sx={{
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'flex-start',
-                                width: '100%',
-                                maxWidth: '100%',
-                                minHeight: 'fit-content'
-                            }}>
-                                {renderTemplate()}
+                            <Box
+                                sx={{
+                                    flex: 1,
+                                    overflow: 'auto',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'flex-start',
+                                    py: { xs: 2, sm: 3, md: 4 },
+                                    px: { xs: 1, sm: 2, md: 3 },
+                                    '&::-webkit-scrollbar': {
+                                        width: '8px',
+                                    },
+                                    '&::-webkit-scrollbar-track': {
+                                        backgroundColor: '#f1f1f1',
+                                        borderRadius: '4px',
+                                    },
+                                    '&::-webkit-scrollbar-thumb': {
+                                        backgroundColor: '#c1c1c1',
+                                        borderRadius: '4px',
+                                        '&:hover': {
+                                            backgroundColor: '#a8a8a8',
+                                        },
+                                    },
+                                }}
+                            >
+                                <Box sx={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'flex-start',
+                                    width: '100%',
+                                    maxWidth: '100%',
+                                    minHeight: 'fit-content'
+                                }}>
+                                    {renderTemplate()}
+                                </Box>
                             </Box>
                         </Box>
-                    </Box>
+                    )}
                 </Box>
             </Box>
 
