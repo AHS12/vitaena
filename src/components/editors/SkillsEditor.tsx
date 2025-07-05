@@ -204,7 +204,7 @@ export const SkillsEditor: React.FC = () => {
                             {isTouchDevice && currentResume.skills.length > 1 && (
                                 <Box sx={{ mb: 2 }}>
                                     <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                                        💡 Tip: On mobile devices, touch and hold an item to drag and reorder
+                                        💡 Tip: Hold an item for a moment to start dragging and reorder
                                     </Typography>
                                 </Box>
                             )}

@@ -30,7 +30,7 @@ export const SortableItem: React.FC<SortableItemProps> = ({
         isDragging,
     } = useSortable({
         id,
-        disabled
+        disabled: disabled
     });
 
     const style = {
@@ -49,16 +49,17 @@ export const SortableItem: React.FC<SortableItemProps> = ({
             sx={{
                 position: 'relative',
                 cursor: isDragging ? 'grabbing' : (disabled ? 'default' : 'grab'),
-                // Add better touch handling
-                touchAction: disabled ? 'auto' : 'none',
+                // Add better touch handling - allow touch delay to work
+                touchAction: disabled ? 'auto' : 'manipulation',
                 userSelect: 'none',
                 WebkitTouchCallout: 'none',
                 WebkitUserSelect: 'none',
                 ...(isTouchDevice && {
-                    // Add visual feedback for touch devices
+                    // Add visual feedback for touch devices during hold
                     '&:active': {
                         transform: 'scale(0.98)',
                         transition: 'transform 0.1s ease-in-out',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                     },
                 }),
             }}

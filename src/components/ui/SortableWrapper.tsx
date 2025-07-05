@@ -3,7 +3,7 @@ import {
     DndContext,
     DragEndEvent,
     KeyboardSensor,
-    PointerSensor,
+    MouseSensor,
     TouchSensor,
     useSensor,
     useSensors,
@@ -31,18 +31,21 @@ export const SortableWrapper = <T,>({
     idPrefix,
     disabled = false,
 }: SortableWrapperProps<T>) => {
+    // Simple disabled check
+    const isDragDisabled = disabled;
     const sensors = useSensors(
-        useSensor(PointerSensor, {
-            // Add a minimum distance to prevent conflicts with click events
+        // Put TouchSensor first to prioritize it on touch devices
+        useSensor(TouchSensor, {
+            // Configure touch sensor with delay only (not distance as they're mutually exclusive)
             activationConstraint: {
-                distance: 5,
+                delay: 250, // 250ms hold time - good balance between preventing accidents and usability
+                tolerance: 8, // Allow 8px movement during delay
             },
         }),
-        useSensor(TouchSensor, {
-            // Configure touch sensor with proper activation constraints
+        useSensor(MouseSensor, {
+            // Handle mouse events
             activationConstraint: {
-                delay: 100,
-                tolerance: 5,
+                distance: 8,
             },
         }),
         useSensor(KeyboardSensor, {
@@ -51,7 +54,7 @@ export const SortableWrapper = <T,>({
     );
 
     const handleDragEnd = (event: DragEndEvent) => {
-        if (disabled) return;
+        if (isDragDisabled) return;
 
         const { active, over } = event;
 
@@ -66,7 +69,7 @@ export const SortableWrapper = <T,>({
         }
     };
 
-    if (disabled) {
+    if (isDragDisabled) {
         return <>{children}</>;
     }
 
