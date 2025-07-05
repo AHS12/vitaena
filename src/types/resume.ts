@@ -54,6 +54,7 @@ export interface Education {
 }
 
 export interface Skill {
+  id: string;
   name: string;
   level: number; // 1-5 scale
   show: boolean;

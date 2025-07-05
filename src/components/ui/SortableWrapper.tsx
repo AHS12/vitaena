@@ -4,6 +4,7 @@ import {
     DragEndEvent,
     KeyboardSensor,
     PointerSensor,
+    TouchSensor,
     useSensor,
     useSensors,
 } from '@dnd-kit/core';
@@ -20,6 +21,7 @@ interface SortableWrapperProps<T> {
     onReorder: (items: T[]) => void;
     children: ReactNode;
     idPrefix: string;
+    disabled?: boolean;
 }
 
 export const SortableWrapper = <T,>({
@@ -27,15 +29,30 @@ export const SortableWrapper = <T,>({
     onReorder,
     children,
     idPrefix,
+    disabled = false,
 }: SortableWrapperProps<T>) => {
     const sensors = useSensors(
-        useSensor(PointerSensor),
+        useSensor(PointerSensor, {
+            // Add a minimum distance to prevent conflicts with click events
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
+        useSensor(TouchSensor, {
+            // Configure touch sensor with proper activation constraints
+            activationConstraint: {
+                delay: 100,
+                tolerance: 5,
+            },
+        }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         })
     );
 
     const handleDragEnd = (event: DragEndEvent) => {
+        if (disabled) return;
+
         const { active, over } = event;
 
         if (active.id !== over?.id) {
@@ -48,6 +65,10 @@ export const SortableWrapper = <T,>({
             }
         }
     };
+
+    if (disabled) {
+        return <>{children}</>;
+    }
 
     return (
         <DndContext

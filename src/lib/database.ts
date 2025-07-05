@@ -1,5 +1,6 @@
 import { ResumeData, ResumeTemplate } from "@/types/resume";
 import Dexie, { Table } from "dexie";
+import { generateId } from "./utils";
 
 export interface StoredResume
   extends Omit<ResumeData, "createdAt" | "updatedAt"> {
@@ -103,11 +104,16 @@ export class ResumeService {
       needsUpdate = true;
     }
 
-    // Migrate individual items to have show property
+    // Migrate individual items to have show property and unique IDs
     if (resume.skills.length > 0) {
       resume.skills.forEach((skill) => {
         if (skill.show === undefined) {
           skill.show = true;
+          needsUpdate = true;
+        }
+        // Ensure all skills have a unique ID
+        if (!skill.id) {
+          skill.id = generateId();
           needsUpdate = true;
         }
       });
@@ -265,11 +271,16 @@ export class ResumeService {
         needsUpdate = true;
       }
 
-      // Migrate individual items to have show property
+      // Migrate individual items to have show property and unique IDs
       if (migrated.skills.length > 0) {
         migrated.skills.forEach((skill) => {
           if (skill.show === undefined) {
             skill.show = true;
+            needsUpdate = true;
+          }
+          // Ensure all skills have a unique ID
+          if (!skill.id) {
+            skill.id = generateId();
             needsUpdate = true;
           }
         });

@@ -1,5 +1,6 @@
 import { SortableItem } from '@/components/ui/SortableItem';
 import { SortableWrapper } from '@/components/ui/SortableWrapper';
+import { useIsTouchDevice } from '@/hooks';
 import { generateId } from '@/lib/utils';
 import { useResumeStore } from '@/stores/resume-store';
 import { DateRange, WorkExperience } from '@/types/resume';
@@ -26,6 +27,7 @@ import React, { useState } from 'react';
 export const ExperienceEditor: React.FC = () => {
     const { currentResume, updateResumeField } = useResumeStore();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
+    const isTouchDevice = useIsTouchDevice();
 
     if (!currentResume) return null;
 
@@ -154,6 +156,15 @@ export const ExperienceEditor: React.FC = () => {
                     </Typography>
                 </Box>
                 <CardContent>
+                    {/* Touch Device Information */}
+                    {isTouchDevice && currentResume.workExperience.length > 1 && (
+                        <Box sx={{ mb: 2 }}>
+                            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                💡 Tip: On mobile devices, touch and hold an item to drag and reorder
+                            </Typography>
+                        </Box>
+                    )}
+
                     {/* Experience Items */}
                     <SortableWrapper
                         items={currentResume.workExperience}
