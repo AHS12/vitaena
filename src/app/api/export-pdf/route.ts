@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Resume PDF Export</title>
+                <title>Vitaena - Resume PDF Export</title>
                 <style>
                     * {
                         margin: 0;

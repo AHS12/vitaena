@@ -1,5 +1,5 @@
 {
-  "name": "offline-resume-maker",
+  "name": "vitaena",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -15,14 +15,8 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.2.0",
-    "@mui/lab": "7.0.0-beta.14",
     "@mui/material": "^7.2.0",
-    "@mui/system": "^7.2.0",
-    "@mui/x-data-grid": "^8.6.0",
-    "@mui/x-date-pickers": "^8.6.0",
     "dexie": "^4.0.11",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^3.0.1",
     "lucide-react": "^0.525.0",
     "next": "15.3.4",
     "puppeteer": "^24.11.2",
@@ -32,7 +26,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@types/jspdf": "^2.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

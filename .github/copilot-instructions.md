@@ -1,10 +1,10 @@
-# Copilot Instructions for Offline Resume Maker
+# Copilot Instructions for Vitaena
 
 <!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
 
 ## Project Overview
 
-This is an offline resume maker web application built with Next.js, TypeScript, and Tailwind CSS. The application allows users to create, edit, and export professional resumes using multiple templates.
+Vitaena is a privacy-first local resume builder web application built with Next.js, TypeScript, and Tailwind CSS. The application allows users to create, edit, and export professional resumes using multiple templates. All data stays in the user's browser - no cloud, no tracking.
 
 ## Tech Stack
 
@@ -13,7 +13,7 @@ This is an offline resume maker web application built with Next.js, TypeScript, 
 - **UI Components:** Material UI (MUI) for form components, inputs, and interactions
 - **State Management:** Zustand for global state
 - **Storage:** IndexedDB with Dexie.js for offline data persistence
-- **PDF Generation:** jsPDF + html2canvas for high-quality PDF exports
+- **PDF Generation:** Puppeteer for high-quality PDF exports
 - **Icons:** Lucide React for consistent iconography
 - **Package Manager:** pnpm
 

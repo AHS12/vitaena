@@ -11,8 +11,8 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Offline Resume Maker",
-  description: "Create professional resumes offline with multiple templates",
+  title: "Vitaena - Local Resume Builder",
+  description: "Create professional resumes locally in your browser. All data stays in your browser - no cloud, no tracking.",
 };
 
 export default function RootLayout({

@@ -139,7 +139,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      // This will be implemented with jsPDF + html2canvas
+      // This will be implemented with Puppeteer API
       const resume = await ResumeService.getResume(resumeId);
       if (!resume) throw new Error("Resume not found");
 
