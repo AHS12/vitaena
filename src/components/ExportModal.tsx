@@ -36,8 +36,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ resume, onClose }) => 
         try {
             console.log('Exporting PDF for:', resume.personalInfo.name);
 
-            // Get the resume template element
-            const resumeElement = document.querySelector('[data-resume-template]') as HTMLElement;
+            // Get the resume template element for export (hidden full-scale version)
+            const resumeElement = document.querySelector('[data-export-template] [data-resume-template]') as HTMLElement;
 
             if (!resumeElement) {
                 throw new Error('Resume template not found. Please make sure the resume is visible on screen.');

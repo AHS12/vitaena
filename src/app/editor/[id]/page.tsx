@@ -26,6 +26,31 @@ export default function EditorPage() {
     const { currentResume, loadResume, isLoading, error } = useResumeStore();
     const { sidebarOpen, previewMode } = useUIStore();
     const [showExportModal, setShowExportModal] = useState(false);
+    const [previewScale, setPreviewScale] = useState(0.6);    // Calculate responsive scale based on screen size
+    useEffect(() => {
+        const updateScale = () => {
+            const screenWidth = window.innerWidth;
+            let scale = 0.55; // Default scale (reduced from 0.6)
+
+            if (screenWidth >= 1920) {
+                scale = 0.75; // Large screens (reduced from 0.85)
+            } else if (screenWidth >= 1536) {
+                scale = 0.68; // Medium-large screens (reduced from 0.75)
+            } else if (screenWidth >= 1280) {
+                scale = 0.6; // Medium screens (reduced from 0.65)
+            } else if (screenWidth >= 1024) {
+                scale = 0.55; // Small-medium screens (reduced from 0.6)
+            } else {
+                scale = 0.45; // Small screens (reduced from 0.5)
+            }
+
+            setPreviewScale(scale);
+        };
+
+        updateScale();
+        window.addEventListener('resize', updateScale);
+        return () => window.removeEventListener('resize', updateScale);
+    }, []);
 
     useEffect(() => {
         if (resumeId && (!currentResume || currentResume.id !== resumeId)) {
@@ -85,15 +110,31 @@ export default function EditorPage() {
         switch (currentResume.templateId) {
             case 'azizul-classic':
             default:
-                return <AzizulClassicTemplate data={currentResume} />;
+                return <AzizulClassicTemplate
+                    data={currentResume}
+                    scale={previewScale}
+                    isPreview={true}
+                />;
+        }
+    };
+
+    const renderExportTemplate = () => {
+        switch (currentResume.templateId) {
+            case 'azizul-classic':
+            default:
+                return <AzizulClassicTemplate
+                    data={currentResume}
+                    scale={1}
+                    isPreview={false}
+                />;
         }
     };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
             <Toolbar onExport={() => setShowExportModal(true)} />
 
-            <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100vh - 64px)' }}>
                 {/* Sidebar */}
                 <Drawer
                     variant="persistent"
@@ -112,16 +153,19 @@ export default function EditorPage() {
                 </Drawer>
 
                 {/* Main Content */}
-                <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+                <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', height: '100%' }}>
                     {/* Editor Panel */}
                     {!previewMode && (
                         <Box
                             sx={{
                                 width: '50%',
+                                height: '100%',
                                 backgroundColor: 'background.paper',
                                 borderRight: '1px solid',
                                 borderColor: 'divider',
                                 overflow: 'auto',
+                                display: 'flex',
+                                flexDirection: 'column',
                             }}
                         >
                             <ResumeEditor />
@@ -132,15 +176,49 @@ export default function EditorPage() {
                     <Box
                         sx={{
                             width: previewMode ? '100%' : '50%',
+                            height: '100%',
                             backgroundColor: 'grey.50',
-                            overflow: 'auto',
                             display: 'flex',
-                            justifyContent: 'center',
-                            py: 3,
+                            flexDirection: 'column',
+                            overflow: 'hidden',
+                            position: 'relative',
                         }}
                     >
-                        <Box sx={{ maxWidth: '100%' }}>
-                            {renderTemplate()}
+                        <Box
+                            sx={{
+                                flex: 1,
+                                overflow: 'auto',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'flex-start',
+                                py: { xs: 2, sm: 3, md: 4 },
+                                px: { xs: 1, sm: 2, md: 3 },
+                                '&::-webkit-scrollbar': {
+                                    width: '8px',
+                                },
+                                '&::-webkit-scrollbar-track': {
+                                    backgroundColor: '#f1f1f1',
+                                    borderRadius: '4px',
+                                },
+                                '&::-webkit-scrollbar-thumb': {
+                                    backgroundColor: '#c1c1c1',
+                                    borderRadius: '4px',
+                                    '&:hover': {
+                                        backgroundColor: '#a8a8a8',
+                                    },
+                                },
+                            }}
+                        >
+                            <Box sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'flex-start',
+                                width: '100%',
+                                maxWidth: '100%',
+                                minHeight: 'fit-content'
+                            }}>
+                                {renderTemplate()}
+                            </Box>
                         </Box>
                     </Box>
                 </Box>
@@ -153,6 +231,20 @@ export default function EditorPage() {
                     onClose={() => setShowExportModal(false)}
                 />
             )}
+
+            {/* Hidden full-scale template for export */}
+            <Box sx={{
+                position: 'absolute',
+                top: '-9999px',
+                left: '-9999px',
+                visibility: 'hidden',
+                pointerEvents: 'none',
+                zIndex: -1
+            }}>
+                <div data-export-template>
+                    {renderExportTemplate()}
+                </div>
+            </Box>
         </Box>
     );
 }
