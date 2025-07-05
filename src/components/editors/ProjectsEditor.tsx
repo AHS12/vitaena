@@ -126,7 +126,6 @@ export const ProjectsEditor: React.FC = () => {
             <Card>
                 <CardHeader
                     title="Projects"
-                    subheader="Showcase your personal or professional projects. Drag to reorder."
                     action={
                         <FormControlLabel
                             control={
@@ -148,6 +147,11 @@ export const ProjectsEditor: React.FC = () => {
                         />
                     }
                 />
+                <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Showcase your personal or professional projects. Drag to reorder.
+                    </Typography>
+                </Box>
                 <CardContent>
                     {/* Project Items */}
                     <SortableWrapper

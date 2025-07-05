@@ -56,8 +56,12 @@ export const PersonalInfoEditor: React.FC = () => {
       <Card>
         <CardHeader
           title="Personal Information"
-          subheader="Add your basic contact information and professional details."
         />
+        <Box sx={{ px: 2, pb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            Add your basic contact information and professional details.
+          </Typography>
+        </Box>
         <CardContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Photo Upload */}

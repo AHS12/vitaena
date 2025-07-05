@@ -127,7 +127,6 @@ export const ExperienceEditor: React.FC = () => {
             <Card>
                 <CardHeader
                     title="Work Experience"
-                    subheader="Add your professional work experience, including internships and freelance work. Drag to reorder."
                     action={
                         <FormControlLabel
                             control={
@@ -149,6 +148,11 @@ export const ExperienceEditor: React.FC = () => {
                         />
                     }
                 />
+                <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Add your professional work experience, including internships and freelance work. Drag to reorder.
+                    </Typography>
+                </Box>
                 <CardContent>
                     {/* Experience Items */}
                     <SortableWrapper

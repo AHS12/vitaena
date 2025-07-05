@@ -231,7 +231,6 @@ export const SkillsEditor: React.FC = () => {
             <Card>
                 <CardHeader
                     title="Skills"
-                    subheader="Add your technical and professional skills with proficiency levels."
                     action={
                         <FormControlLabel
                             control={
@@ -253,6 +252,11 @@ export const SkillsEditor: React.FC = () => {
                         />
                     }
                 />
+                <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Add your technical and professional skills with proficiency levels.
+                    </Typography>
+                </Box>
                 <CardContent>
                     {/* Add New Skill */}
                     <Paper

@@ -79,7 +79,6 @@ export const StrengthsEditor: React.FC = () => {
             <Card>
                 <CardHeader
                     title="Professional Strengths"
-                    subheader="Highlight your key professional strengths and qualities that make you stand out. Drag to reorder."
                     action={
                         <FormControlLabel
                             control={
@@ -101,6 +100,11 @@ export const StrengthsEditor: React.FC = () => {
                         />
                     }
                 />
+                <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Highlight your key professional strengths and qualities that make you stand out. Drag to reorder.
+                    </Typography>
+                </Box>
                 <CardContent>
                     {/* Strength Items */}
                     <SortableWrapper

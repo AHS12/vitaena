@@ -79,7 +79,6 @@ export const InterestsEditor: React.FC = () => {
             <Card>
                 <CardHeader
                     title="Interests & Hobbies"
-                    subheader="Share your personal interests, hobbies, and activities that showcase your personality. Drag to reorder."
                     action={
                         <FormControlLabel
                             control={
@@ -101,6 +100,11 @@ export const InterestsEditor: React.FC = () => {
                         />
                     }
                 />
+                <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Share your personal interests, hobbies, and activities that showcase your personality. Drag to reorder.
+                    </Typography>
+                </Box>
                 <CardContent>
                     {/* Interest Items */}
                     <SortableWrapper

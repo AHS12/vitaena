@@ -31,8 +31,12 @@ export const SummaryEditor: React.FC = () => {
             <Card>
                 <CardHeader
                     title="Professional Summary"
-                    subheader="Write a brief overview of your professional background, key skills, and career objectives."
                 />
+                <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Write a brief overview of your professional background, key skills, and career objectives.
+                    </Typography>
+                </Box>
                 <CardContent sx={{ space: 3 }}>
                     {/* Show Summary Toggle */}
                     <FormControlLabel

@@ -100,7 +100,6 @@ export const ActivitiesEditor: React.FC = () => {
             <Card>
                 <CardHeader
                     title="Activities"
-                    subheader="Add extracurricular activities, volunteer work, and achievements. Drag to reorder."
                     action={
                         <FormControlLabel
                             control={
@@ -122,6 +121,11 @@ export const ActivitiesEditor: React.FC = () => {
                         />
                     }
                 />
+                <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Add extracurricular activities, volunteer work, and achievements. Drag to reorder.
+                    </Typography>
+                </Box>
                 <CardContent>
                     {/* Activity Items */}
                     <SortableWrapper

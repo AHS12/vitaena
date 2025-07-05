@@ -107,7 +107,6 @@ export const LanguagesEditor: React.FC = () => {
             <Card>
                 <CardHeader
                     title="Languages"
-                    subheader="Add languages you speak with proficiency levels. Drag to reorder."
                     action={
                         <FormControlLabel
                             control={
@@ -129,6 +128,11 @@ export const LanguagesEditor: React.FC = () => {
                         />
                     }
                 />
+                <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Add languages you speak with proficiency levels. Drag to reorder.
+                    </Typography>
+                </Box>
                 <CardContent>
                     {/* Current Languages */}
                     <SortableWrapper

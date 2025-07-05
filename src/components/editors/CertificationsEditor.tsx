@@ -138,7 +138,6 @@ export const CertificationsEditor: React.FC = () => {
             <Card>
                 <CardHeader
                     title="Licenses & Certifications"
-                    subheader="Add professional certifications, licenses, and achievements. Drag to reorder."
                     action={
                         <FormControlLabel
                             control={
@@ -160,6 +159,11 @@ export const CertificationsEditor: React.FC = () => {
                         />
                     }
                 />
+                <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Add professional certifications, licenses, and achievements. Drag to reorder.
+                    </Typography>
+                </Box>
                 <CardContent>
                     {/* Certification Items */}
                     <SortableWrapper

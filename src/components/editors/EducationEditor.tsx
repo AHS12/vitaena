@@ -99,7 +99,6 @@ export const EducationEditor: React.FC = () => {
             <Card>
                 <CardHeader
                     title="Education"
-                    subheader="Add your educational background, including degrees, certifications, and relevant coursework. Drag to reorder."
                     action={
                         <FormControlLabel
                             control={
@@ -121,6 +120,11 @@ export const EducationEditor: React.FC = () => {
                         />
                     }
                 />
+                <Box sx={{ px: 2, pb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Add your educational background, including degrees, certifications, and relevant coursework. Drag to reorder.
+                    </Typography>
+                </Box>
                 <CardContent>
                     {/* Education Items */}
                     <SortableWrapper
