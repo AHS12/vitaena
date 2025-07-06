@@ -165,7 +165,11 @@ export const ProjectsEditor: React.FC = () => {
                                 const isExpanded = expandedItems.includes(project.id);
 
                                 return (
-                                    <SortableItem key={project.id} id={`project-${index}`}>
+                                    <SortableItem
+                                        key={project.id}
+                                        id={`project-${index}`}
+                                        disabled={isExpanded}
+                                    >
                                         <Card variant="outlined" sx={{ opacity: project.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{

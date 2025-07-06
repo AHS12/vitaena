@@ -149,7 +149,11 @@ export const EducationEditor: React.FC = () => {
                                 const isExpanded = expandedItems.includes(education.id);
 
                                 return (
-                                    <SortableItem key={education.id} id={`education-${index}`}>
+                                    <SortableItem
+                                        key={education.id}
+                                        id={`education-${index}`}
+                                        disabled={isExpanded}
+                                    >
                                         <Card variant="outlined" sx={{ opacity: education.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{

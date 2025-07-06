@@ -177,7 +177,11 @@ export const ExperienceEditor: React.FC = () => {
                                 const isExpanded = expandedItems.includes(experience.id);
 
                                 return (
-                                    <SortableItem key={experience.id} id={`experience-${index}`}>
+                                    <SortableItem
+                                        key={experience.id}
+                                        id={`experience-${index}`}
+                                        disabled={isExpanded}
+                                    >
                                         <Card variant="outlined" sx={{ opacity: experience.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{

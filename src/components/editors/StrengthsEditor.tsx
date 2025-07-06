@@ -118,7 +118,11 @@ export const StrengthsEditor: React.FC = () => {
                                 const isExpanded = expandedItems.includes(strength.id);
 
                                 return (
-                                    <SortableItem key={strength.id} id={`strength-${index}`}>
+                                    <SortableItem
+                                        key={strength.id}
+                                        id={`strength-${index}`}
+                                        disabled={isExpanded}
+                                    >
                                         <Card variant="outlined" sx={{ opacity: strength.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{

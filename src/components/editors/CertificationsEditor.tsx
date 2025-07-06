@@ -177,7 +177,11 @@ export const CertificationsEditor: React.FC = () => {
                                 const isExpanded = expandedItems.includes(certification.id);
 
                                 return (
-                                    <SortableItem key={certification.id} id={`certification-${index}`}>
+                                    <SortableItem
+                                        key={certification.id}
+                                        id={`certification-${index}`}
+                                        disabled={isExpanded}
+                                    >
                                         <Card variant="outlined" sx={{ opacity: certification.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{

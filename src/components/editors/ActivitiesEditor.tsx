@@ -139,7 +139,11 @@ export const ActivitiesEditor: React.FC = () => {
                                 const isExpanded = expandedItems.includes(activity.id);
 
                                 return (
-                                    <SortableItem key={activity.id} id={`activity-${index}`}>
+                                    <SortableItem
+                                        key={activity.id}
+                                        id={`activity-${index}`}
+                                        disabled={isExpanded}
+                                    >
                                         <Card variant="outlined" sx={{ opacity: activity.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{

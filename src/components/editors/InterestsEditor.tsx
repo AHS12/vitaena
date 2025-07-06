@@ -118,7 +118,11 @@ export const InterestsEditor: React.FC = () => {
                                 const isExpanded = expandedItems.includes(interest.id);
 
                                 return (
-                                    <SortableItem key={interest.id} id={`interest-${index}`}>
+                                    <SortableItem
+                                        key={interest.id}
+                                        id={`interest-${index}`}
+                                        disabled={isExpanded}
+                                    >
                                         <Card variant="outlined" sx={{ opacity: interest.show ? 1 : 0.5 }}>
                                             {/* Header */}
                                             <Box sx={{
