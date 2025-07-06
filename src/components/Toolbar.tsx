@@ -1,3 +1,4 @@
+import { useOfflineNavigation } from '@/components/OfflineNavigation';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useResponsive } from '@/hooks';
 import { useResumeStore } from '@/stores/resume-store';
@@ -18,7 +19,6 @@ import {
     Toolbar as MuiToolbar,
     Typography,
 } from '@mui/material';
-import { useRouter } from 'next/navigation';
 import React from 'react';
 
 interface ToolbarProps {
@@ -26,7 +26,7 @@ interface ToolbarProps {
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
-    const router = useRouter();
+    const { navigate } = useOfflineNavigation();
     const {
         previewMode,
         toggleSidebar,
@@ -80,7 +80,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                                     transition: 'transform 0.2s ease'
                                 }
                             }}
-                            onClick={() => router.push('/')}
+                            onClick={() => navigate('/')}
                         />
                     </Box>
 

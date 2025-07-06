@@ -1,5 +1,6 @@
 'use client';
 
+import { useOfflineNavigation } from '@/components/OfflineNavigation';
 import { useResponsive } from '@/hooks';
 import { useUIStore } from '@/stores/ui-store';
 import {
@@ -30,7 +31,6 @@ import {
     Paper,
     Typography,
 } from '@mui/material';
-import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 
 const homeSection = { id: 'home', label: 'Back to Home', icon: Home };
@@ -56,7 +56,7 @@ interface ResponsiveSidebarProps {
 export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isPreviewMode = false }) => {
     const { sidebarOpen, activeSection, setActiveSection, toggleSidebar, initializeSidebarState } = useUIStore();
     const { isDesktop } = useResponsive();
-    const router = useRouter();
+    const { navigate } = useOfflineNavigation();
 
     // Initialize sidebar state based on screen size
     useEffect(() => {
@@ -65,7 +65,7 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isPreviewM
 
     const handleSectionClick = (section: typeof resumeSections[0] | typeof homeSection) => {
         if (section.id === 'home') {
-            router.push('/');
+            navigate('/');
         } else {
             setActiveSection(section.id);
             // Close sidebar on mobile/tablet after selection

@@ -6,8 +6,10 @@ import {
     DataObject,
     Download,
     PictureAsPdf,
+    WifiOff,
 } from '@mui/icons-material';
 import {
+    Alert,
     Box,
     Button,
     Chip,
@@ -20,7 +22,7 @@ import {
     Paper,
     Typography,
 } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface ExportModalProps {
     resume: ResumeData;
@@ -30,6 +32,23 @@ interface ExportModalProps {
 export const ExportModal: React.FC<ExportModalProps> = ({ resume, onClose }) => {
     const [isExporting, setIsExporting] = useState(false);
     const [exportSuccess, setExportSuccess] = useState(false);
+    const [isOnline, setIsOnline] = useState(true);
+
+    useEffect(() => {
+        // Set initial online status
+        setIsOnline(navigator.onLine);
+
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
 
     const handleExportPDF = async () => {
         setIsExporting(true);
@@ -151,26 +170,48 @@ export const ExportModal: React.FC<ExportModalProps> = ({ resume, onClose }) => 
                     Choose your preferred export format
                 </Typography>
 
+                {/* Offline Alert */}
+                {!isOnline && (
+                    <Alert
+                        severity="warning"
+                        icon={<WifiOff />}
+                        sx={{
+                            mb: 3,
+                            borderRadius: 2,
+                            '& .MuiAlert-message': {
+                                fontSize: { xs: '0.875rem', sm: '1rem' }
+                            }
+                        }}
+                    >
+                        <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5 }}>
+                            You&apos;re currently offline
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            PDF export requires an internet connection. JSON export is still available for backing up your data.
+                        </Typography>
+                    </Alert>
+                )}
+
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
                     {/* PDF Export */}
                     <Paper
                         elevation={2}
                         sx={{
                             p: { xs: 2, sm: 3 },
-                            cursor: isExporting ? 'not-allowed' : 'pointer',
-                            opacity: isExporting ? 0.7 : 1,
+                            cursor: isExporting || !isOnline ? 'not-allowed' : 'pointer',
+                            opacity: isExporting || !isOnline ? 0.7 : 1,
                             border: '2px solid',
-                            borderColor: isExporting ? 'primary.main' : 'divider',
+                            borderColor: isExporting ? 'primary.main' : !isOnline ? 'error.main' : 'divider',
                             borderRadius: 2,
                             backgroundColor: 'background.paper',
-                            '&:hover': !isExporting ? {
+                            '&:hover': !isExporting && isOnline ? {
                                 borderColor: 'primary.main',
                                 transform: 'translateY(-2px)',
                                 boxShadow: '0 8px 24px rgba(97, 192, 190, 0.15)',
                             } : {},
                             transition: 'all 0.3s ease-in-out',
                         }}
-                        onClick={!isExporting ? handleExportPDF : undefined}
+                        onClick={!isExporting && isOnline ? handleExportPDF : undefined}
                     >
                         <Box sx={{
                             display: 'flex',
@@ -243,6 +284,24 @@ export const ExportModal: React.FC<ExportModalProps> = ({ resume, onClose }) => 
                                             }
                                         }}
                                     />
+                                </Box>
+                            ) : !isOnline ? (
+                                <Box sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: 1
+                                }}>
+                                    <WifiOff sx={{
+                                        fontSize: 32,
+                                        color: 'error.main'
+                                    }} />
+                                    <Typography variant="body2" color="error.main" sx={{
+                                        fontWeight: 500,
+                                        fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                                    }}>
+                                        Offline
+                                    </Typography>
                                 </Box>
                             ) : exportSuccess ? (
                                 <Box sx={{

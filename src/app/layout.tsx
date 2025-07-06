@@ -1,3 +1,4 @@
+import PWAWrapper from "@/components/PWAWrapper";
 import { MUIThemeProvider } from "@/components/theme-provider";
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
@@ -11,8 +12,27 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Vitaena - Local Resume Builder",
-  description: "Create professional resumes locally in your browser. All data stays in your browser - no cloud, no tracking.",
+  metadataBase: new URL('https://vitaena.com'), // Replace with your actual domain
+  title: "Vitaena - Privacy-First Local Resume Builder",
+  description: "Create professional resumes locally in your browser. 100% private, works offline, no AI text generation. Multiple templates, PDF export, no watermarks.",
+  keywords: [
+    "resume builder",
+    "CV maker",
+    "privacy-first",
+    "offline resume",
+    "free resume builder",
+    "open source"
+  ],
+  openGraph: {
+    title: 'Vitaena - Privacy-First Local Resume Builder',
+    description: 'Create professional resumes locally in your browser. 100% private, works offline, no AI text generation.',
+    images: ['/logo.png'],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Vitaena - Privacy-First Local Resume Builder',
+    description: 'Create professional resumes locally in your browser. 100% private, works offline, no AI text generation.',
+  },
 };
 
 export default function RootLayout({
@@ -22,8 +42,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#61C0BE" />
+      </head>
       <body className={`${roboto.variable} font-sans`}>
         <MUIThemeProvider>
+          <PWAWrapper />
           {children}
         </MUIThemeProvider>
       </body>

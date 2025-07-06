@@ -54,7 +54,41 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - **PDF Export:** Puppeteer
 - **Icons:** Lucide React
 
-## Privacy
+## Development
+
+### PWA and Offline Testing
+
+Vitaena is a Progressive Web App (PWA) that works offline. For development and testing:
+
+#### Development Scripts
+
+```bash
+# Regular development (PWA disabled)
+pnpm dev
+
+# Development with PWA enabled
+pnpm dev:pwa
+
+# Build for production
+pnpm build
+
+# Test offline functionality
+pnpm build && pnpm start
+```
+
+#### Debug Tools
+
+Access the PWA debug console at `/debug` to:
+
+- Check service worker status
+- View cache contents
+- Test offline navigation
+- Force cache specific URLs
+- Monitor PWA functionality
+
+The debug utility is also available in the browser console as `window.offlineDebug`.
+
+### Privacy
 
 Vitaena is built with privacy in mind:
 
@@ -72,7 +106,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ### Development Setup
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/yourusername/vitaena.git`
+2. Clone your fork: `git clone https://github.com/ahs12/vitaena.git`
 3. Install dependencies: `pnpm install`
 4. Start the development server: `pnpm dev`
 5. Make your changes

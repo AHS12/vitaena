@@ -1,0 +1,21 @@
+{
+    "name": "Vitaena - Privacy-First Local Resume Builder",
+    "short_name": "Vitaena",
+    "description": "Create professional resumes locally in your browser. 100% private, works offline, no AI text generation.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#61C0BE",
+    "icons": [
+        {
+            "src": "/logo.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/logo.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
