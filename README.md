@@ -1,8 +1,20 @@
+<div align="center">
+  <img src="public/logo.svg" alt="Vitaena Logo" width="120" height="120">
+</div>
+
 # Vitaena - In browser local Resume Builder
 
 **Create professional resumes in your browser. All data stays in your browser - no cloud, no tracking.**
 
 Vitaena is a privacy-first resume builder that runs entirely in your browser. Your personal information never leaves your device, ensuring complete privacy and security.
+
+## Why Vitaena?
+
+- **Privacy First**: No data collection, no tracking, no external servers
+- **Offline Capable**: Works without internet connection once loaded
+- **No AI Text Generation**: You write all your content - no AI writes your resume for you
+- **Professional Quality**: Clean, watermark-free output
+- **Open Source**: Transparent, community-driven development
 
 ## Features
 
@@ -12,6 +24,8 @@ Vitaena is a privacy-first resume builder that runs entirely in your browser. Yo
 - 📄 **PDF Export** - High-quality PDF generation
 - 🌙 **Dark Mode** - Easy on the eyes
 - 🔄 **Import/Export** - Backup and restore your data
+- 🚫 **No AI Text Generation** - You write all your content, no AI writes for you
+- ✨ **No Watermarks** - Clean, professional output
 
 ## Getting Started
 
@@ -48,11 +62,31 @@ Vitaena is built with privacy in mind:
 - No external API calls for resume data
 - All information stored locally in your browser
 - No account registration required
+- No AI text generation or processing of your personal data
+- No watermarks on exported documents
 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+### Development Setup
+
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/yourusername/vitaena.git`
+3. Install dependencies: `pnpm install`
+4. Start the development server: `pnpm dev`
+5. Make your changes
+6. Test your changes thoroughly
+7. Submit a pull request
+
+### Guidelines
+
+- Follow the existing code style and conventions
+- Use TypeScript with strict typing
+- Test your changes on both desktop and mobile
+- Ensure privacy features remain intact
+- Add appropriate documentation for new features
+
 ## License
 
-MIT License - see LICENSE file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

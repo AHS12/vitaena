@@ -12,6 +12,8 @@ import {
   Download,
   Edit,
   FileUpload,
+  Gavel,
+  GitHub,
   Menu as MenuIcon,
   Search,
   Security,
@@ -40,8 +42,6 @@ import {
   TextField,
   Toolbar,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -49,8 +49,6 @@ import { useEffect, useState } from 'react';
 
 export default function HomePage() {
   const router = useRouter();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { templates, resumes, createResume, deleteResume, duplicateResume, isLoading } = useResumeStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredResumes, setFilteredResumes] = useState<ResumeData[]>([]);
@@ -60,13 +58,19 @@ export default function HomePage() {
   const [exportingResumeId, setExportingResumeId] = useState<string | null>(null);
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState<null | HTMLElement>(null);
   const [isClientLoaded, setIsClientLoaded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Fix hydration by ensuring client-side only rendering
   useEffect(() => {
     setIsClientLoaded(true);
+    // Handle media query on client side only
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 900); // md breakpoint
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  console.log('HomePage - templates:', templates, 'resumes:', resumes);
 
   useEffect(() => {
     // Load existing resumes and templates
@@ -82,10 +86,8 @@ export default function HomePage() {
     const loadTemplates = async () => {
       try {
         if (templates.length === 0) {
-          console.log('HomePage: Initializing database and loading templates...');
           await initializeDatabase(); // Ensure database is initialized
           const loadedTemplates = await ResumeService.getTemplates();
-          console.log('HomePage: Loaded templates:', loadedTemplates);
           useResumeStore.setState({ templates: loadedTemplates });
         }
       } catch (error) {
@@ -307,8 +309,14 @@ export default function HomePage() {
 
   const formatDate = (date: Date) => {
     // Prevent hydration mismatch by using a consistent date format
-    if (!isClientLoaded) return '';
-    return date.toLocaleDateString();
+    if (!isClientLoaded) return 'Loading...';
+    // Use a consistent format that doesn't vary by locale
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    };
+    return date.toLocaleDateString('en-US', options);
   };
 
   if (isLoading || !isClientLoaded) {
@@ -330,7 +338,13 @@ export default function HomePage() {
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
       {/* Header */}
-      <AppBar position="static" sx={{ backgroundColor: 'transparent', boxShadow: 'none' }}>
+      <AppBar position="sticky" sx={{
+        bgcolor: 'background.paper',
+        borderBottom: '1px solid',
+        borderBottomColor: 'divider',
+        boxShadow: 'none',
+        zIndex: 1100
+      }}>
         <Toolbar>
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
             <Image
@@ -548,6 +562,24 @@ export default function HomePage() {
                 }}
               />
               <Chip
+                icon={<GitHub />}
+                label="Free & Open Source"
+                sx={{
+                  background: 'linear-gradient(135deg, #0969DA 0%, #0550AE 100%)',
+                  color: 'white',
+                  fontWeight: 600,
+                  px: 2,
+                  py: 0.5,
+                  fontSize: '0.875rem',
+                  boxShadow: '0 4px 12px rgba(9, 105, 218, 0.3)',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 16px rgba(9, 105, 218, 0.4)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              />
+              <Chip
                 icon={<Star />}
                 label="Multiple Templates"
                 sx={{
@@ -561,6 +593,40 @@ export default function HomePage() {
                   '&:hover': {
                     transform: 'translateY(-2px)',
                     boxShadow: '0 6px 16px rgba(245, 158, 11, 0.4)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              />
+              <Chip
+                label="No AI"
+                sx={{
+                  background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+                  color: 'white',
+                  fontWeight: 600,
+                  px: 2,
+                  py: 0.5,
+                  fontSize: '0.875rem',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 16px rgba(239, 68, 68, 0.4)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              />
+              <Chip
+                label="No Watermarks"
+                sx={{
+                  background: 'linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)',
+                  color: 'white',
+                  fontWeight: 600,
+                  px: 2,
+                  py: 0.5,
+                  fontSize: '0.875rem',
+                  boxShadow: '0 4px 12px rgba(6, 182, 212, 0.3)',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 16px rgba(6, 182, 212, 0.4)'
                   },
                   transition: 'all 0.3s ease'
                 }}
@@ -931,6 +997,84 @@ export default function HomePage() {
           </Box>
         )}
       </Container>
+
+      {/* Footer */}
+      <Box sx={{
+        bgcolor: 'background.paper',
+        borderTop: '1px solid',
+        borderTopColor: 'divider',
+        mt: 8,
+        py: 4
+      }}>
+        <Container maxWidth="lg">
+          <Box sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 2
+          }}>
+            <Typography variant="body2" color="text.secondary">
+              © {new Date().getFullYear()} Vitaena. Open source privacy-focused resume builder. All rights reserved.
+            </Typography>
+
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2
+            }}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<GitHub />}
+                href="https://github.com/ahs12/vitaena"
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  borderColor: 'divider',
+                  color: 'text.secondary',
+                  textTransform: 'none',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  px: 2,
+                  py: 0.5,
+                  '&:hover': {
+                    borderColor: '#61C0BE',
+                    color: '#61C0BE',
+                    backgroundColor: 'rgba(97, 192, 190, 0.1)'
+                  }
+                }}
+              >
+                GitHub
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Gavel />}
+                href="https://github.com/ahs12/vitaena/blob/main/LICENSE"
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  borderColor: 'divider',
+                  color: 'text.secondary',
+                  textTransform: 'none',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  px: 2,
+                  py: 0.5,
+                  '&:hover': {
+                    borderColor: '#61C0BE',
+                    color: '#61C0BE',
+                    backgroundColor: 'rgba(97, 192, 190, 0.1)'
+                  }
+                }}
+              >
+                License
+              </Button>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
