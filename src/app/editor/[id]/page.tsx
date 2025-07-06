@@ -72,12 +72,15 @@ export default function EditorPage() {
                 sx={{
                     minHeight: '100vh',
                     backgroundColor: 'background.default',
+                    background: theme => theme.palette.mode === 'light'
+                        ? 'radial-gradient(circle at 20% 20%, rgba(97, 192, 190, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(74, 144, 164, 0.05) 0%, transparent 50%)'
+                        : 'radial-gradient(circle at 20% 20%, rgba(97, 192, 190, 0.02) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(74, 144, 164, 0.02) 0%, transparent 50%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}
             >
-                <CircularProgress size={60} />
+                <CircularProgress size={60} sx={{ color: 'primary.main' }} />
             </Box>
         );
     }
@@ -88,6 +91,9 @@ export default function EditorPage() {
                 sx={{
                     minHeight: '100vh',
                     backgroundColor: 'background.default',
+                    background: theme => theme.palette.mode === 'light'
+                        ? 'radial-gradient(circle at 20% 20%, rgba(97, 192, 190, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(74, 144, 164, 0.05) 0%, transparent 50%)'
+                        : 'radial-gradient(circle at 20% 20%, rgba(97, 192, 190, 0.02) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(74, 144, 164, 0.02) 0%, transparent 50%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -103,6 +109,12 @@ export default function EditorPage() {
                     <Button
                         variant="contained"
                         onClick={() => router.push('/')}
+                        sx={{
+                            background: 'linear-gradient(135deg, #61C0BE 0%, #4A90A4 100%)',
+                            '&:hover': {
+                                background: 'linear-gradient(135deg, #4A90A4 0%, #61C0BE 100%)',
+                            }
+                        }}
                     >
                         Go Back Home
                     </Button>
@@ -136,7 +148,16 @@ export default function EditorPage() {
     };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+        <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100vh',
+            overflow: 'hidden',
+            backgroundColor: 'background.default',
+            background: theme => theme.palette.mode === 'light'
+                ? 'radial-gradient(circle at 20% 20%, rgba(97, 192, 190, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(74, 144, 164, 0.05) 0%, transparent 50%)'
+                : 'radial-gradient(circle at 20% 20%, rgba(97, 192, 190, 0.02) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(74, 144, 164, 0.02) 0%, transparent 50%)'
+        }}>
             <Toolbar onExport={() => setShowExportModal(true)} />
 
             <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100vh - 64px)' }}>
@@ -188,7 +209,10 @@ export default function EditorPage() {
                                     xs: shouldShowRealtimePreview ? '50%' : '100%',
                                     md: '100%'
                                 },
-                                backgroundColor: 'grey.50',
+                                backgroundColor: 'background.default',
+                                background: theme => theme.palette.mode === 'light'
+                                    ? 'radial-gradient(circle at 30% 40%, rgba(97, 192, 190, 0.1) 0%, transparent 50%), radial-gradient(circle at 70% 80%, rgba(74, 144, 164, 0.1) 0%, transparent 50%)'
+                                    : 'radial-gradient(circle at 30% 40%, rgba(97, 192, 190, 0.05) 0%, transparent 50%), radial-gradient(circle at 70% 80%, rgba(74, 144, 164, 0.05) 0%, transparent 50%)',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 overflow: 'hidden',

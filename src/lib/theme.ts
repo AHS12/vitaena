@@ -3,9 +3,9 @@ import { createTheme, ThemeOptions } from "@mui/material/styles";
 // Define the color palette
 const lightPalette = {
   primary: {
-    main: "#2563eb", // Blue
-    light: "#60a5fa",
-    dark: "#1d4ed8",
+    main: "#61C0BE", // Teal (from logo)
+    light: "#7DD3D8",
+    dark: "#4A90A4",
     contrastText: "#ffffff",
   },
   secondary: {
@@ -33,9 +33,9 @@ const lightPalette = {
 
 const darkPalette = {
   primary: {
-    main: "#3b82f6", // Blue
-    light: "#60a5fa",
-    dark: "#1d4ed8",
+    main: "#61C0BE", // Teal (from logo)
+    light: "#7DD3D8",
+    dark: "#4A90A4",
     contrastText: "#ffffff",
   },
   secondary: {

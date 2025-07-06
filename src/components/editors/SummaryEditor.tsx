@@ -60,18 +60,6 @@ export const SummaryEditor: React.FC = () => {
                     </Typography>
                 </Box>
                 <CardContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 3 } }}>
-                    {/* Show Summary Toggle */}
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={currentResume.showSummary}
-                                onChange={(e) => handleShowSummaryChange(e.target.checked)}
-                            />
-                        }
-                        label="Include summary section"
-                        sx={{ mb: 3 }}
-                    />
-
                     {/* Summary Text Area */}
                     <TextField
                         fullWidth

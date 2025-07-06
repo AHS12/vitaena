@@ -1,16 +1,15 @@
-# Vitaena - Local Resume Builder
+# Vitaena - In browser local Resume Builder
 
-**Create professional resumes locally in your browser. All data stays in your browser - no cloud, no tracking.**
+**Create professional resumes in your browser. All data stays in your browser - no cloud, no tracking.**
 
 Vitaena is a privacy-first resume builder that runs entirely in your browser. Your personal information never leaves your device, ensuring complete privacy and security.
 
 ## Features
 
 - 🔒 **100% Local** - All data stays in your browser
-- 📱 **Responsive Design** - Works on desktop and mobile
+- 📱 **Responsive Design** - Works on desktop, tablet and mobile
 - 🎨 **Multiple Templates** - Choose from beautiful resume templates
 - 📄 **PDF Export** - High-quality PDF generation
-- 💾 **Offline Storage** - Works without internet connection
 - 🌙 **Dark Mode** - Easy on the eyes
 - 🔄 **Import/Export** - Backup and restore your data
 

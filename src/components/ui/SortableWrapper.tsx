@@ -2,7 +2,6 @@ import {
     closestCenter,
     DndContext,
     DragEndEvent,
-    KeyboardSensor,
     MouseSensor,
     TouchSensor,
     useSensor,
@@ -11,7 +10,6 @@ import {
 import {
     arrayMove,
     SortableContext,
-    sortableKeyboardCoordinates,
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { ReactNode } from 'react';
@@ -47,10 +45,8 @@ export const SortableWrapper = <T,>({
             activationConstraint: {
                 distance: 8,
             },
-        }),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
         })
+        // Removed KeyboardSensor to prevent spacebar from triggering drag and sort
     );
 
     const handleDragEnd = (event: DragEndEvent) => {

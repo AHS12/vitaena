@@ -4,7 +4,6 @@ import { useResumeStore } from '@/stores/resume-store';
 import { useUIStore } from '@/stores/ui-store';
 import {
     Download,
-    Home,
     Menu,
     Save,
     Visibility,
@@ -51,7 +50,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
     };
 
     return (
-        <AppBar position="static" color="default" elevation={1}>
+        <AppBar position="static"
+            sx={{
+                bgcolor: 'background.paper',
+                borderBottom: '1px solid',
+                borderBottomColor: 'divider',
+                boxShadow: 'none'
+            }}
+        >
             <MuiToolbar sx={{ justifyContent: 'space-between' }}>
                 <Box sx={{
                     display: 'flex',
@@ -59,48 +65,50 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                     gap: { xs: 1, sm: 2 }, // Smaller gap on mobile
                     flex: 1 // Allow this to grow and push right content
                 }}>
-                    {/* Mobile/Tablet: Hamburger menu */}
-                    {!isDesktop && (
-                        <IconButton
-                            onClick={toggleSidebar}
-                            color="inherit"
-                            size="small" // Smaller size for mobile
-                        >
-                            <Menu fontSize="small" />
-                        </IconButton>
-                    )}
-
-                    {/* Desktop: Home button */}
-                    {isDesktop && (
-                        <Button
-                            variant="outlined"
-                            size="small"
+                    {/* Vitaena Logo */}
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Box
+                            component="img"
+                            src="/logo.svg"
+                            alt="Vitaena Logo"
+                            sx={{
+                                width: { xs: 28, sm: 32, md: 36 },
+                                height: { xs: 28, sm: 32, md: 36 },
+                                cursor: 'pointer',
+                                '&:hover': {
+                                    transform: 'scale(1.05)',
+                                    transition: 'transform 0.2s ease'
+                                }
+                            }}
                             onClick={() => router.push('/')}
-                            startIcon={<Home />}
-                        >
-                            Home
-                        </Button>
-                    )}
+                        />
+                    </Box>
 
-                    {/* Desktop: Menu button */}
-                    {isDesktop && (
-                        <IconButton
-                            onClick={toggleSidebar}
-                            color="inherit"
-                        >
-                            <Menu />
-                        </IconButton>
-                    )}
+                    {/* Menu button */}
+                    <IconButton
+                        onClick={toggleSidebar}
+                        size={isDesktop ? 'medium' : 'small'}
+                        sx={{
+                            color: 'text.primary',
+                            '&:hover': {
+                                backgroundColor: 'rgba(97, 192, 190, 0.1)',
+                                color: '#61C0BE'
+                            }
+                        }}
+                    >
+                        <Menu fontSize={isDesktop ? 'medium' : 'small'} />
+                    </IconButton>
 
                     <Divider orientation="vertical" flexItem />
 
                     <Typography variant="h6" component="h1" sx={{
                         fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }, // Even smaller on mobile
                         fontWeight: { xs: 500, sm: 600 },
+                        color: 'text.primary',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        maxWidth: { xs: '150px', sm: '250px', md: 'none' }, // Limit width on mobile
+                        maxWidth: { xs: '120px', sm: '180px', md: 'none' }, // Limit width on mobile
                     }}>
                         {currentResume?.personalInfo.name || 'Untitled Resume'}
                     </Typography>
@@ -121,6 +129,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                             onClick={handleSave}
                             disabled={isLoading}
                             startIcon={<Save />}
+                            sx={{
+                                borderColor: 'primary.main',
+                                color: 'primary.main',
+                                '&:hover': {
+                                    backgroundColor: 'primary.main',
+                                    color: 'white'
+                                }
+                            }}
                         >
                             {isLoading ? 'Saving...' : 'Save'}
                         </Button>
@@ -134,6 +150,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                             onClick={handleSave}
                             disabled={isLoading}
                             startIcon={<Save />}
+                            sx={{
+                                borderColor: 'primary.main',
+                                color: 'primary.main',
+                                '&:hover': {
+                                    backgroundColor: 'primary.main',
+                                    color: 'white'
+                                }
+                            }}
                         >
                             {isLoading ? 'Saving...' : 'Save'}
                         </Button>
@@ -144,7 +168,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                         <IconButton
                             onClick={handleSave}
                             disabled={isLoading}
-                            color="inherit"
+                            color="primary"
                             size="small"
                             title={isLoading ? 'Saving...' : 'Save'}
                         >
@@ -159,6 +183,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                             size="small"
                             onClick={() => setPreviewMode(!previewMode)}
                             startIcon={previewMode ? <VisibilityOff /> : <Visibility />}
+                            sx={{
+                                borderColor: 'primary.main',
+                                color: previewMode ? 'white' : 'primary.main',
+                                backgroundColor: previewMode ? 'primary.main' : 'transparent',
+                                '&:hover': {
+                                    backgroundColor: previewMode ? 'primary.dark' : 'primary.main',
+                                    color: 'white'
+                                }
+                            }}
                         >
                             {shouldShowRealtimePreview ?
                                 (previewMode ? 'Exit Preview' : 'Preview') :
@@ -174,6 +207,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                             size="small"
                             onClick={() => setPreviewMode(!previewMode)}
                             startIcon={previewMode ? <VisibilityOff /> : <Visibility />}
+                            sx={{
+                                borderColor: 'primary.main',
+                                color: previewMode ? 'white' : 'primary.main',
+                                backgroundColor: previewMode ? 'primary.main' : 'transparent',
+                                '&:hover': {
+                                    backgroundColor: previewMode ? 'primary.dark' : 'primary.main',
+                                    color: 'white'
+                                }
+                            }}
                         >
                             Preview
                         </Button>
@@ -198,6 +240,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                             size="small"
                             onClick={onExport}
                             startIcon={<Download />}
+                            sx={{
+                                background: 'linear-gradient(135deg, #61C0BE 0%, #4A90A4 100%)',
+                                '&:hover': {
+                                    background: 'linear-gradient(135deg, #4A90A4 0%, #61C0BE 100%)',
+                                }
+                            }}
                         >
                             Export
                         </Button>
@@ -210,6 +258,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                             size="small"
                             onClick={onExport}
                             startIcon={<Download />}
+                            sx={{
+                                background: 'linear-gradient(135deg, #61C0BE 0%, #4A90A4 100%)',
+                                '&:hover': {
+                                    background: 'linear-gradient(135deg, #4A90A4 0%, #61C0BE 100%)',
+                                }
+                            }}
                         >
                             Export
                         </Button>
@@ -222,6 +276,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                             color="primary"
                             size="small"
                             title="Export PDF"
+                            sx={{
+                                background: 'linear-gradient(135deg, #61C0BE 0%, #4A90A4 100%)',
+                                color: 'white',
+                                '&:hover': {
+                                    background: 'linear-gradient(135deg, #4A90A4 0%, #61C0BE 100%)',
+                                }
+                            }}
                         >
                             <Download fontSize="small" />
                         </IconButton>

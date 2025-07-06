@@ -12,10 +12,15 @@ import {
   Download,
   Edit,
   FileUpload,
+  Menu as MenuIcon,
   Search,
+  Security,
+  Speed,
+  Star
 } from '@mui/icons-material';
 import {
   AppBar,
+  Avatar,
   Box,
   Button,
   Card,
@@ -30,15 +35,22 @@ import {
   DialogTitle,
   IconButton,
   InputAdornment,
+  Menu,
+  MenuItem,
   TextField,
   Toolbar,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function HomePage() {
   const router = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { templates, resumes, createResume, deleteResume, duplicateResume, isLoading } = useResumeStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredResumes, setFilteredResumes] = useState<ResumeData[]>([]);
@@ -46,6 +58,13 @@ export default function HomePage() {
   const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [exportingResumeId, setExportingResumeId] = useState<string | null>(null);
+  const [mobileMenuAnchor, setMobileMenuAnchor] = useState<null | HTMLElement>(null);
+  const [isClientLoaded, setIsClientLoaded] = useState(false);
+
+  // Fix hydration by ensuring client-side only rendering
+  useEffect(() => {
+    setIsClientLoaded(true);
+  }, []);
 
   console.log('HomePage - templates:', templates, 'resumes:', resumes);
 
@@ -272,7 +291,27 @@ export default function HomePage() {
     return template?.name || 'Unknown Template';
   };
 
-  if (isLoading) {
+  const handleMobileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setMobileMenuAnchor(event.currentTarget);
+  };
+
+  const handleMobileMenuClose = () => {
+    setMobileMenuAnchor(null);
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    element?.scrollIntoView({ behavior: 'smooth' });
+    handleMobileMenuClose();
+  };
+
+  const formatDate = (date: Date) => {
+    // Prevent hydration mismatch by using a consistent date format
+    if (!isClientLoaded) return '';
+    return date.toLocaleDateString();
+  };
+
+  if (isLoading || !isClientLoaded) {
     return (
       <Box
         sx={{
@@ -283,7 +322,7 @@ export default function HomePage() {
           backgroundColor: 'background.default',
         }}
       >
-        <CircularProgress size={60} />
+        <CircularProgress size={60} sx={{ color: '#61C0BE' }} />
       </Box>
     );
   }
@@ -291,102 +330,429 @@ export default function HomePage() {
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
       {/* Header */}
-      <AppBar position="static" color="default" elevation={1}>
+      <AppBar position="static" sx={{ backgroundColor: 'transparent', boxShadow: 'none' }}>
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Vitaena
-          </Typography>
-          <Button
-            variant="outlined"
-            startIcon={<FileUpload />}
-            onClick={handleImportData}
-            sx={{ mr: 2 }}
-          >
-            Import Data
-          </Button>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+            <Image
+              src="/logo.svg"
+              alt="Vitaena Logo"
+              width={40}
+              height={40}
+              style={{ marginRight: '12px' }}
+            />
+            <Typography variant="h6" component="div" sx={{
+              fontWeight: 700,
+              color: '#61C0BE',
+              fontSize: { xs: '1.25rem', md: '1.5rem' }
+            }}>
+              Vitaena
+            </Typography>
+          </Box>
+
+          {/* Desktop Navigation */}
+          {isClientLoaded && !isMobile && (
+            <Box sx={{ display: 'flex', gap: 2, mr: 3 }}>
+              <Button
+                sx={{
+                  color: 'text.primary',
+                  fontWeight: 500,
+                  '&:hover': {
+                    backgroundColor: 'rgba(97, 192, 190, 0.1)',
+                    color: '#61C0BE'
+                  }
+                }}
+                onClick={() => scrollToSection('templates-section')}
+              >
+                Templates
+              </Button>
+              <Button
+                sx={{
+                  color: 'text.primary',
+                  fontWeight: 500,
+                  '&:hover': {
+                    backgroundColor: 'rgba(97, 192, 190, 0.1)',
+                    color: '#61C0BE'
+                  }
+                }}
+                onClick={() => scrollToSection('documents-section')}
+              >
+                My Documents
+              </Button>
+            </Box>
+          )}
+
+          {/* Mobile Navigation */}
+          {isClientLoaded && isMobile && (
+            <IconButton
+              size="large"
+              onClick={handleMobileMenuOpen}
+              sx={{
+                mr: 1,
+                color: '#61C0BE',
+                '&:hover': {
+                  backgroundColor: 'rgba(97, 192, 190, 0.1)'
+                }
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+
+          {/* Desktop Import Button */}
+          {isClientLoaded && !isMobile && (
+            <Button
+              variant="outlined"
+              startIcon={<FileUpload />}
+              onClick={handleImportData}
+              sx={{
+                mr: 2,
+                borderColor: '#61C0BE',
+                color: '#61C0BE',
+                '&:hover': {
+                  borderColor: '#4A9A98',
+                  backgroundColor: 'rgba(97, 192, 190, 0.1)'
+                }
+              }}
+            >
+              Import Data
+            </Button>
+          )}
+
           <ThemeToggle />
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        {/* Hero Section */}
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
-          <Typography
-            variant="h2"
-            component="h1"
-            gutterBottom
-            sx={{
-              fontWeight: 700,
-              background: 'linear-gradient(45deg, #2563eb 30%, #3b82f6 90%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              mb: 2,
-            }}
-          >
-            Create Professional Resumes
+      {/* Mobile Menu */}
+      <Menu
+        anchorEl={mobileMenuAnchor}
+        open={Boolean(mobileMenuAnchor)}
+        onClose={handleMobileMenuClose}
+        sx={{
+          '& .MuiPaper-root': {
+            backgroundColor: 'background.paper',
+            minWidth: 200,
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+          }
+        }}
+      >
+        <MenuItem
+          onClick={() => scrollToSection('templates-section')}
+          sx={{
+            py: 1.5,
+            '&:hover': { backgroundColor: 'rgba(97, 192, 190, 0.1)' }
+          }}
+        >
+          <Description sx={{ mr: 2, color: '#61C0BE' }} />
+          Templates
+        </MenuItem>
+        <MenuItem
+          onClick={() => scrollToSection('documents-section')}
+          sx={{
+            py: 1.5,
+            '&:hover': { backgroundColor: 'rgba(97, 192, 190, 0.1)' }
+          }}
+        >
+          <Edit sx={{ mr: 2, color: '#61C0BE' }} />
+          My Documents
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleImportData();
+            handleMobileMenuClose();
+          }}
+          sx={{
+            py: 1.5,
+            '&:hover': { backgroundColor: 'rgba(97, 192, 190, 0.1)' }
+          }}
+        >
+          <FileUpload sx={{ mr: 2, color: '#61C0BE' }} />
+          Import Data
+        </MenuItem>
+      </Menu>
+
+      {/* Hero Section */}
+      <Box sx={{
+        background: 'linear-gradient(135deg, rgba(97, 192, 190, 0.1) 0%, rgba(97, 192, 190, 0.05) 100%)',
+        pt: 8,
+        pb: 12
+      }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: 8 }}>
+            <Typography
+              variant="h1"
+              component="h1"
+              sx={{
+                fontWeight: 800,
+                fontSize: { xs: '2.5rem', md: '3.5rem', lg: '4.5rem' },
+                background: 'linear-gradient(135deg, #61C0BE 0%, #4A9A98 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                mb: 3,
+                lineHeight: 1.2,
+              }}
+            >
+              Build Your Perfect Resume
+            </Typography>
+            <Typography
+              variant="h5"
+              color="text.secondary"
+              sx={{
+                mb: 4,
+                maxWidth: 700,
+                mx: 'auto',
+                fontSize: { xs: '1.1rem', md: '1.25rem' },
+                lineHeight: 1.6
+              }}
+            >
+              Create professional resumes, CVs, and biodata with beautiful templates.
+              100% private, works offline, no registration required.
+            </Typography>
+
+            {/* Feature Pills */}
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mb: 6 }}>
+              <Chip
+                icon={<Security />}
+                label="100% Private"
+                sx={{
+                  background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                  color: 'white',
+                  fontWeight: 600,
+                  px: 2,
+                  py: 0.5,
+                  fontSize: '0.875rem',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 16px rgba(16, 185, 129, 0.4)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              />
+              <Chip
+                icon={<Speed />}
+                label="Works Offline"
+                sx={{
+                  background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+                  color: 'white',
+                  fontWeight: 600,
+                  px: 2,
+                  py: 0.5,
+                  fontSize: '0.875rem',
+                  boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 16px rgba(139, 92, 246, 0.4)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              />
+              <Chip
+                icon={<Star />}
+                label="Multiple Templates"
+                sx={{
+                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                  color: 'white',
+                  fontWeight: 600,
+                  px: 2,
+                  py: 0.5,
+                  fontSize: '0.875rem',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 16px rgba(245, 158, 11, 0.4)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              />
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        {/* Document Types Section */}
+        <Box sx={{ mb: 8 }}>
+          <Typography variant="h3" component="h2" gutterBottom sx={{
+            mb: 4,
+            fontWeight: 700,
+            textAlign: 'center',
+            color: 'text.primary'
+          }}>
+            Choose Your Document Type
           </Typography>
-          <Typography
-            variant="h5"
-            color="text.secondary"
-            sx={{ mb: 4, maxWidth: 600, mx: 'auto' }}
-          >
-            Build stunning resumes with multiple templates, all stored locally on your device
-          </Typography>
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+            gap: 4,
+            mb: 6
+          }}>
+            <Card sx={{
+              height: '100%',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)',
+                boxShadow: '0 12px 24px rgba(97, 192, 190, 0.15)'
+              },
+              border: '1px solid',
+              borderColor: 'rgba(97, 192, 190, 0.2)'
+            }}>
+              <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                <Avatar sx={{
+                  backgroundColor: '#61C0BE',
+                  width: 64,
+                  height: 64,
+                  mx: 'auto',
+                  mb: 2
+                }}>
+                  <Description sx={{ fontSize: 32 }} />
+                </Avatar>
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+                  Resume
+                </Typography>
+                <Typography color="text.secondary">
+                  Professional resumes for job applications with modern layouts
+                </Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{
+              height: '100%',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)',
+                boxShadow: '0 12px 24px rgba(97, 192, 190, 0.15)'
+              },
+              border: '1px solid',
+              borderColor: 'rgba(97, 192, 190, 0.2)'
+            }}>
+              <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                <Avatar sx={{
+                  backgroundColor: '#61C0BE',
+                  width: 64,
+                  height: 64,
+                  mx: 'auto',
+                  mb: 2
+                }}>
+                  <Description sx={{ fontSize: 32 }} />
+                </Avatar>
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+                  CV
+                </Typography>
+                <Typography color="text.secondary">
+                  Comprehensive curriculum vitae for academic and research positions
+                </Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{
+              height: '100%',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)',
+                boxShadow: '0 12px 24px rgba(97, 192, 190, 0.15)'
+              },
+              border: '1px solid',
+              borderColor: 'rgba(97, 192, 190, 0.2)'
+            }}>
+              <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                <Avatar sx={{
+                  backgroundColor: '#61C0BE',
+                  width: 64,
+                  height: 64,
+                  mx: 'auto',
+                  mb: 2
+                }}>
+                  <Description sx={{ fontSize: 32 }} />
+                </Avatar>
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+                  Biodata
+                </Typography>
+                <Typography color="text.secondary">
+                  Marriage biodata and personal profiles with elegant designs
+                </Typography>
+              </CardContent>
+            </Card>
+          </Box>
         </Box>
 
         {/* Templates Section */}
-        <Box sx={{ mb: 6 }}>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
-            Choose a Template
+        <Box sx={{ mb: 8 }} id="templates-section">
+          <Typography variant="h3" component="h2" gutterBottom sx={{
+            mb: 4,
+            fontWeight: 700,
+            textAlign: 'center',
+            color: 'text.primary'
+          }}>
+            Available Templates
           </Typography>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: {
-                xs: '1fr',
-                md: 'repeat(2, 1fr)',
-                lg: 'repeat(3, 1fr)',
-              },
-              gap: 3,
-            }}
-          >
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+            gap: 3
+          }}>
             {templates.map((template) => (
               <Card
                 key={template.id}
                 sx={{
                   height: '100%',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease-in-out',
+                  transition: 'all 0.3s ease',
                   '&:hover': {
                     transform: 'translateY(-4px)',
-                    boxShadow: 4,
+                    boxShadow: '0 8px 24px rgba(97, 192, 190, 0.2)',
                   },
+                  border: '1px solid',
+                  borderColor: 'rgba(97, 192, 190, 0.1)'
                 }}
                 onClick={() => handleCreateResume(template.id)}
               >
                 <Box
                   sx={{
-                    height: 200,
-                    background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
+                    height: 180,
+                    background: 'linear-gradient(135deg, #61C0BE 0%, #4A9A98 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: 'white',
+                    position: 'relative',
+                    overflow: 'hidden'
                   }}
                 >
-                  <Description sx={{ fontSize: 64 }} />
+                  <Description sx={{ fontSize: 48, opacity: 0.9 }} />
+                  <Box sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)'
+                  }} />
                 </Box>
-                <CardContent>
-                  <Typography variant="h6" component="h3" gutterBottom>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
                     {template.name}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     {template.description}
                   </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Chip label={template.category} size="small" />
-                    <Button size="small" startIcon={<Add />}>
+                    <Chip
+                      label={template.category}
+                      size="small"
+                      sx={{
+                        backgroundColor: 'rgba(97, 192, 190, 0.1)',
+                        color: '#61C0BE',
+                        fontWeight: 500
+                      }}
+                    />
+                    <Button
+                      size="small"
+                      startIcon={<Add />}
+                      sx={{
+                        color: '#61C0BE',
+                        fontWeight: 600,
+                        '&:hover': { backgroundColor: 'rgba(97, 192, 190, 0.1)' }
+                      }}
+                    >
                       Create
                     </Button>
                   </Box>
@@ -396,136 +762,192 @@ export default function HomePage() {
           </Box>
         </Box>
 
-        {/* Existing Resumes Section */}
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h4" component="h2">
-              Your Resumes ({resumes.length})
-            </Typography>
-            <TextField
-              size="small"
-              placeholder="Search resumes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              sx={{ width: 300 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    {isSearching ? <CircularProgress size={20} /> : <Search />}
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Box>
-
-          {filteredResumes.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 8 }}>
-              <Description sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                {searchQuery ? 'No resumes found' : 'No resumes yet'}
+        {/* Existing Documents Section */}
+        {resumes.length > 0 && (
+          <Box sx={{ mb: 8 }} id="documents-section">
+            <Box sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: { xs: 2, sm: 0 },
+              mb: 4
+            }}>
+              <Typography variant="h3" component="h2" sx={{ fontWeight: 700 }}>
+                Your Documents ({resumes.length})
               </Typography>
-              <Typography variant="body1" color="text.secondary">
-                {searchQuery
-                  ? 'Try adjusting your search terms'
-                  : 'Get started by creating your first resume'
-                }
-              </Typography>
+              <TextField
+                size="small"
+                placeholder="Search documents..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                sx={{
+                  width: { xs: '100%', sm: 300 },
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover fieldset': {
+                      borderColor: '#61C0BE',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#61C0BE',
+                    },
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      {isSearching ? <CircularProgress size={20} /> : <Search />}
+                    </InputAdornment>
+                  ),
+                }}
+              />
             </Box>
-          ) : (
-            <Box
-              sx={{
+
+            {filteredResumes.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 8 }}>
+                <Description sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  {searchQuery ? 'No documents found' : 'No documents yet'}
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  {searchQuery
+                    ? 'Try adjusting your search terms'
+                    : 'Get started by creating your first document'
+                  }
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{
                 display: 'grid',
-                gridTemplateColumns: {
-                  xs: '1fr',
-                  md: 'repeat(2, 1fr)',
-                  lg: 'repeat(3, 1fr)',
-                },
-                gap: 3,
-              }}
-            >
-              {filteredResumes.map((resume) => (
-                <Card key={resume.id} sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-                  {/* Template Badge - positioned at top right */}
-                  <Box sx={{ position: 'absolute', top: 12, right: 12, zIndex: 1 }}>
-                    <Chip
-                      label={getTemplateName(resume.templateId)}
-                      size="small"
-                      variant="filled"
-                      sx={{
-                        backgroundColor: 'primary.main',
-                        color: 'primary.contrastText',
-                        '& .MuiChip-label': { fontSize: '0.75rem', fontWeight: 500 },
-                        boxShadow: 1
-                      }}
-                    />
-                  </Box>
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+                gap: 3
+              }}>
+                {filteredResumes.map((resume) => (
+                  <Card
+                    key={resume.id}
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 24px rgba(97, 192, 190, 0.15)'
+                      },
+                      border: '1px solid',
+                      borderColor: 'rgba(97, 192, 190, 0.1)'
+                    }}
+                  >
+                    <Box sx={{ position: 'relative' }}>
+                      <Box sx={{
+                        height: 120,
+                        background: 'linear-gradient(135deg, rgba(97, 192, 190, 0.1) 0%, rgba(97, 192, 190, 0.05) 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Description sx={{ fontSize: 36, color: '#61C0BE' }} />
+                      </Box>
+                      <Chip
+                        label={getTemplateName(resume.templateId)}
+                        size="small"
+                        sx={{
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          backgroundColor: '#61C0BE',
+                          color: 'white',
+                          fontWeight: 500,
+                          fontSize: '0.7rem'
+                        }}
+                      />
+                    </Box>
 
-                  <CardContent sx={{ flexGrow: 1, pt: 3 }}>
-                    <Typography variant="h6" component="h3" gutterBottom>
-                      {resume.personalInfo.name || 'Untitled Resume'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {resume.personalInfo.title || 'No title'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Updated {resume.updatedAt.toLocaleDateString()}
-                    </Typography>
-                  </CardContent>
-                  <CardActions sx={{ p: 2, pt: 0, justifyContent: 'space-between' }}>
-                    <Button
-                      variant="contained"
-                      startIcon={<Edit />}
-                      onClick={() => handleEditResume(resume.id)}
-                      sx={{ flexGrow: 1, mr: 1 }}
-                    >
-                      Edit
-                    </Button>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDuplicateResume(resume.id)}
-                      title="Duplicate"
-                    >
-                      <ContentCopy />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleExportData(resume.id)}
-                      title="Download PDF"
-                      disabled={exportingResumeId === resume.id}
-                    >
-                      {exportingResumeId === resume.id ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <Download />
-                      )}
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => handleDeleteClick(resume.id)}
-                      title="Delete"
-                    >
-                      <Delete />
-                    </IconButton>
-                  </CardActions>
-                </Card>
-              ))}
-            </Box>
-          )}
-        </Box>
+                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                      <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
+                        {resume.personalInfo.name || 'Untitled Document'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        {resume.personalInfo.title || 'No title'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Updated {formatDate(resume.updatedAt)}
+                      </Typography>
+                    </CardContent>
+
+                    <CardActions sx={{ p: 2, pt: 0, gap: 1 }}>
+                      <Button
+                        variant="contained"
+                        startIcon={<Edit />}
+                        onClick={() => handleEditResume(resume.id)}
+                        sx={{
+                          flexGrow: 1,
+                          backgroundColor: '#61C0BE',
+                          '&:hover': { backgroundColor: '#4A9A98' }
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDuplicateResume(resume.id)}
+                        title="Duplicate"
+                        sx={{
+                          color: '#61C0BE',
+                          '&:hover': { backgroundColor: 'rgba(97, 192, 190, 0.1)' }
+                        }}
+                      >
+                        <ContentCopy />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleExportData(resume.id)}
+                        title="Download PDF"
+                        disabled={exportingResumeId === resume.id}
+                        sx={{
+                          color: '#61C0BE',
+                          '&:hover': { backgroundColor: 'rgba(97, 192, 190, 0.1)' }
+                        }}
+                      >
+                        {exportingResumeId === resume.id ? (
+                          <CircularProgress size={20} />
+                        ) : (
+                          <Download />
+                        )}
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDeleteClick(resume.id)}
+                        title="Delete"
+                        sx={{ '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.1)' } }}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </CardActions>
+                  </Card>
+                ))}
+              </Box>
+            )}
+          </Box>
+        )}
       </Container>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Delete Resume</DialogTitle>
+        <DialogTitle>Delete Document</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete this resume? This action cannot be undone.
+            Are you sure you want to delete this document? This action cannot be undone.
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
+            sx={{ '&:hover': { backgroundColor: '#d32f2f' } }}
+          >
             Delete
           </Button>
         </DialogActions>

@@ -159,20 +159,20 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isPreviewM
 
             {/* Desktop header */}
             {isDesktop && (
-                <Box sx={{ p: 3 }}>
-                    <Typography variant="h6" sx={{ mb: 0, fontWeight: 600 }}>
+                <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                         Resume Sections
                     </Typography>
                 </Box>
             )}
 
             {/* Navigation content */}
-            <Box sx={{ flex: 1, py: 2, overflow: 'auto' }}>
+            <Box sx={{ flex: 1, py: 1, overflow: 'auto' }}>
                 {/* Mobile/Tablet: Show Home section first */}
                 {!isDesktop && (
                     <>
                         {renderSectionList([homeSection])}
-                        <Divider sx={{ my: 2 }} />
+                        <Divider sx={{ my: 2, mx: 2 }} />
                         {renderSectionList(resumeSections, 'Resume Sections')}
                     </>
                 )}
