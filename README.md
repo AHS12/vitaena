@@ -14,7 +14,7 @@
 </p>
 </div>
 
-**Create professional resumes in your browser. All data stays in your browser - no cloud, no tracking.**
+**Create professional resumes, CVs, and biodata in your browser. All data stays in your browser - no cloud, no registration, no tracking.**
 
 
 Vitaena is a privacy-first resume builder that runs entirely in your browser. Your personal information never leaves your device, ensuring complete privacy and security.

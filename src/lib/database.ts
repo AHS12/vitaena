@@ -8,9 +8,17 @@ export interface StoredResume
   updatedAt: string;
 }
 
+export interface UserSettings {
+  id?: number;
+  key: string;
+  value: string | number | boolean | object;
+  timestamp: string;
+}
+
 export class ResumeDatabase extends Dexie {
   resumes!: Table<StoredResume>;
   templates!: Table<ResumeTemplate>;
+  settings!: Table<UserSettings>;
 
   constructor() {
     super("ResumeDatabase");
@@ -19,10 +27,67 @@ export class ResumeDatabase extends Dexie {
       resumes: "id, templateId, personalInfo.name, createdAt, updatedAt",
       templates: "id, name, category, isDefault",
     });
+
+    // Add settings table in version 2
+    this.version(2).stores({
+      resumes: "id, templateId, personalInfo.name, createdAt, updatedAt",
+      templates: "id, name, category, isDefault",
+      settings: "++id, key",
+    });
+
+    // Important: This callback is triggered for any user with a database
+    // version below the version being upgraded to (2 in this case)
+    this.on("versionchange", function (event) {
+      console.log(
+        `Database version changed: ${event.oldVersion} -> ${event.newVersion}`
+      );
+    });
   }
 }
 
 export const db = new ResumeDatabase();
+
+// Settings keys
+export const SETTINGS_KEYS = {
+  PWA_INSTALL_DISMISSED: "pwa_install_dismissed",
+};
+
+// Settings Service for app preferences
+export class SettingsService {
+  static async setSetting(
+    key: string,
+    value: string | number | boolean | object
+  ): Promise<void> {
+    const setting: UserSettings = {
+      key,
+      value,
+      timestamp: new Date().toISOString(),
+    };
+
+    await db.settings.put(setting);
+  }
+
+  static async getSetting(key: string): Promise<UserSettings | undefined> {
+    return await db.settings.where("key").equals(key).first();
+  }
+
+  static async getPwaInstallDismissed(): Promise<boolean> {
+    const setting = await this.getSetting(SETTINGS_KEYS.PWA_INSTALL_DISMISSED);
+
+    if (!setting) return false;
+
+    // Check if the dismissal has expired (3 hours)
+    const dismissedTime = new Date(setting.timestamp);
+    const currentTime = new Date();
+    const threeHoursInMs = 3 * 60 * 60 * 1000;
+
+    return currentTime.getTime() - dismissedTime.getTime() < threeHoursInMs;
+  }
+
+  static async setPwaInstallDismissed(): Promise<void> {
+    await this.setSetting(SETTINGS_KEYS.PWA_INSTALL_DISMISSED, true);
+  }
+}
 
 // Database operations
 export class ResumeService {
@@ -490,8 +555,58 @@ export class ResumeService {
 // Initialize database
 export const initializeDatabase = async (): Promise<void> => {
   try {
+    // Force upgrade to version 2 if needed
+    if (db.verno < 2) {
+      console.log("Database needs upgrading to version 2...");
+
+      // Close the database first if it's open
+      if (db.isOpen()) {
+        console.log("Closing database before upgrade...");
+        db.close();
+      }
+
+      // Force recreation of the database with the new schema
+      try {
+        await Dexie.delete("ResumeDatabase");
+        console.log("Old database deleted");
+      } catch (e) {
+        console.warn("Could not delete old database:", e);
+      }
+    }
+
+    console.log("Opening database...");
     await db.open();
+    console.log(`Database opened successfully. Version: ${db.verno}`);
+
+    // If this is version 2+, make sure we have the settings table
+    if (db.verno >= 2) {
+      console.log(
+        "Database is at version 2 or higher, settings table should be available"
+      );
+
+      // Verify settings table exists by testing a read operation
+      try {
+        await db.settings.toArray();
+        console.log("Settings table is accessible");
+
+        // Initialize settings if needed
+        const pwaSettings = await db.settings
+          .where("key")
+          .equals(SETTINGS_KEYS.PWA_INSTALL_DISMISSED)
+          .first();
+        console.log("PWA settings:", pwaSettings);
+      } catch (e) {
+        console.error("Error accessing settings table:", e);
+      }
+    } else {
+      console.warn(
+        "Database is at version lower than 2, settings functionality may not be available"
+      );
+    }
+
+    // Initialize default templates
     await ResumeService.initializeTemplates();
+    console.log("Templates initialized");
   } catch (error) {
     console.error("Failed to initialize database:", error);
     throw error;
