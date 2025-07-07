@@ -13,6 +13,7 @@ services:
       - NEXT_TELEMETRY_DISABLED=1
       - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+      - PUPPETEER_ARGS=--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --disable-gpu
       - PORT=3000
       - HOSTNAME=0.0.0.0
     networks:
@@ -20,6 +21,14 @@ services:
     volumes:
       # Optional: Mount volume for persistent data if needed
       - vitaena_data:/app/data
+    # Shared memory for Puppeteer (critical for browser stability)
+    shm_size: 4gb
+    ipc: host
+    # Temporary filesystems for cache and temp files
+    tmpfs:
+      - /tmp:exec,size=2g
+      - /var/tmp:size=1g
+      - /home/nextjs/.cache:size=1g
     healthcheck:
       test:
         [
@@ -32,15 +41,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    # Resource limits (adjust based on your server capacity)
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 1G
-        reservations:
-          cpus: "0.5"
-          memory: 512M
 
 networks:
   vitaena_network:

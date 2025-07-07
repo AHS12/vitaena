@@ -28,7 +28,7 @@ RUN pnpm build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Update all packages to latest versions for security
+# Update all packages to latest versions for security and install Puppeteer dependencies
 RUN apk update && apk upgrade && apk add --no-cache \
     chromium \
     nss \
@@ -40,13 +40,24 @@ RUN apk update && apk upgrade && apk add --no-cache \
     ttf-dejavu \
     fontconfig \
     dumb-init \
+    # Additional dependencies that help with Chrome/Puppeteer
+    libstdc++ \
+    libx11 \
+    libxcomposite \
+    libxdamage \
+    libxi \
+    libxtst \
+    libc6-compat \
+    && mkdir -p /tmp \
+    && chmod 1777 /tmp \
     && rm -rf /var/cache/apk/* \
     && addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
 
 # Tell Puppeteer to skip installing Chromium. We'll be using the installed package.
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    PUPPETEER_ARGS='--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --disable-gpu'
 
 # Set environment variables
 ENV NODE_ENV=production \

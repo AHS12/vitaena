@@ -28,12 +28,15 @@ services:
       - NEXT_TELEMETRY_DISABLED=1
       - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+      - PUPPETEER_ARGS=--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --single-process --disable-gpu
       - PORT=3000
       - HOSTNAME=0.0.0.0
     networks:
       - caddy_web
     volumes:
       - vitaena_data:/app/data
+    # Shared memory for Puppeteer
+    shm_size: 2gb
     healthcheck:
       test:
         [

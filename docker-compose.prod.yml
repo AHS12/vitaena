@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   vitaena-app:
     image: ahs12/vitaena:latest
@@ -10,6 +8,7 @@ services:
       - NEXT_TELEMETRY_DISABLED=1
       - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+      - PUPPETEER_ARGS=--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --single-process --disable-gpu
       - PORT=3000
       - HOSTNAME=0.0.0.0
     networks:
@@ -32,22 +31,16 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    # Security options
+    # Security options - simplified for Puppeteer compatibility
     security_opt:
       - no-new-privileges:true
-    # Read-only root filesystem for security
-    read_only: true
+    # Shared memory for Puppeteer
+    shm_size: 2gb
+    # Temporary filesystems for cache and temp files
     tmpfs:
       - /tmp
       - /var/tmp
-    # Additional security
-    cap_drop:
-      - ALL
-    cap_add:
-      - CHOWN
-      - DAC_OVERRIDE
-      - SETGID
-      - SETUID
+      - /home/nextjs/.cache
 
 networks:
   caddy_web:
