@@ -3,10 +3,13 @@
   <h1>Vitaena</h1>
   <p align="center">
   <a href="https://vitaena.ahs12.xyz/" target="_blank">
-    <img src="https://img.shields.io/badge/Website-vitaena.app-blue?style=flat-square" alt="Website" />
+    <img src="https://img.shields.io/badge/Website-vitaena.ahs12.xyz-blue?style=flat-square" alt="Website" />
   </a>
   <a href="https://github.com/ahs12/vitaena/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/ahs12/vitaena?style=flat-square" alt="License" />
+  </a>
+  <a href="https://github.com/ahs12/vitaena/actions/workflows/build.yml">
+    <img src="https://github.com/ahs12/vitaena/actions/workflows/build.yml/badge.svg" alt="Build Status">
   </a>
 </p>
 </div>
