@@ -1,10 +1,18 @@
 <div align="center">
   <img src="public/logo.svg" alt="Vitaena Logo" width="120" height="120">
+  <h1>Vitaena</h1>
+  <p align="center">
+  <a href="https://vitaena.ahs12.xyz/" target="_blank">
+    <img src="https://img.shields.io/badge/Website-vitaena.app-blue?style=flat-square" alt="Website" />
+  </a>
+  <a href="https://github.com/ahs12/vitaena/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/ahs12/vitaena?style=flat-square" alt="License" />
+  </a>
+</p>
 </div>
 
-# Vitaena - In browser local Resume Builder
-
 **Create professional resumes in your browser. All data stays in your browser - no cloud, no tracking.**
+
 
 Vitaena is a privacy-first resume builder that runs entirely in your browser. Your personal information never leaves your device, ensuring complete privacy and security.
 
@@ -35,6 +43,12 @@ First, install dependencies:
 pnpm install
 ```
 
+copy the environment configuration file:
+
+```bash
+cp .env.example .env
+```
+
 Then, run the development server:
 
 ```bash
@@ -55,6 +69,21 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - **Icons:** Lucide React
 
 ## Development
+
+### Docker Deployment
+
+Vitaena can be deployed using Docker for both development and production environments:
+
+```bash
+# Development environment
+docker-compose up
+
+# Production environment
+cp .env.example .env  # Configure environment variables first
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+For detailed Docker deployment instructions and configuration options, see [Docker Environment Configuration](docs/DOCKER_ENV_CONFIG.md).
 
 ### PWA and Offline Testing
 
@@ -103,24 +132,18 @@ Vitaena is built with privacy in mind:
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-### Development Setup
-
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/ahs12/vitaena.git`
-3. Install dependencies: `pnpm install`
-4. Start the development server: `pnpm dev`
-5. Make your changes
-6. Test your changes thoroughly
-7. Submit a pull request
-
-### Guidelines
-
-- Follow the existing code style and conventions
-- Use TypeScript with strict typing
-- Test your changes on both desktop and mobile
-- Ensure privacy features remain intact
-- Add appropriate documentation for new features
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed information on how to contribute to this project.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<p align="center">
+  <b>Quick Links</b><br>
+  <a href="https://vitaena.ahs12.xyz/">Website</a> •
+  <a href="https://github.com/ahs12/vitaena">GitHub</a> •
+  <a href="https://github.com/ahs12/vitaena/issues">Report Bug</a> •
+  <a href="https://github.com/ahs12/vitaena/issues">Request Feature</a>
+</p>

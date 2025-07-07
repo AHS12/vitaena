@@ -55,11 +55,12 @@ RUN apk update && apk upgrade && apk add --no-cache \
     && adduser --system --uid 1001 nextjs
 
 # Tell Puppeteer to skip installing Chromium. We'll be using the installed package.
+# These can be overridden by .env files and docker-compose environment settings
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
     PUPPETEER_ARGS='--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --disable-gpu'
 
-# Set environment variables
+# Set default environment variables
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \

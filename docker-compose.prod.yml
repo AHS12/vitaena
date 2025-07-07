@@ -3,14 +3,18 @@ services:
     image: ahs12/vitaena:latest
     container_name: vitaena-app
     restart: unless-stopped
+    ports:
+      - "3000:3000" # Map port for local testing
+    env_file:
+      - .env
     environment:
-      - NODE_ENV=production
-      - NEXT_TELEMETRY_DISABLED=1
-      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-      - PUPPETEER_ARGS=--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --single-process --disable-gpu
-      - PORT=3000
-      - HOSTNAME=0.0.0.0
+      - NODE_ENV=${NODE_ENV}
+      - NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED}
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=${PUPPETEER_SKIP_CHROMIUM_DOWNLOAD}
+      - PUPPETEER_EXECUTABLE_PATH=${PUPPETEER_EXECUTABLE_PATH}
+      - PUPPETEER_ARGS=${PUPPETEER_ARGS}
+      - PORT=${PORT}
+      - HOSTNAME=${HOSTNAME}
     networks:
       - caddy_web
     volumes:
@@ -34,13 +38,14 @@ services:
     # Security options - simplified for Puppeteer compatibility
     security_opt:
       - no-new-privileges:true
-    # Shared memory for Puppeteer
-    shm_size: 2gb
+    # Shared memory for Puppeteer (critical for browser stability)
+    shm_size: ${DOCKER_SHM_SIZE}
+    ipc: host
     # Temporary filesystems for cache and temp files
     tmpfs:
-      - /tmp
-      - /var/tmp
-      - /home/nextjs/.cache
+      - ${DOCKER_TMPFS_TMP}
+      - ${DOCKER_TMPFS_VAR_TMP}
+      - ${DOCKER_TMPFS_CACHE}
 
 networks:
   caddy_web:
