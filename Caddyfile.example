@@ -1,0 +1,95 @@
+# Vitaena Resume Builder - Caddy Configuration
+# Replace 'vitaena.yourdomain.com' with your actual domain
+
+vitaena.yourdomain.com {
+    # Reverse proxy to the Docker container
+    reverse_proxy vitaena-app:3000
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';"
+        -Server
+    }
+
+    # Gzip compression
+    encode gzip
+
+    # Static file caching
+    @static {
+        path *.css *.js *.ico *.png *.jpg *.jpeg *.gif *.svg *.woff *.woff2 *.ttf *.eot
+    }
+    header @static {
+        Cache-Control "public, max-age=31536000, immutable"
+    }
+
+    # API routes caching
+    @api {
+        path /api/*
+    }
+    header @api {
+        Cache-Control "no-cache, no-store, must-revalidate"
+    }
+
+    # Health check endpoint
+    handle /api/health {
+        header Cache-Control "no-cache"
+        reverse_proxy vitaena-app:3000
+    }
+
+    # PDF export endpoint - increase timeout
+    handle /api/export-pdf {
+        header Cache-Control "no-cache"
+        reverse_proxy vitaena-app:3000 {
+            transport http {
+                read_timeout 60s
+                write_timeout 60s
+            }
+        }
+    }
+
+    # Main app
+    handle {
+        reverse_proxy vitaena-app:3000
+    }
+
+    # Logging
+    log {
+        output file /var/log/caddy/vitaena.log {
+            roll_size 100mb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+        format json
+        level INFO
+    }
+}
+
+# Alternative: subdirectory setup
+# yourdomain.com {
+#     handle /vitaena/* {
+#         uri strip_prefix /vitaena
+#         reverse_proxy vitaena-app:3000
+#         
+#         # Security headers
+#         header {
+#             Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+#             X-Content-Type-Options "nosniff"
+#             X-Frame-Options "DENY"
+#             X-XSS-Protection "1; mode=block"
+#             Referrer-Policy "strict-origin-when-cross-origin"
+#             -Server
+#         }
+#         
+#         encode gzip
+#     }
+# }
+
+# Development/Testing with IP (remove in production)
+# :80 {
+#     reverse_proxy vitaena-app:3000
+# }
