@@ -1,4 +1,5 @@
 import { useOfflineNavigation } from '@/components/OfflineNavigation';
+import { TemplateSwitcher } from '@/components/TemplateSwitcher';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useResponsive } from '@/hooks';
 import { useResumeStore } from '@/stores/resume-store';
@@ -18,8 +19,10 @@ import {
     IconButton,
     Toolbar as MuiToolbar,
     Typography,
+    Snackbar,
+    Alert
 } from '@mui/material';
-import React from 'react';
+import React, { useState } from 'react';
 
 interface ToolbarProps {
     onExport: () => void;
@@ -27,13 +30,26 @@ interface ToolbarProps {
 
 export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
     const { navigate } = useOfflineNavigation();
+    const [
+        snackbarOpen,
+        setSnackbarOpen
+    ] = useState(false);
+    const [
+        snackbarMessage,
+        setSnackbarMessage
+    ] = useState('');
+    const [
+        snackbarSeverity,
+        setSnackbarSeverity
+    ] = useState<'success' | 'error'>('success');
+
     const {
         previewMode,
         toggleSidebar,
         setPreviewMode
     } = useUIStore();
     const { currentResume, saveResume, isLoading } = useResumeStore();
-    const { isDesktop, deviceType } = useResponsive();
+    const { isDesktop, isTablet, deviceType } = useResponsive();
 
     // Check if we should show realtime preview
     const shouldShowRealtimePreview = deviceType === 'desktop' ||
@@ -43,10 +59,26 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
         if (currentResume) {
             try {
                 await saveResume(currentResume);
+                setSnackbarMessage('Resume saved successfully!');
+                setSnackbarSeverity('success');
+                setSnackbarOpen(true);
             } catch (error) {
                 console.error('Failed to save resume:', error);
+                setSnackbarMessage('Failed to save resume.');
+                setSnackbarSeverity('error');
+                setSnackbarOpen(true);
             }
         }
+    };
+
+    const handleCloseSnackbar = (
+        event?: React.SyntheticEvent | Event,
+        reason?: string
+    ) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackbarOpen(false);
     };
 
     return (
@@ -121,6 +153,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                 }}>
                     <ThemeToggle />
 
+                    {(isDesktop || isTablet) && <TemplateSwitcher size="small" />}
+
                     {/* Desktop: Full save button */}
                     {isDesktop && (
                         <Button
@@ -138,7 +172,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                                 }
                             }}
                         >
-                            {isLoading ? 'Saving...' : 'Save'}
+                            Save
                         </Button>
                     )}
 
@@ -159,7 +193,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                                 }
                             }}
                         >
-                            {isLoading ? 'Saving...' : 'Save'}
+                            Save
                         </Button>
                     )}
 
@@ -170,7 +204,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                             disabled={isLoading}
                             color="primary"
                             size="small"
-                            title={isLoading ? 'Saving...' : 'Save'}
                         >
                             <Save fontSize="small" />
                         </IconButton>
@@ -289,6 +322,21 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport }) => {
                     )}
                 </Box>
             </MuiToolbar>
+
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+            >
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={snackbarSeverity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </AppBar>
     );
 };

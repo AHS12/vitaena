@@ -10,6 +10,21 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
   isLoading: false,
   error: null,
 
+  
+  loadTemplates: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const templates = await ResumeService.getTemplates();
+      set({ templates, isLoading: false });
+    } catch (error) {
+      set({
+        error:
+          error instanceof Error ? error.message : "Failed to load templates",
+        isLoading: false,
+      });
+    }
+  },
+
   createResume: async (templateId: string) => {
     set({ isLoading: true, error: null });
 

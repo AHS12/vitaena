@@ -23,23 +23,30 @@ import {
     Typography,
 } from '@mui/material';
 import React from 'react';
+import { SECTION_NAMES, SectionId } from '@/lib/template-configs';
 
-const sections = [
-    { id: 'personal', label: 'Personal Info', icon: Person },
-    { id: 'summary', label: 'Summary', icon: Description },
-    { id: 'experience', label: 'Experience', icon: Work },
-    { id: 'education', label: 'Education', icon: School },
-    { id: 'certifications', label: 'Certifications', icon: WorkspacePremium },
-    { id: 'skills', label: 'Skills', icon: Build },
-    { id: 'strengths', label: 'Strengths', icon: FitnessCenter },
-    { id: 'languages', label: 'Languages', icon: Language },
-    { id: 'projects', label: 'Projects', icon: Folder },
-    { id: 'interests', label: 'Interests', icon: EmojiEvents },
-    { id: 'activities', label: 'Activities', icon: LocalActivity },
-];
+const sectionIcons: Record<SectionId, React.ElementType> = {
+    personal: Person,
+    summary: Description,
+    experience: Work,
+    education: School,
+    certifications: WorkspacePremium,
+    skills: Build,
+    strengths: FitnessCenter,
+    languages: Language,
+    projects: Folder,
+    interests: EmojiEvents,
+    activities: LocalActivity,
+    // Add new section icons here as they are introduced
+    "publications": Description, // Placeholder icon
+    "awards": EmojiEvents, // Placeholder icon
+    "family-details": Person, // Placeholder icon
+    "physical-attributes": FitnessCenter, // Placeholder icon
+    "hobbies": EmojiEvents, // Placeholder icon
+};
 
 export const Sidebar: React.FC = () => {
-    const { activeSection, setActiveSection } = useUIStore();
+    const { activeSection, setActiveSection, visibleSections } = useUIStore();
 
     return (
         <Paper
@@ -56,14 +63,14 @@ export const Sidebar: React.FC = () => {
                 </Typography>
 
                 <List sx={{ p: 0 }}>
-                    {sections.map((section) => {
-                        const Icon = section.icon;
-                        const isActive = activeSection === section.id;
+                    {visibleSections.map((sectionId) => {
+                        const Icon = sectionIcons[sectionId];
+                        const isActive = activeSection === sectionId;
 
                         return (
-                            <ListItem key={section.id} disablePadding sx={{ mb: 0.5 }}>
+                            <ListItem key={sectionId} disablePadding sx={{ mb: 0.5 }}>
                                 <ListItemButton
-                                    onClick={() => setActiveSection(section.id)}
+                                    onClick={() => setActiveSection(sectionId)}
                                     selected={isActive}
                                     sx={{
                                         borderRadius: 1,
@@ -86,7 +93,7 @@ export const Sidebar: React.FC = () => {
                                         <Icon fontSize="small" />
                                     </ListItemIcon>
                                     <ListItemText
-                                        primary={section.label}
+                                        primary={SECTION_NAMES[sectionId]}
                                         primaryTypographyProps={{
                                             fontSize: '0.875rem',
                                             fontWeight: isActive ? 600 : 400,

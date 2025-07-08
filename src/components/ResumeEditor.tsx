@@ -1,3 +1,4 @@
+import { useResponsive } from '@/hooks';
 import { useUIStore } from '@/stores/ui-store';
 import { Box } from '@mui/material';
 import React from 'react';
@@ -12,9 +13,11 @@ import { ProjectsEditor } from './editors/ProjectsEditor';
 import { SkillsEditor } from './editors/SkillsEditor';
 import { StrengthsEditor } from './editors/StrengthsEditor';
 import { SummaryEditor } from './editors/SummaryEditor';
+import { TemplateSwitcher } from './TemplateSwitcher';
 
 export const ResumeEditor: React.FC = () => {
     const { activeSection } = useUIStore();
+    const { deviceType } = useResponsive();
 
     const renderEditor = () => {
         switch (activeSection) {
@@ -51,8 +54,10 @@ export const ResumeEditor: React.FC = () => {
                 height: '100%',
                 overflow: 'auto',
                 backgroundColor: 'background.default',
+                p: 2,
             }}
         >
+            {deviceType === 'mobile' && <TemplateSwitcher size="medium" />}
             {renderEditor()}
         </Box>
     );

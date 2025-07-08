@@ -7,11 +7,10 @@ import { Toolbar } from '@/components/Toolbar';
 import { useResponsive } from '@/hooks';
 import { useResumeStore } from '@/stores/resume-store';
 import { useUIStore } from '@/stores/ui-store';
-import { ModernClassicTemplate } from '@/templates/ModernClassicTemplate';
+import { ModernClassicTemplate, ModernClassicBlackTemplate, ModernClassicFlippedTemplate, ModernCVTemplate } from '@/templates';
 import {
     Box,
     Button,
-    CircularProgress,
     Paper,
     Typography,
 } from '@mui/material';
@@ -23,8 +22,8 @@ export default function EditorPage() {
     const router = useRouter();
     const resumeId = params.id as string;
 
-    const { currentResume, loadResume, isLoading, error } = useResumeStore();
-    const { previewMode } = useUIStore();
+    const { currentResume, loadResume, error, loadTemplates } = useResumeStore();
+    const { previewMode, setVisibleSections } = useUIStore();
     const { deviceType } = useResponsive();
     const [showExportModal, setShowExportModal] = useState(false);
     const [previewScale, setPreviewScale] = useState(0.6);
@@ -64,26 +63,14 @@ export default function EditorPage() {
                 router.push('/');
             });
         }
-    }, [resumeId, currentResume, loadResume, router]);
+        loadTemplates();
+    }, [resumeId, currentResume, loadResume, router, loadTemplates]);
 
-    if (isLoading) {
-        return (
-            <Box
-                sx={{
-                    minHeight: '100vh',
-                    backgroundColor: 'background.default',
-                    background: theme => theme.palette.mode === 'light'
-                        ? 'radial-gradient(circle at 20% 20%, rgba(97, 192, 190, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(74, 144, 164, 0.05) 0%, transparent 50%)'
-                        : 'radial-gradient(circle at 20% 20%, rgba(97, 192, 190, 0.02) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(74, 144, 164, 0.02) 0%, transparent 50%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                <CircularProgress size={60} sx={{ color: 'primary.main' }} />
-            </Box>
-        );
-    }
+    useEffect(() => {
+        if (currentResume) {
+            setVisibleSections(currentResume.category);
+        }
+    }, [currentResume, setVisibleSections]);
 
     if (error || !currentResume) {
         return (
@@ -125,6 +112,24 @@ export default function EditorPage() {
 
     const renderTemplate = () => {
         switch (currentResume.templateId) {
+            case 'modern-classic-black':
+                return <ModernClassicBlackTemplate
+                    data={currentResume}
+                    scale={previewScale}
+                    isPreview={true}
+                />;
+            case 'modern-classic-flipped':
+                return <ModernClassicFlippedTemplate
+                    data={currentResume}
+                    scale={previewScale}
+                    isPreview={true}
+                />;
+            case 'modern-cv':
+                return <ModernCVTemplate
+                    data={currentResume}
+                    scale={previewScale}
+                    isPreview={true}
+                />;
             case 'modern-classic':
             default:
                 return <ModernClassicTemplate
@@ -137,6 +142,24 @@ export default function EditorPage() {
 
     const renderExportTemplate = () => {
         switch (currentResume.templateId) {
+            case 'modern-classic-black':
+                return <ModernClassicBlackTemplate
+                    data={currentResume}
+                    scale={1}
+                    isPreview={false}
+                />;
+            case 'modern-classic-flipped':
+                return <ModernClassicFlippedTemplate
+                    data={currentResume}
+                    scale={1}
+                    isPreview={false}
+                />;
+            case 'modern-cv':
+                return <ModernCVTemplate
+                    data={currentResume}
+                    scale={1}
+                    isPreview={false}
+                />;
             case 'modern-classic':
             default:
                 return <ModernClassicTemplate

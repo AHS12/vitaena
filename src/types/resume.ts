@@ -1,3 +1,4 @@
+import { SectionId } from "@/lib/template-configs";
 // Core types for the resume data structure
 export interface PersonalInfo {
   name: string;
@@ -146,6 +147,7 @@ export interface Certification {
 export interface ResumeData {
   id: string;
   templateId: string;
+  category: TemplateCategory;
   personalInfo: PersonalInfo;
   summary: string;
   workExperience: WorkExperience[];
@@ -191,6 +193,7 @@ export interface ResumeStore {
   error: string | null;
 
   // Actions
+  loadTemplates: () => Promise<void>;
   createResume: (templateId: string) => Promise<string>;
   loadResume: (id: string) => Promise<void>;
   saveResume: (resume: ResumeData) => Promise<void>;
@@ -204,17 +207,20 @@ export interface ResumeStore {
 }
 
 // UI State types
+
 export interface UIStore {
   sidebarOpen: boolean;
   activeSection: string;
   previewMode: boolean;
   isExporting: boolean;
+  visibleSections: SectionId[];
 
   // Actions
   toggleSidebar: () => void;
   setActiveSection: (section: string) => void;
   setPreviewMode: (enabled: boolean) => void;
   setExporting: (exporting: boolean) => void;
+  setVisibleSections: (category: TemplateCategory) => void;
   initializeSidebarState: (isDesktop: boolean) => void;
 }
 

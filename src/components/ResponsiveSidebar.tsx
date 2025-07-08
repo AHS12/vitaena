@@ -32,29 +32,36 @@ import {
     Typography,
 } from '@mui/material';
 import React, { useEffect } from 'react';
+import { SECTION_NAMES, SectionId } from '@/lib/template-configs';
 
 const homeSection = { id: 'home', label: 'Back to Home', icon: Home };
 
-const resumeSections = [
-    { id: 'personal', label: 'Personal Info', icon: Person },
-    { id: 'summary', label: 'Summary', icon: Description },
-    { id: 'experience', label: 'Experience', icon: Work },
-    { id: 'education', label: 'Education', icon: School },
-    { id: 'certifications', label: 'Certifications', icon: WorkspacePremium },
-    { id: 'skills', label: 'Skills', icon: Build },
-    { id: 'strengths', label: 'Strengths', icon: FitnessCenter },
-    { id: 'languages', label: 'Languages', icon: Language },
-    { id: 'projects', label: 'Projects', icon: Folder },
-    { id: 'interests', label: 'Interests', icon: EmojiEvents },
-    { id: 'activities', label: 'Activities', icon: LocalActivity },
-];
+const sectionIcons: Record<SectionId, React.ElementType> = {
+    personal: Person,
+    summary: Description,
+    experience: Work,
+    education: School,
+    certifications: WorkspacePremium,
+    skills: Build,
+    strengths: FitnessCenter,
+    languages: Language,
+    projects: Folder,
+    interests: EmojiEvents,
+    activities: LocalActivity,
+    // Add new section icons here as they are introduced
+    "publications": Description, // Placeholder icon
+    "awards": EmojiEvents, // Placeholder icon
+    "family-details": Person, // Placeholder icon
+    "physical-attributes": FitnessCenter, // Placeholder icon
+    "hobbies": EmojiEvents, // Placeholder icon
+};
 
 interface ResponsiveSidebarProps {
     isPreviewMode?: boolean;
 }
 
 export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isPreviewMode = false }) => {
-    const { sidebarOpen, activeSection, setActiveSection, toggleSidebar, initializeSidebarState } = useUIStore();
+    const { sidebarOpen, activeSection, setActiveSection, toggleSidebar, initializeSidebarState, visibleSections } = useUIStore();
     const { isDesktop } = useResponsive();
     const { navigate } = useOfflineNavigation();
 
@@ -63,11 +70,11 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isPreviewM
         initializeSidebarState(isDesktop);
     }, [isDesktop, initializeSidebarState]);
 
-    const handleSectionClick = (section: typeof resumeSections[0] | typeof homeSection) => {
-        if (section.id === 'home') {
+    const handleSectionClick = (sectionId: SectionId | 'home') => {
+        if (sectionId === 'home') {
             navigate('/');
         } else {
-            setActiveSection(section.id);
+            setActiveSection(sectionId);
             // Close sidebar on mobile/tablet after selection
             if (!isDesktop && sidebarOpen) {
                 toggleSidebar();
@@ -75,7 +82,7 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isPreviewM
         }
     };
 
-    const renderSectionList = (sections: typeof resumeSections, title?: string) => (
+    const renderSectionList = (sectionsToRender: (SectionId | 'home')[], title?: string) => (
         <Box sx={{ mb: title ? 3 : 0 }}>
             {title && (
                 <Typography
@@ -92,14 +99,14 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isPreviewM
                 </Typography>
             )}
             <List sx={{ p: 0 }}>
-                {sections.map((section) => {
-                    const Icon = section.icon;
-                    const isActive = section.id !== 'home' && activeSection === section.id;
+                {sectionsToRender && sectionsToRender.map((sectionId) => {
+                    const Icon = sectionId === 'home' ? Home : sectionIcons[sectionId as SectionId];
+                    const isActive = activeSection === sectionId;
 
                     return (
-                        <ListItem key={section.id} disablePadding sx={{ mb: 0.5, px: 2 }}>
+                        <ListItem key={sectionId} disablePadding sx={{ mb: 0.5, px: 2 }}>
                             <ListItemButton
-                                onClick={() => handleSectionClick(section)}
+                                onClick={() => handleSectionClick(sectionId)}
                                 selected={isActive}
                                 sx={{
                                     borderRadius: 1,
@@ -122,7 +129,7 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isPreviewM
                                     <Icon fontSize="small" />
                                 </ListItemIcon>
                                 <ListItemText
-                                    primary={section.label}
+                                    primary={sectionId === 'home' ? homeSection.label : SECTION_NAMES[sectionId as SectionId]}
                                     primaryTypographyProps={{
                                         fontSize: '0.875rem',
                                         fontWeight: isActive ? 600 : 400,
@@ -171,14 +178,14 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isPreviewM
                 {/* Mobile/Tablet: Show Home section first */}
                 {!isDesktop && (
                     <>
-                        {renderSectionList([homeSection])}
+                        {renderSectionList(['home'])}
                         <Divider sx={{ my: 2, mx: 2 }} />
-                        {renderSectionList(resumeSections, 'Resume Sections')}
+                        {renderSectionList(visibleSections, 'Resume Sections')}
                     </>
                 )}
 
                 {/* Desktop: Show only resume sections */}
-                {isDesktop && renderSectionList(resumeSections)}
+                {isDesktop && renderSectionList(visibleSections)}
             </Box>
         </Box>
     );

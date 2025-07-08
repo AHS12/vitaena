@@ -188,13 +188,15 @@ export default function HomePage() {
 
       try {
         // Import the template component dynamically
-        const { ModernClassicTemplate } = await import('@/templates/ModernClassicTemplate');
+        const templates = await import('@/templates');
+        const TemplateComponent = templates[resume.templateId];
+
         const React = await import('react');
         const { createRoot } = await import('react-dom/client');
 
         // Create a root and render the resume
         const root = createRoot(tempContainer);
-        const templateElement = React.createElement(ModernClassicTemplate, { data: resume });
+        const templateElement = React.createElement(TemplateComponent, { data: resume });
 
         root.render(templateElement);
 

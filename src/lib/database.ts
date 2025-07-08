@@ -24,13 +24,13 @@ export class ResumeDatabase extends Dexie {
     super("ResumeDatabase");
 
     this.version(1).stores({
-      resumes: "id, templateId, personalInfo.name, createdAt, updatedAt",
+      resumes: "id, template, templateId, personalInfo.name, createdAt, updatedAt",
       templates: "id, name, category, isDefault",
     });
 
     // Add settings table in version 2
     this.version(2).stores({
-      resumes: "id, templateId, personalInfo.name, createdAt, updatedAt",
+      resumes: "id, template, templateId, personalInfo.name, createdAt, updatedAt",
       templates: "id, name, category, isDefault",
       settings: "++id, key",
     });
@@ -473,9 +473,6 @@ export class ResumeService {
   }
 
   static async initializeTemplates(): Promise<void> {
-    const existingTemplates = await db.templates.count();
-    if (existingTemplates > 0) return;
-
     const defaultTemplates: ResumeTemplate[] = [
       {
         id: "modern-classic",
@@ -486,10 +483,40 @@ export class ResumeService {
         component: "ModernClassicTemplate",
         category: TemplateCategory.RESUME,
         isDefault: true,
-      }, 
+      },
+      {
+        id: "modern-classic-black",
+        name: "Modern Classic Black",
+        description:
+          "A professional two-column layout with black accents, perfect for software engineers",
+        previewImage: "/templates/minimal-modern-preview.jpg",
+        component: "ModernClassicBlackTemplate",
+        category: TemplateCategory.RESUME,
+        isDefault: false,
+      },
+      {
+        id: "modern-classic-flipped",
+        name: "Modern Classic Flipped",
+        description:
+          "A professional two-column layout with blue accents, perfect for software engineers",
+        previewImage: "/templates/minimal-modern-preview.jpg",
+        component: "ModernClassicFlippedTemplate",
+        category: TemplateCategory.RESUME,
+        isDefault: false,
+      },
+      {
+        id: "modern-cv",
+        name: "Modern CV",
+        description:
+          "A modern single-column CV template, suitable for academic and research-focused applications.",
+        previewImage: "/templates/minimal-modern-preview.jpg",
+        component: "ModernCVTemplate",
+        category: TemplateCategory.CV,
+        isDefault: false,
+      },
     ];
 
-    await db.templates.bulkAdd(defaultTemplates);
+    await db.templates.bulkPut(defaultTemplates);
   }
 
   static async searchResumes(query: string): Promise<ResumeData[]> {
