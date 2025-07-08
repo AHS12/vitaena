@@ -16,7 +16,6 @@
 
 **Create professional resumes, CVs, and biodata in your browser. All data stays in your browser - no cloud, no registration, no tracking.**
 
-
 Vitaena is a privacy-first resume builder that runs entirely in your browser. Your personal information never leaves your device, ensuring complete privacy and security.
 
 ## Why Vitaena?
@@ -60,16 +59,17 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Tech Stack
+### Using Docker for Development
 
-- **Framework:** Next.js 15 with App Router
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS v4
-- **UI Components:** Material UI (MUI)
-- **State Management:** Zustand
-- **Storage:** IndexedDB with Dexie.js
-- **PDF Export:** Puppeteer
-- **Icons:** Lucide React
+You can also start the development environment using Docker:
+
+```bash
+# On Windows
+./dev-env.bat start
+
+# On Linux/macOS
+./dev-env.sh start
+```
 
 ## Development
 
@@ -79,7 +79,11 @@ Vitaena can be deployed using Docker for both development and production environ
 
 ```bash
 # Development environment
-docker-compose up
+# On Windows
+./dev-env.bat start
+
+# On Linux/macOS
+./dev-env.sh start
 
 # Production environment
 cp .env.example .env  # Configure environment variables first
