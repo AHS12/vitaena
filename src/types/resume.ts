@@ -178,7 +178,7 @@ export interface ResumeTemplate {
   description: string;
   previewImage: string;
   component: string; // Component name for dynamic import
-  category: "modern" | "classic" | "creative" | "minimalist";
+  category: TemplateCategory;
   isDefault: boolean;
 }
 
@@ -240,4 +240,11 @@ export interface TemplateConfig {
     item: string;
   };
   layout: "single-column" | "two-column" | "mixed";
+}
+
+// Template categories
+export enum TemplateCategory {
+  RESUME = 'resume',
+  CV = 'cv',
+  BIODATA = 'biodata'
 }

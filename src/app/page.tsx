@@ -188,13 +188,13 @@ export default function HomePage() {
 
       try {
         // Import the template component dynamically
-        const { AzizulClassicTemplate } = await import('@/templates/AzizulClassicTemplate');
+        const { ModernClassicTemplate } = await import('@/templates/ModernClassicTemplate');
         const React = await import('react');
         const { createRoot } = await import('react-dom/client');
 
         // Create a root and render the resume
         const root = createRoot(tempContainer);
-        const templateElement = React.createElement(AzizulClassicTemplate, { data: resume });
+        const templateElement = React.createElement(ModernClassicTemplate, { data: resume });
 
         root.render(templateElement);
 

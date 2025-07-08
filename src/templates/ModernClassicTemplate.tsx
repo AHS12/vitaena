@@ -1,17 +1,169 @@
 import { formatDateRange } from '@/lib/utils';
-import { ResumeData } from '@/types/resume';
+import { PersonalInfo, ResumeData } from '@/types/resume';
 import { Globe, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
 import Image from 'next/image';
-import React from 'react';
+import React, { useMemo } from 'react';
 
-interface AzizulClassicTemplateProps {
+// Component for contact info row with dynamic font sizing
+const ContactInfoRow: React.FC<{
+    personalInfo: PersonalInfo;
+    availableWidth: string;
+}> = ({ personalInfo, availableWidth }) => {
+    // Count visible contact items to determine available space
+    const visibleItems = useMemo(() => {
+        let count = 0;
+        if (personalInfo.showPhone && personalInfo.phone) count++;
+        if (personalInfo.showEmail && personalInfo.email) count++;
+        if (personalInfo.showLocation && personalInfo.location) count++;
+        if (personalInfo.showLinkedIn && personalInfo.linkedIn) count++;
+        if (personalInfo.showWebsite && personalInfo.website) count++;
+        return count;
+    }, [personalInfo]);
+
+    // Calculate font size based on visible items - keep it more readable
+    const calculateFontSize = () => {
+        if (visibleItems <= 3) return '11px'; // Standard size for 1-3 items
+        if (visibleItems === 4) return '10.5px'; // Slightly smaller for 4 items
+        return '10px'; // Minimum readable size for 5 items
+    };
+
+    const fontSize = calculateFontSize();
+
+    // Style for the contact items
+    const contactItemStyle = {
+        display: 'flex',
+        alignItems: 'center',
+        minWidth: 0 // Important for flex children to allow proper shrinking
+    };
+
+    // Determine spacing and alignment based on number of visible items
+    // For fewer items, align from the left with appropriate gaps
+    // For all 5 items, use space-between to distribute them evenly
+    let justifyContent: 'flex-start' | 'space-between' = 'flex-start';
+    let gap: string;
+
+    if (visibleItems === 1) {
+        gap = '0px';
+    } else if (visibleItems === 2) {
+        gap = '32px'; // Wider gap for just 2 items
+    } else if (visibleItems === 3) {
+        gap = '24px'; // Medium gap for 3 items
+    } else if (visibleItems === 4) {
+        gap = '20px'; // Narrower gap for 4 items
+    } else {
+        gap = '16px'; // Minimum gap for all 5 items
+        justifyContent = 'space-between'; // Distribute all items evenly
+    }
+
+    // Style for the entire contact row
+    const contactRowStyle = {
+        display: 'flex',
+        width: availableWidth,
+        justifyContent,
+        gap,
+        fontSize,
+        color: '#374151'
+    };
+
+    // Style for links
+    const linkStyle = {
+        color: '#2563eb',
+        textDecoration: 'none',
+        cursor: 'pointer',
+        minWidth: 0 // Important for text shrinking properly
+    };
+
+    // Style for icons
+    const iconStyle = {
+        width: '12px',
+        height: '12px',
+        marginRight: '4px',
+        flexShrink: 0 // Ensure icons don't shrink
+    };
+
+    // Style for text content that needs to shrink if needed
+    const textStyle = {
+        minWidth: 0,
+        flexShrink: 1
+    };
+
+    return (
+        <div style={contactRowStyle}>
+            {personalInfo.showPhone && personalInfo.phone && (
+                <div style={contactItemStyle}>
+                    <Phone style={iconStyle} />
+                    <span style={textStyle}>
+                        {personalInfo.phone}
+                    </span>
+                </div>
+            )}
+
+            {personalInfo.showEmail && personalInfo.email && (
+                <div style={contactItemStyle}>
+                    <Mail style={iconStyle} />
+                    <a
+                        href={`mailto:${personalInfo.email}`}
+                        style={linkStyle}
+                        onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
+                        onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
+                    >
+                        {personalInfo.email}
+                    </a>
+                </div>
+            )}
+
+            {personalInfo.showLocation && personalInfo.location && (
+                <div style={contactItemStyle}>
+                    <MapPin style={iconStyle} />
+                    <span style={textStyle}>
+                        {personalInfo.location}
+                    </span>
+                </div>
+            )}
+
+            {personalInfo.showLinkedIn && personalInfo.linkedIn && (
+                <div style={contactItemStyle}>
+                    <Linkedin style={iconStyle} />
+                    <a
+                        href={personalInfo.linkedIn}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={linkStyle}
+                        onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
+                        onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
+                    >
+                        {personalInfo.linkedIn.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}
+                    </a>
+                </div>
+            )}
+
+            {personalInfo.showWebsite && personalInfo.website && (
+                <div style={contactItemStyle}>
+                    <Globe style={iconStyle} />
+                    <a
+                        href={personalInfo.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={linkStyle}
+                        onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
+                        onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
+                    >
+                        {personalInfo.website.replace(/https?:\/\/(www\.)?/, '')}
+                    </a>
+                </div>
+            )}
+        </div>
+    );
+};
+
+interface ModernClassicTemplateProps {
     data: ResumeData;
     className?: string;
     scale?: number; // Scale factor for preview (e.g., 0.5 for 50% size)
     isPreview?: boolean; // Whether this is preview mode or export mode
 }
 
-export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
+export const ModernClassicTemplate: React.FC<ModernClassicTemplateProps> = ({
     data,
     className = '',
     scale = 1,
@@ -45,8 +197,8 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
         padding: '0',
         fontFamily: '"Segoe UI", "Helvetica Neue", Arial, sans-serif',
         color: '#111827',
-        fontSize: '12px', // Increased from 11px
-        lineHeight: '1.4', // Slightly increased for better readability
+        fontSize: '11px', // Lowered from 12px
+        lineHeight: '1.4',
         overflow: 'hidden',
         pageBreakInside: 'avoid',
         pageBreakAfter: 'auto',
@@ -61,32 +213,97 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
         printColorAdjust: 'exact',
         display: 'flex',
         flexDirection: 'column',
-        // Apply scale transformation for preview mode
+        // Apply scaling for preview mode to the template itself for proper rendering
         transform: isPreview ? `scale(${scale})` : 'none',
         transformOrigin: 'top left',
-        border: isPreview ? '1px solid #e5e7eb' : 'none',
-        boxShadow: isPreview ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' : 'none'
+        // Ensure the template fits in container when scaled
+        ...(isPreview && {
+            position: 'absolute',
+            top: 0,
+            left: 0
+        })
     };
 
-    // Container styles for scaled preview
+    // Container styles for both preview and export to ensure consistency
     const containerStyles: React.CSSProperties = isPreview ? {
         width: `${210 * scale}mm`,
         height: `${297 * scale}mm`,
         overflow: 'hidden',
-        position: 'relative'
-    } : {};
+        position: 'relative',
+        boxSizing: 'border-box',
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+    } : {
+        width: '210mm',
+        height: '297mm',
+        overflow: 'hidden',
+        position: 'relative',
+        boxSizing: 'border-box'
+    };
 
     return (
         <div style={containerStyles}>
             <div style={templateStyles} className={className} data-resume-template>
                 <style>{`
+                @page {
+                    size: A4 portrait;
+                    margin: 0;
+                }
+                [data-resume-template] {
+                    margin: 0;
+                    padding: 0;
+                    max-height: 297mm;
+                    height: 297mm;
+                    overflow: hidden;
+                    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+                    font-size: 11px !important;
+                    line-height: 1.4 !important;
+                    color: #111827 !important;
+                    -webkit-font-smoothing: antialiased !important;
+                    -moz-osx-font-smoothing: grayscale !important;
+                    text-rendering: optimizeLegibility !important;
+                }
+                [data-resume-template] * {
+                    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+                    -webkit-font-smoothing: antialiased !important;
+                    -moz-osx-font-smoothing: grayscale !important;
+                    text-rendering: optimizeLegibility !important;
+                }
+                [data-resume-template] .resume-blue {
+                    color: #2563eb !important;
+                }
+                [data-resume-template] h1 {
+                    font-size: 28px !important;
+                    font-weight: bold !important;
+                    color: #111827 !important;
+                }
+                [data-resume-template] h2 {
+                    font-size: 14px !important;
+                    font-weight: 600 !important;
+                    color: #2563eb !important;
+                }
+                [data-resume-template] h3 {
+                    font-size: 13px !important;
+                    font-weight: bold !important;
+                    color: #111827 !important;
+                }
+                [data-resume-template] h4 {
+                    font-weight: bold !important;
+                    color: #111827 !important;
+                }
                 [data-resume-template] a {
                     transition: all 0.2s ease;
+                    color: #2563eb !important;
+                    text-decoration: none !important;
                 }
                 [data-resume-template] a:hover {
                     opacity: 0.8;
                 }
                 @media print {
+                    [data-resume-template] {
+                        height: 297mm;
+                        overflow: hidden;
+                    }
                     [data-resume-template] a {
                         color: #2563eb !important;
                         text-decoration: none !important;
@@ -97,117 +314,72 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                 <div style={{
                     padding: '10mm 15mm 6mm 15mm',
                     display: 'flex',
-                    alignItems: 'flex-start',
-                    justifyContent: 'space-between',
+                    flexDirection: 'column',
                     borderBottom: '1px solid #e5e7eb'
                 }}>
-                    <div style={{ flex: 1 }}>
-                        <h1 style={{
-                            fontSize: '28px', // Increased from 26px
-                            fontWeight: 'bold',
-                            color: '#111827',
-                            margin: '0 0 5px 0',
-                            letterSpacing: '0.5px'
-                        }}>
-                            {data.personalInfo.name || 'YOUR NAME'}
-                        </h1>
-                        <h2 style={{
-                            fontSize: '14px', // Increased from 13px
-                            fontWeight: '600',
-                            color: '#2563eb',
-                            margin: '0 0 10px 0',
-                            textTransform: 'uppercase'
-                        }}>
-                            {data.personalInfo.title || 'SOFTWARE ENGINEER'}
-                        </h2>
-
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', fontSize: '11px', color: '#374151' }}> {/* Increased from 10px */}
-                            {data.personalInfo.showPhone && data.personalInfo.phone && (
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <Phone style={{ width: '12px', height: '12px', marginRight: '4px' }} /> {/* Increased from 11px */}
-                                    {data.personalInfo.phone}
-                                </div>
-                            )}
-                            {data.personalInfo.showEmail && data.personalInfo.email && (
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <Mail style={{ width: '12px', height: '12px', marginRight: '4px' }} /> {/* Increased from 11px */}
-                                    <a
-                                        href={`mailto:${data.personalInfo.email}`}
-                                        style={{
-                                            color: '#2563eb',
-                                            textDecoration: 'none',
-                                            cursor: 'pointer'
-                                        }}
-                                        onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
-                                        onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
-                                    >
-                                        {data.personalInfo.email}
-                                    </a>
-                                </div>
-                            )}
-                            {data.personalInfo.showLocation && data.personalInfo.location && (
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <MapPin style={{ width: '12px', height: '12px', marginRight: '4px' }} /> {/* Increased from 11px */}
-                                    {data.personalInfo.location}
-                                </div>
-                            )}
-                            {data.personalInfo.showLinkedIn && data.personalInfo.linkedIn && (
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <Linkedin style={{ width: '12px', height: '12px', marginRight: '4px' }} /> {/* Increased from 11px */}
-                                    <a
-                                        href={data.personalInfo.linkedIn}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                            color: '#2563eb',
-                                            textDecoration: 'none',
-                                            cursor: 'pointer'
-                                        }}
-                                        onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
-                                        onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
-                                    >
-                                        {data.personalInfo.linkedIn.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, '')}
-                                    </a>
-                                </div>
-                            )}
-                            {data.personalInfo.showWebsite && data.personalInfo.website && (
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <Globe style={{ width: '12px', height: '12px', marginRight: '4px' }} /> {/* Increased from 11px */}
-                                    <a
-                                        href={data.personalInfo.website}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                            color: '#2563eb',
-                                            textDecoration: 'none',
-                                            cursor: 'pointer'
-                                        }}
-                                        onMouseEnter={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'underline'}
-                                        onMouseLeave={(e) => (e.target as HTMLAnchorElement).style.textDecoration = 'none'}
-                                    >
-                                        {data.personalInfo.website.replace(/https?:\/\/(www\.)?/, '')}
-                                    </a>
-                                </div>
-                            )}
+                    {/* Name, Title and Photo in one row */}
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '10px'
+                    }}>
+                        <div>
+                            <h1 style={{
+                                fontSize: '28px',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                margin: '0 0 5px 0',
+                                letterSpacing: '0.5px'
+                            }}>
+                                {data.personalInfo.name || 'YOUR NAME'}
+                            </h1>
+                            <h2 style={{
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                color: '#2563eb',
+                                margin: '0',
+                                textTransform: 'uppercase'
+                            }}>
+                                {data.personalInfo.title || 'SOFTWARE ENGINEER'}
+                            </h2>
                         </div>
+
+                        {data.personalInfo.showPhoto && data.personalInfo.photo && (
+                            <div>
+                                <Image
+                                    src={data.personalInfo.photo}
+                                    alt={data.personalInfo.name}
+                                    width={60}
+                                    height={60}
+                                    style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
+                                />
+                            </div>
+                        )}
                     </div>
 
-                    {data.personalInfo.showPhoto && data.personalInfo.photo && (
-                        <div style={{ marginLeft: '15px' }}>
-                            <Image
-                                src={data.personalInfo.photo}
-                                alt={data.personalInfo.name}
-                                width={60}
-                                height={60}
-                                style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
-                            />
-                        </div>
-                    )}
+                    {/* Contact information on full width */}
+                    <ContactInfoRow
+                        personalInfo={data.personalInfo}
+                        availableWidth="100%"
+                    />
                 </div>
 
-                <div style={{ display: 'flex', flex: 1 }}>
+                <div style={{
+                    display: 'flex',
+                    paddingBottom: '10mm',
+                    height: 'calc(297mm - 10mm - 6mm - 60px)', // Exact height: A4 height minus header padding and height
+                    maxHeight: 'calc(297mm - 10mm - 6mm - 60px)', // Added more pixel space for header (60px)
+                    boxSizing: 'border-box',
+                    overflow: 'hidden'
+                }}>
                     {/* Left Column */}
-                    <div style={{ width: '65%', padding: '6mm 10mm 6mm 15mm', overflow: 'hidden' }}>
+                    <div style={{
+                        width: '65%',
+                        padding: '6mm 10mm 6mm 15mm',
+                        overflow: 'hidden',
+                        height: '100%'
+                    }}>
                         {/* Summary Section */}
                         {data.showSummary && data.summary && (
                             <div style={{ marginBottom: '8mm' }}> {/* Reduced from 10mm */}
@@ -237,12 +409,12 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
                         {/* Experience Section */}
                         {data.showWorkExperience && data.workExperience.filter(exp => exp.show).length > 0 && (
-                            <div style={{ marginBottom: '8mm' }}> {/* Reduced from 10mm */}
+                            <div style={{ marginBottom: '8mm' }}>
                                 <h3 style={{
-                                    fontSize: '13px', // Increased from 12px
+                                    fontSize: '13px',
                                     fontWeight: 'bold',
                                     color: '#111827',
-                                    marginBottom: '5px', // Reduced from 7px
+                                    marginBottom: '5px',
                                     textTransform: 'uppercase',
                                     letterSpacing: '0.5px',
                                     borderBottom: '1px solid #111827',
@@ -250,30 +422,29 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 }}>
                                     EXPERIENCE
                                 </h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}> {/* Reduced from 7px */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                     {data.workExperience.filter(exp => exp.show).map((exp) => (
                                         <div key={exp.id}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3px' }}>
                                                 <div>
                                                     <h4 style={{
-                                                        fontSize: '12px', // Increased from 11px
+                                                        fontSize: '12px',
                                                         fontWeight: 'bold',
                                                         color: '#111827',
-                                                        margin: '0 0 1px 0' // Reduced from 2px
+                                                        margin: '0 0 1px 0'
                                                     }}>
                                                         {exp.position}
                                                     </h4>
-                                                    <p style={{
-                                                        fontSize: '11px', // Increased from 10px
-                                                        fontWeight: '600',
-                                                        color: '#2563eb',
-                                                        margin: '0 0 1px 0' // Reduced from 2px
+                                                    <p className="resume-blue" style={{
+                                                        fontSize: '11px',
+                                                        fontWeight: 600,
+                                                        margin: '0 0 1px 0'
                                                     }}>
                                                         {exp.company}
                                                     </p>
                                                     {exp.showLocation && exp.location && (
                                                         <p style={{
-                                                            fontSize: '10px', // Increased from 9px
+                                                            fontSize: '10px',
                                                             color: '#6b7280',
                                                             margin: '0'
                                                         }}>
@@ -283,7 +454,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                 </div>
                                                 {exp.showDateRange && (
                                                     <div style={{
-                                                        fontSize: '10px', // Increased from 9px
+                                                        fontSize: '10px',
                                                         color: '#6b7280',
                                                         textAlign: 'right',
                                                         whiteSpace: 'nowrap'
@@ -294,20 +465,20 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                             </div>
                                             {exp.showDescription && exp.description && (
                                                 <p style={{
-                                                    fontSize: '11px', // Increased from 10px
+                                                    fontSize: '11px',
                                                     color: '#374151',
-                                                    marginBottom: '2px', // Reduced from 3px
-                                                    lineHeight: '1.3' // Reduced from 1.4
+                                                    marginBottom: '2px',
+                                                    lineHeight: '1.3'
                                                 }}>
                                                     {exp.description}
                                                 </p>
                                             )}
                                             {exp.showBullets && exp.bullets.length > 0 && (
                                                 <div style={{
-                                                    fontSize: '11px', // Increased from 10px
+                                                    fontSize: '11px',
                                                     color: '#374151',
                                                     margin: '0',
-                                                    lineHeight: '1.3' // Reduced from 1.4
+                                                    lineHeight: '1.3'
                                                 }}>
                                                     {exp.bullets.map((bullet, index) => (
                                                         <div key={index} style={{
@@ -318,7 +489,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                             <span style={{
                                                                 marginRight: '6px',
                                                                 marginTop: '2px',
-                                                                fontSize: '9px', // Increased from 8px
+                                                                fontSize: '9px',
                                                                 lineHeight: '1'
                                                             }}>•</span>
                                                             <span style={{ flex: 1 }}>{bullet}</span>
@@ -334,12 +505,12 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
                         {/* Education Section */}
                         {data.showEducation && data.education.filter(edu => edu.show).length > 0 && (
-                            <div style={{ marginBottom: '7mm' }}> {/* Reduced from 10mm */}
+                            <div style={{ marginBottom: '7mm' }}>
                                 <h3 style={{
-                                    fontSize: '13px', // Increased from 12px
+                                    fontSize: '13px',
                                     fontWeight: 'bold',
                                     color: '#111827',
-                                    marginBottom: '5px', // Reduced from 7px
+                                    marginBottom: '5px',
                                     textTransform: 'uppercase',
                                     letterSpacing: '0.5px',
                                     borderBottom: '1px solid #111827',
@@ -347,30 +518,29 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 }}>
                                     EDUCATION
                                 </h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}> {/* Reduced from 5px */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                     {data.education.filter(edu => edu.show).map((edu) => (
                                         <div key={edu.id}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                                 <div>
                                                     <h4 style={{
-                                                        fontSize: '12px', // Increased from 11px
+                                                        fontSize: '12px',
                                                         fontWeight: 'bold',
                                                         color: '#111827',
-                                                        margin: '0 0 1px 0' // Reduced from 2px
+                                                        margin: '0 0 1px 0'
                                                     }}>
                                                         {edu.degree}
                                                     </h4>
-                                                    <p style={{
-                                                        fontSize: '11px', // Increased from 10px
-                                                        fontWeight: '600',
-                                                        color: '#2563eb',
-                                                        margin: '0 0 1px 0' // Reduced from 2px
+                                                    <p className="resume-blue" style={{
+                                                        fontSize: '11px',
+                                                        fontWeight: 600,
+                                                        margin: '0 0 1px 0'
                                                     }}>
                                                         {edu.institution}
                                                     </p>
                                                     {edu.showLocation && edu.location && (
                                                         <p style={{
-                                                            fontSize: '10px', // Increased from 9px
+                                                            fontSize: '10px',
                                                             color: '#6b7280',
                                                             margin: '0'
                                                         }}>
@@ -379,7 +549,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                     )}
                                                     {edu.showGpa && edu.gpa && (
                                                         <p style={{
-                                                            fontSize: '10px', // Increased from 9px
+                                                            fontSize: '10px',
                                                             color: '#6b7280',
                                                             margin: '0'
                                                         }}>
@@ -389,7 +559,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                 </div>
                                                 {edu.showDateRange && (
                                                     <div style={{
-                                                        fontSize: '10px', // Increased from 9px
+                                                        fontSize: '10px',
                                                         color: '#6b7280'
                                                     }}>
                                                         {formatDateRange(edu.dateRange)}
@@ -404,12 +574,12 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
                         {/* Certifications Section */}
                         {data.showCertifications && Array.isArray(data.certifications) && data.certifications.filter(cert => cert.show).length > 0 && (
-                            <div style={{ marginBottom: '7mm' }}> {/* Reduced from 10mm */}
+                            <div style={{ marginBottom: '7mm' }}>
                                 <h3 style={{
-                                    fontSize: '13px', // Increased from 12px
+                                    fontSize: '13px',
                                     fontWeight: 'bold',
                                     color: '#111827',
-                                    marginBottom: '5px', // Reduced from 7px
+                                    marginBottom: '5px',
                                     textTransform: 'uppercase',
                                     letterSpacing: '0.5px',
                                     borderBottom: '1px solid #111827',
@@ -417,28 +587,27 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 }}>
                                     CERTIFICATIONS
                                 </h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}> {/* Reduced from 7px */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                     {data.certifications.filter(cert => cert.show).map((cert) => (
                                         <div key={cert.id}>
                                             <h4 style={{
-                                                fontSize: '13px', // Increased from 12px
+                                                fontSize: '13px',
                                                 fontWeight: 'bold',
                                                 color: '#111827',
                                                 margin: '0 0 2px 0'
                                             }}>
                                                 {cert.name}
                                             </h4>
-                                            <p style={{
-                                                fontSize: '12px', // Increased from 11px
-                                                fontWeight: '600',
-                                                color: '#2563eb',
+                                            <p className="resume-blue" style={{
+                                                fontSize: '12px',
+                                                fontWeight: 600,
                                                 margin: '0 0 2px 0'
                                             }}>
                                                 {cert.issuingOrganization}
                                             </p>
                                             {cert.showIssueDate && (
                                                 <p style={{
-                                                    fontSize: '11px', // Increased from 10px
+                                                    fontSize: '11px',
                                                     color: '#6b7280',
                                                     margin: '0 0 2px 0'
                                                 }}>
@@ -450,9 +619,11 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                             )}
                                             {cert.showCredentialId && cert.credentialId && (
                                                 <p style={{
-                                                    fontSize: '11px', // Increased from 10px
+                                                    fontSize: '11px',
                                                     color: '#374151',
-                                                    margin: '0 0 2px 0'
+                                                    margin: '0 0 2px 0',
+                                                    wordBreak: 'break-all',
+                                                    overflowWrap: 'anywhere'
                                                 }}>
                                                     ID: {cert.credentialId}
                                                 </p>
@@ -463,7 +634,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     style={{
-                                                        fontSize: '11px', // Increased from 10px
+                                                        fontSize: '11px',
                                                         color: '#2563eb',
                                                         textDecoration: 'none',
                                                         cursor: 'pointer',
@@ -483,12 +654,20 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                     </div>
 
                     {/* Right Column */}
-                    <div style={{ width: '35%', backgroundColor: '#ffffff', padding: '6mm 10mm 6mm 6mm', borderLeft: '1px solid #e5e7eb', overflow: 'hidden' }}>
+                    <div style={{
+                        width: '35%',
+                        backgroundColor: '#ffffff',
+                        padding: '6mm 15mm 6mm 6mm',
+                        borderLeft: '1px solid #e5e7eb',
+                        overflow: 'hidden', // Changed from auto to hidden
+                        height: '100%',
+                        fontSize: '11px' // Lowered from 12px for right column
+                    }}>
                         {/* Skills Section */}
                         {data.showSkills && data.skills.filter(skill => skill.show).length > 0 && (
                             <div style={{ marginBottom: '7mm' }}>
                                 <h3 style={{
-                                    fontSize: '13px', // Increased from 12px
+                                    fontSize: '13px',
                                     fontWeight: 'bold',
                                     color: '#111827',
                                     marginBottom: '7px',
@@ -497,13 +676,18 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                 }}>
                                     SKILLS
                                 </h3>
-                                <div style={{
-                                    display: 'flex',
-                                    flexWrap: 'wrap',
-                                    gap: '4px 5px',
-                                    justifyContent: 'flex-start',
-                                    alignItems: 'flex-start'
-                                }}>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        flexWrap: 'wrap',
+                                        gap: '7px 7px',
+                                        boxSizing: 'border-box',
+                                        width: '100%',
+                                        alignItems: 'flex-start',
+                                        padding: 0,
+                                        margin: 0
+                                    }}
+                                >
                                     {data.skills.filter(skill => skill.show).map((skill, index) => (
                                         <span
                                             key={index}
@@ -511,14 +695,17 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
                                                 padding: '3px 7px',
                                                 backgroundColor: '#ffffff',
                                                 color: '#374151',
-                                                fontSize: '10px', // Increased from 9px
+                                                fontSize: '10px',
                                                 borderRadius: '3px',
                                                 fontWeight: '500',
                                                 border: '1px solid #d1d5db',
                                                 letterSpacing: '0.1px',
-                                                whiteSpace: 'nowrap',
+                                                maxWidth: '100%',
+                                                boxSizing: 'border-box',
                                                 display: 'inline-block',
-                                                minWidth: 'fit-content'
+                                                overflow: 'hidden',
+                                                // No whiteSpace or textOverflow, allow wrapping
+                                                wordBreak: 'break-word',
                                             }}
                                         >
                                             {skill.name}
@@ -707,7 +894,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
                         {/* Interests Section */}
                         {data.showInterests && Array.isArray(data.interests) && data.interests.filter(interest => interest.show).length > 0 && (
-                            <div style={{ marginBottom: '6mm' }}>
+                            <div style={{ marginBottom: '7mm' }}>
                                 <h3 style={{
                                     fontSize: '12px', // Increased from 11px
                                     fontWeight: 'bold',
@@ -747,7 +934,7 @@ export const AzizulClassicTemplate: React.FC<AzizulClassicTemplateProps> = ({
 
                         {/* Activities Section */}
                         {data.showActivities && data.activities.filter(activity => activity.show).length > 0 && (
-                            <div style={{ marginBottom: '6mm' }}>
+                            <div style={{ marginBottom: '0' }}>
                                 <h3 style={{
                                     fontSize: '12px', // Increased from 11px
                                     fontWeight: 'bold',

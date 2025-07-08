@@ -1,4 +1,4 @@
-import { ResumeData, ResumeTemplate } from "@/types/resume";
+import { ResumeData, ResumeTemplate, TemplateCategory } from "@/types/resume";
 import Dexie, { Table } from "dexie";
 import { generateId } from "./utils";
 
@@ -76,12 +76,12 @@ export class SettingsService {
 
     if (!setting) return false;
 
-    // Check if the dismissal has expired (3 hours)
+    // Check if the dismissal has expired (24 hours)
     const dismissedTime = new Date(setting.timestamp);
     const currentTime = new Date();
-    const threeHoursInMs = 3 * 60 * 60 * 1000;
+    const hoursInMs = 24 * 60 * 60 * 1000; //24 hours
 
-    return currentTime.getTime() - dismissedTime.getTime() < threeHoursInMs;
+    return currentTime.getTime() - dismissedTime.getTime() < hoursInMs;
   }
 
   static async setPwaInstallDismissed(): Promise<void> {
@@ -478,24 +478,15 @@ export class ResumeService {
 
     const defaultTemplates: ResumeTemplate[] = [
       {
-        id: "azizul-classic",
-        name: "Azizul Classic",
+        id: "modern-classic",
+        name: "Modern Classic",
         description:
           "A professional two-column layout with blue accents, perfect for software engineers",
-        previewImage: "/templates/azizul-classic-preview.jpg",
-        component: "AzizulClassicTemplate",
-        category: "modern",
-        isDefault: true,
-      },
-      {
-        id: "minimal-modern",
-        name: "Minimal Modern",
-        description: "Clean and minimalist single-column design",
         previewImage: "/templates/minimal-modern-preview.jpg",
-        component: "MinimalModernTemplate",
-        category: "minimalist",
-        isDefault: false,
-      },
+        component: "ModernClassicTemplate",
+        category: TemplateCategory.RESUME,
+        isDefault: true,
+      }, 
     ];
 
     await db.templates.bulkAdd(defaultTemplates);

@@ -3,6 +3,22 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   output: "standalone",
+
+  // Add webpack configuration for better hot reload in Docker
+  webpack: (config, { dev, isServer }) => {
+    // Add more reliable file watching for development in Docker
+    if (dev && !isServer && process.env.WATCHPACK_POLLING === "true") {
+      console.log("🔄 Enabling polling for file changes (Docker development)");
+      config.watchOptions = {
+        ...config.watchOptions,
+        // Poll for file changes every 300ms
+        poll: 300,
+        // Ignore node_modules
+        ignored: /node_modules/,
+      };
+    }
+    return config;
+  },
 };
 
 // PWA Configuration

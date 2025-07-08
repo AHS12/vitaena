@@ -19,7 +19,7 @@ function getPuppeteerArgs(): string[] {
     debug("Error parsing PUPPETEER_ARGS:", e);
   }
 
-  // Default arguments
+  // Default arguments optimized for consistent font rendering
   return [
     "--no-sandbox",
     "--disable-setuid-sandbox",
@@ -46,6 +46,13 @@ function getPuppeteerArgs(): string[] {
     "--no-experiments",
     "--no-first-run",
     "--no-zygote",
+    // Font rendering optimization
+    "--force-device-scale-factor=1",
+    "--disable-font-subpixel-positioning",
+    "--disable-lcd-text",
+    // Ensure consistent text rendering
+    "--use-gl=swiftshader",
+    "--disable-accelerated-2d-canvas",
   ];
 }
 
@@ -120,7 +127,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Complete HTML template
+    // Complete HTML template with exact same font rendering as preview
     const fullHtml = `
     <!DOCTYPE html>
     <html lang="en">
@@ -133,23 +140,31 @@ export async function POST(request: NextRequest) {
                 margin: 0;
                 padding: 0;
                 box-sizing: border-box;
+                font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+                -webkit-font-smoothing: antialiased !important;
+                -moz-osx-font-smoothing: grayscale !important;
+                text-rendering: optimizeLegibility !important;
             }
             
             body {
-                font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
-                text-rendering: optimizeLegibility;
-                background: #ffffff;
-                margin: 0;
-                padding: 0;
-                width: 210mm;
-                height: 297mm;
-                overflow: hidden;
+                font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+                -webkit-font-smoothing: antialiased !important;
+                -moz-osx-font-smoothing: grayscale !important;
+                text-rendering: optimizeLegibility !important;
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                overflow: hidden !important;
+                /* Ensure exact font size consistency */
+                font-size: 12px !important;
+                line-height: 1.4 !important;
+                color: #111827 !important;
             }
             
             @page {
-                size: A4;
+                size: A4 portrait;
                 margin: 0;
             }
             
@@ -162,16 +177,39 @@ export async function POST(request: NextRequest) {
             }
             
             .resume-container {
-                width: 210mm;
-                height: 297mm;
-                max-width: 210mm;
-                max-height: 297mm;
-                overflow: hidden;
-                background: #ffffff;
+                width: 210mm !important;
+                height: 297mm !important;
+                max-width: 210mm !important;
+                max-height: 297mm !important;
+                overflow: hidden !important;
+                background: #ffffff !important;
                 page-break-inside: avoid;
                 page-break-after: auto;
                 page-break-before: auto;
+                /* Ensure no additional spacing or transformations */
+                margin: 0 !important;
+                padding: 0 !important;
+                transform: none !important;
+                border: none !important;
+                box-shadow: none !important;
+                font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
             }
+            
+            /* Ensure exact font rendering matches preview */
+            .resume-container * {
+                font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+                -webkit-font-smoothing: antialiased !important;
+                -moz-osx-font-smoothing: grayscale !important;
+                text-rendering: optimizeLegibility !important;
+            }
+            
+            /* Force specific element styles to ensure consistency */
+            h1 { font-size: 28px !important; font-weight: bold !important; color: #111827 !important; }
+            h2 { font-size: 14px !important; font-weight: 600 !important; color: #2563eb !important; }
+            h3 { font-size: 13px !important; font-weight: bold !important; color: #111827 !important; }
+            h4 { font-weight: bold !important; color: #111827 !important; }
+            p { color: #374151 !important; }
+            a { color: #2563eb !important; text-decoration: none !important; }
         </style>
     </head>
     <body>
@@ -251,11 +289,25 @@ export async function POST(request: NextRequest) {
     });
 
     try {
-      // Set viewport to ensure consistent rendering
+      // Set viewport to exactly match the A4 dimensions for consistent rendering
       await page.setViewport({
-        width: 1920,
-        height: 1080,
+        width: 794, // 210mm in pixels at 96 DPI (210 * 96 / 25.4)
+        height: 1123, // 297mm in pixels at 96 DPI (297 * 96 / 25.4)
         deviceScaleFactor: 1,
+      });
+
+      // Disable font smoothing to match browser rendering exactly
+      await page.evaluateOnNewDocument(() => {
+        const style = document.createElement("style");
+        style.textContent = `
+          * {
+            -webkit-font-smoothing: antialiased !important;
+            -moz-osx-font-smoothing: grayscale !important;
+            text-rendering: optimizeLegibility !important;
+            font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+          }
+        `;
+        document.head.appendChild(style);
       });
 
       // Load from file instead of direct content setting
@@ -269,7 +321,7 @@ export async function POST(request: NextRequest) {
         timeout: 60000, // Increased timeout for complex documents
       });
 
-      // Wait for any images to load
+      // Wait for any images to load and fonts to be rendered
       await page.evaluate(() => {
         const images = Array.from(document.querySelectorAll("img"));
         return Promise.all(
@@ -283,8 +335,19 @@ export async function POST(request: NextRequest) {
         );
       });
 
+      // Wait a bit more for font rendering to stabilize and force a repaint
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Force a repaint to ensure all styles are applied
+      await page.evaluate(() => {
+        document.body.style.display = "none";
+        // Trigger reflow
+        void document.body.offsetHeight;
+        document.body.style.display = "block";
+      });
+
       debug("Generating PDF...");
-      // Generate PDF with exact A4 dimensions
+      // Generate PDF with exact A4 dimensions and consistent settings
       const pdf = await page.pdf({
         format: "A4",
         width: "210mm",
@@ -296,10 +359,12 @@ export async function POST(request: NextRequest) {
           bottom: "0mm",
           left: "0mm",
         },
-        preferCSSPageSize: true,
+        preferCSSPageSize: true, // Honor @page CSS rules
         displayHeaderFooter: false,
-        scale: 1,
+        scale: 1, // Ensure no scaling
         timeout: 60000, // Extended timeout
+        // Ensure exact font rendering
+        omitBackground: false,
       });
 
       debug("PDF generation successful, size:", pdf.length);

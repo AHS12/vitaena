@@ -7,7 +7,7 @@ import { Toolbar } from '@/components/Toolbar';
 import { useResponsive } from '@/hooks';
 import { useResumeStore } from '@/stores/resume-store';
 import { useUIStore } from '@/stores/ui-store';
-import { AzizulClassicTemplate } from '@/templates/AzizulClassicTemplate';
+import { ModernClassicTemplate } from '@/templates/ModernClassicTemplate';
 import {
     Box,
     Button,
@@ -125,9 +125,9 @@ export default function EditorPage() {
 
     const renderTemplate = () => {
         switch (currentResume.templateId) {
-            case 'azizul-classic':
+            case 'modern-classic':
             default:
-                return <AzizulClassicTemplate
+                return <ModernClassicTemplate
                     data={currentResume}
                     scale={previewScale}
                     isPreview={true}
@@ -137,9 +137,9 @@ export default function EditorPage() {
 
     const renderExportTemplate = () => {
         switch (currentResume.templateId) {
-            case 'azizul-classic':
+            case 'modern-classic':
             default:
-                return <AzizulClassicTemplate
+                return <ModernClassicTemplate
                     data={currentResume}
                     scale={1}
                     isPreview={false}
