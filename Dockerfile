@@ -28,7 +28,7 @@ RUN pnpm build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Update all packages to latest versions for security
+# Update all packages to latest versions for security and install Puppeteer dependencies
 RUN apk update && apk upgrade && apk add --no-cache \
     chromium \
     nss \
@@ -40,18 +40,30 @@ RUN apk update && apk upgrade && apk add --no-cache \
     ttf-dejavu \
     fontconfig \
     dumb-init \
+    # Additional dependencies that help with Chrome/Puppeteer
+    libstdc++ \
+    libx11 \
+    libxcomposite \
+    libxdamage \
+    libxi \
+    libxtst \
+    libc6-compat \
+    && mkdir -p /tmp \
+    && chmod 1777 /tmp \
     && rm -rf /var/cache/apk/* \
     && addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
 
 # Tell Puppeteer to skip installing Chromium. We'll be using the installed package.
+# These can be overridden by .env files and docker-compose environment settings
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    PUPPETEER_ARGS='--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --disable-gpu'
 
-# Set environment variables
+# Set default environment variables
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
-    PORT=3000 \
+    PORT=3100 \
     HOSTNAME="0.0.0.0"
 
 # Copy built application
@@ -72,11 +84,11 @@ COPY --from=builder /app/package.json ./package.json
 USER nextjs
 
 # Expose port
-EXPOSE 3000
+EXPOSE 3100
 
 # Health check using built-in Node.js capabilities
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD node -e "http.get('http://localhost:3000/api/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
+    CMD node -e "http.get('http://127.0.0.1:3100/api/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
 
 # Use dumb-init for proper signal handling
 ENTRYPOINT ["dumb-init", "--"]
