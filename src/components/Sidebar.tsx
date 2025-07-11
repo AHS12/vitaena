@@ -36,6 +36,7 @@ const sections = [
     { id: 'projects', label: 'Projects', icon: Folder },
     { id: 'interests', label: 'Interests', icon: EmojiEvents },
     { id: 'activities', label: 'Activities', icon: LocalActivity },
+    { id: 'activities', label: 'Test menu(will be removed)', icon: LocalActivity },
 ];
 
 export const Sidebar: React.FC = () => {
