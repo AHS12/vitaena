@@ -2,6 +2,7 @@ import { formatDateRange } from "@/lib/utils";
 import { PersonalInfo, ResumeData } from "@/types/resume";
 import { Globe, Linkedin, Mail, MapPin, Phone } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 
 // Component for contact info row with dynamic font sizing
 const ContactInfoRow: React.FC<{
@@ -739,7 +740,7 @@ const ResumeContent: React.FC<{
 
                 {data.personalInfo.showPhoto && data.personalInfo.photo && (
                   <div>
-                    <img
+                    <Image
                       src={data.personalInfo.photo}
                       alt={data.personalInfo.name}
                       width={data.personalInfo.photoSize || 80}

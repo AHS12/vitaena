@@ -1,7 +1,6 @@
 import { useResumeStore } from '@/stores/resume-store';
 import { PersonalInfo } from '@/types/resume';
 import {
-  CalendarToday,
   Email,
   Language,
   LinkedIn,
