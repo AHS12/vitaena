@@ -64,21 +64,28 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can also start the development environment using Docker:
 
 ```bash
+# Universal (Windows, macOS, Linux)
+make start
+
 # On Windows
 ./dev-env.bat start
 
 # On Linux/macOS
 ./dev-env.sh start
+
 ```
 
 ## Development
 
 ### Docker Deployment
 
-Vitaena can be deployed using Docker for both development and production environments:
+Vitaena can be deployed using Docker for both development environments:
 
 ```bash
 # Development environment
+# Universal (Windows, macOS, Linux)
+make start
+
 # On Windows
 ./dev-env.bat start
 

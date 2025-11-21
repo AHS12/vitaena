@@ -1,4 +1,4 @@
-import { DateRange, ResumeData } from "@/types/resume";
+import { DateRange, ResumeData, TemplateCategory } from "@/types/resume";
 
 export const createDefaultResumeData = (templateId: string): ResumeData => {
   const now = new Date();
@@ -7,23 +7,41 @@ export const createDefaultResumeData = (templateId: string): ResumeData => {
   return {
     id,
     templateId,
+    category: TemplateCategory.RESUME, // Default to RESUME category
     personalInfo: {
       name: "",
       title: "",
+      showTitle: true,
       phone: "",
       email: "",
       location: "",
       linkedIn: "",
       website: "",
       photo: "",
+      photoSize: 80,
+      dateOfBirth: "",
+      nationality: "",
+      permanentAddress: "",
+      maritalStatus: "",
+      drivingLicense: "",
+      idLabel: "",
+      idValue: "",
       showPhone: true,
       showEmail: true,
       showLocation: true,
       showLinkedIn: true,
       showWebsite: false,
       showPhoto: true,
+      showDateOfBirth: false,
+      showNationality: false,
+      showPermanentAddress: false,
+      showMaritalStatus: false,
+      showDrivingLicense: false,
+      showId: false,
     },
     summary: "",
+    careerObjective: "",
+    references: "References available upon request.",
     workExperience: [],
     education: [],
     skills: [],
@@ -32,6 +50,8 @@ export const createDefaultResumeData = (templateId: string): ResumeData => {
     activities: [],
     customSections: [],
     showSummary: true,
+    showCareerObjective: false,
+    showReferences: false,
     showWorkExperience: true,
     showEducation: true,
     showSkills: true,

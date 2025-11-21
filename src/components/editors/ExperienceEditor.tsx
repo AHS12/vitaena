@@ -13,10 +13,14 @@ import {
     CardHeader,
     Checkbox,
     Collapse,
+    FormControl,
     FormControlLabel,
     IconButton,
     InputAdornment,
+    InputLabel,
+    MenuItem,
     Paper,
+    Select,
     Stack,
     Switch,
     TextField,
@@ -305,21 +309,49 @@ export const ExperienceEditor: React.FC = () => {
                                                             <Typography variant="subtitle2" sx={{ mb: 2 }}>
                                                                 Employment Period
                                                             </Typography>
-                                                            <Stack direction="row" spacing={2}>
+                                                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: 'stretch' }}>
+                                                                <FormControl fullWidth size="small">
+                                                                    <InputLabel>Start Month</InputLabel>
+                                                                    <Select
+                                                                        label="Start Month"
+                                                                        value={experience.dateRange.startMonth ?? ''}
+                                                                        onChange={(e) => updateDateRange(experience.id, 'startMonth', parseInt(e.target.value as unknown as string) || undefined)}
+                                                                    >
+                                                                        {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                                                                            <MenuItem key={m} value={m}>{m.toString().padStart(2, '0')}</MenuItem>
+                                                                        ))}
+                                                                    </Select>
+                                                                </FormControl>
                                                                 <TextField
+                                                                    fullWidth
                                                                     type="number"
                                                                     label="Start Year"
                                                                     value={experience.dateRange.startYear}
                                                                     onChange={(e) => updateDateRange(experience.id, 'startYear', parseInt(e.target.value))}
                                                                     inputProps={{ min: 1950, max: 2030 }}
+                                                                    size="small"
                                                                 />
+                                                                <FormControl fullWidth size="small" disabled={experience.dateRange.isOngoing}>
+                                                                    <InputLabel>End Month</InputLabel>
+                                                                    <Select
+                                                                        label="End Month"
+                                                                        value={experience.dateRange.endMonth ?? ''}
+                                                                        onChange={(e) => updateDateRange(experience.id, 'endMonth', parseInt(e.target.value as unknown as string) || undefined)}
+                                                                    >
+                                                                        {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                                                                            <MenuItem key={m} value={m}>{m.toString().padStart(2, '0')}</MenuItem>
+                                                                        ))}
+                                                                    </Select>
+                                                                </FormControl>
                                                                 <TextField
+                                                                    fullWidth
                                                                     type="number"
                                                                     label="End Year"
                                                                     value={experience.dateRange.endYear || ''}
                                                                     onChange={(e) => updateDateRange(experience.id, 'endYear', parseInt(e.target.value))}
                                                                     inputProps={{ min: 1950, max: 2030 }}
                                                                     disabled={experience.dateRange.isOngoing}
+                                                                    size="small"
                                                                 />
                                                             </Stack>
                                                             <Stack sx={{ mt: 1 }}>

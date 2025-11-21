@@ -1,6 +1,7 @@
 import { useResumeStore } from '@/stores/resume-store';
 import { PersonalInfo } from '@/types/resume';
 import {
+  CalendarToday,
   Email,
   Language,
   LinkedIn,
@@ -8,6 +9,11 @@ import {
   Person,
   Phone,
   PhotoCamera,
+  Public,
+  Home,
+  FamilyRestroom,
+  DirectionsCar,
+  Badge,
 } from '@mui/icons-material';
 import {
   Avatar,
@@ -15,8 +21,13 @@ import {
   Card,
   CardContent,
   CardHeader,
+  FormControl,
   FormControlLabel,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+  Slider,
   Stack,
   Switch,
   TextField,
@@ -31,7 +42,7 @@ export const PersonalInfoEditor: React.FC = () => {
 
   const personalInfo = currentResume.personalInfo;
 
-  const updatePersonalInfo = (field: keyof PersonalInfo, value: string | boolean) => {
+  const updatePersonalInfo = (field: keyof PersonalInfo, value: string | boolean | number) => {
     const updatedPersonalInfo = {
       ...personalInfo,
       [field]: value,
@@ -79,7 +90,7 @@ export const PersonalInfoEditor: React.FC = () => {
               }}>
                 <Avatar
                   src={personalInfo.photo || undefined}
-                  sx={{ width: { xs: 64, sm: 80 }, height: { xs: 64, sm: 80 } }}
+                  sx={{ width: personalInfo.photoSize || 80, height: personalInfo.photoSize || 80 }}
                 >
                   <Person />
                 </Avatar>
@@ -116,6 +127,30 @@ export const PersonalInfoEditor: React.FC = () => {
                 label="Show photo on resume"
                 sx={{ mt: 1 }}
               />
+              <Box sx={{ mt: 2, width: { xs: '100%', sm: 320 } }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Photo Size</Typography>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+                  <Slider
+                    value={personalInfo.photoSize || 80}
+                    min={40}
+                    max={140}
+                    step={2}
+                    onChange={(_, val) => updatePersonalInfo('photoSize', Array.isArray(val) ? val[0] : val)}
+                    sx={{ flex: 1 }}
+                  />
+                  <TextField
+                    label="px"
+                    type="number"
+                    value={personalInfo.photoSize || 80}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value);
+                      updatePersonalInfo('photoSize', isNaN(v) ? 80 : Math.min(140, Math.max(40, v)));
+                    }}
+                    size="small"
+                    sx={{ width: 90 }}
+                  />
+                </Stack>
+              </Box>
             </Box>
 
             {/* Basic Information */}
@@ -135,13 +170,23 @@ export const PersonalInfoEditor: React.FC = () => {
               <TextField
                 fullWidth
                 label="Professional Title"
-                required
                 value={personalInfo.title}
                 onChange={(e) => updatePersonalInfo('title', e.target.value)}
                 placeholder="e.g., Software Engineer, Marketing Manager"
                 size="small"
               />
             </Stack>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={personalInfo.showTitle !== false}
+                  onChange={(e) => updatePersonalInfo('showTitle', e.target.checked)}
+                />
+              }
+              label="Show title on resume"
+              sx={{ mt: 1 }}
+            />
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
               <Box sx={{ flex: 1 }}>
@@ -270,6 +315,223 @@ export const PersonalInfoEditor: React.FC = () => {
                 />
               </Box>
             </Stack>
+
+            {/* Personal Details */}
+            <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
+              Personal Details
+            </Typography>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+              <Box sx={{ flex: 1 }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Day</InputLabel>
+                    <Select
+                      label="Day"
+                      value={(personalInfo.dateOfBirth?.split(/[\/\-]/)[0]) || ''}
+                      onChange={(e) => {
+                        const parts = (personalInfo.dateOfBirth || '').split(/[\/\-]/);
+                        const day = e.target.value as string;
+                        const month = parts[1] || '';
+                        const year = parts[2] || '';
+                        const value = day && month && year ? `${day}/${month}/${year}` : `${day}/${month}/${year}`.replace(/\/?$/, '');
+                        updatePersonalInfo('dateOfBirth', value);
+                      }}
+                    >
+                      {Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0')).map((d) => (
+                        <MenuItem key={d} value={d}>{d}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Month</InputLabel>
+                    <Select
+                      label="Month"
+                      value={(personalInfo.dateOfBirth?.split(/[\/\-]/)[1]) || ''}
+                      onChange={(e) => {
+                        const parts = (personalInfo.dateOfBirth || '').split(/[\/\-]/);
+                        const day = parts[0] || '';
+                        const month = e.target.value as string;
+                        const year = parts[2] || '';
+                        const value = day && month && year ? `${day}/${month}/${year}` : `${day}/${month}/${year}`.replace(/\/?$/, '');
+                        updatePersonalInfo('dateOfBirth', value);
+                      }}
+                    >
+                      {Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0')).map((m) => (
+                        <MenuItem key={m} value={m}>{m}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Year</InputLabel>
+                    <Select
+                      label="Year"
+                      value={(personalInfo.dateOfBirth?.split(/[\/\-]/)[2]) || ''}
+                      onChange={(e) => {
+                        const parts = (personalInfo.dateOfBirth || '').split(/[\/\-]/);
+                        const day = parts[0] || '';
+                        const month = parts[1] || '';
+                        const year = e.target.value as string;
+                        const value = day && month && year ? `${day}/${month}/${year}` : `${day}/${month}/${year}`.replace(/\/?$/, '');
+                        updatePersonalInfo('dateOfBirth', value);
+                      }}
+                    >
+                      {Array.from({ length: 100 }, (_, i) => (new Date().getFullYear() - i).toString()).map((y) => (
+                        <MenuItem key={y} value={y}>{y}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Stack>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={personalInfo.showDateOfBirth !== false}
+                      onChange={(e) => updatePersonalInfo('showDateOfBirth', e.target.checked)}
+                    />
+                  }
+                  label="Show date of birth on resume"
+                  sx={{ mt: 1 }}
+                />
+              </Box>
+
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  fullWidth
+                  label="Nationality"
+                  value={personalInfo.nationality || ''}
+                  onChange={(e) => updatePersonalInfo('nationality', e.target.value)}
+                  placeholder="Your nationality"
+                  size="small"
+                  InputProps={{
+                    startAdornment: <Public sx={{ mr: 1, color: 'text.secondary' }} />,
+                  }}
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={personalInfo.showNationality !== false}
+                      onChange={(e) => updatePersonalInfo('showNationality', e.target.checked)}
+                    />
+                  }
+                  label="Show nationality on resume"
+                  sx={{ mt: 1 }}
+                />
+              </Box>
+            </Stack>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  fullWidth
+                  label="Permanent Address"
+                  value={personalInfo.permanentAddress || ''}
+                  onChange={(e) => updatePersonalInfo('permanentAddress', e.target.value)}
+                  placeholder="Your permanent address"
+                  size="small"
+                  InputProps={{
+                    startAdornment: <Home sx={{ mr: 1, color: 'text.secondary' }} />,
+                  }}
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={personalInfo.showPermanentAddress !== false}
+                      onChange={(e) => updatePersonalInfo('showPermanentAddress', e.target.checked)}
+                    />
+                  }
+                  label="Show permanent address on resume"
+                  sx={{ mt: 1 }}
+                />
+              </Box>
+
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  fullWidth
+                  label="Marital Status"
+                  value={personalInfo.maritalStatus || ''}
+                  onChange={(e) => updatePersonalInfo('maritalStatus', e.target.value)}
+                  placeholder="Single/Married/etc."
+                  size="small"
+                  InputProps={{
+                    startAdornment: <FamilyRestroom sx={{ mr: 1, color: 'text.secondary' }} />,
+                  }}
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={personalInfo.showMaritalStatus !== false}
+                      onChange={(e) => updatePersonalInfo('showMaritalStatus', e.target.checked)}
+                    />
+                  }
+                  label="Show marital status on resume"
+                  sx={{ mt: 1 }}
+                />
+              </Box>
+            </Stack>
+
+            <Box>
+              <TextField
+                fullWidth
+                label="Driving License"
+                value={personalInfo.drivingLicense || ''}
+                onChange={(e) => updatePersonalInfo('drivingLicense', e.target.value)}
+                placeholder="License number or type"
+                size="small"
+                InputProps={{
+                  startAdornment: <DirectionsCar sx={{ mr: 1, color: 'text.secondary' }} />,
+                }}
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={personalInfo.showDrivingLicense !== false}
+                    onChange={(e) => updatePersonalInfo('showDrivingLicense', e.target.checked)}
+                  />
+                }
+                label="Show driving license on resume"
+                sx={{ mt: 1 }}
+              />
+            </Box>
+
+            {/* Identity Document */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                Identity Document
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+                <TextField
+                  fullWidth
+                  label="ID Label"
+                  value={personalInfo.idLabel || ''}
+                  onChange={(e) => updatePersonalInfo('idLabel', e.target.value)}
+                  placeholder="e.g., National ID, Passport"
+                  size="small"
+                  InputProps={{
+                    startAdornment: <Badge sx={{ mr: 1, color: 'text.secondary' }} />,
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  label="ID Value"
+                  value={personalInfo.idValue || ''}
+                  onChange={(e) => updatePersonalInfo('idValue', e.target.value)}
+                  placeholder="e.g., 1234-5678-9012"
+                  size="small"
+                />
+              </Stack>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={personalInfo.showId !== false}
+                    onChange={(e) => updatePersonalInfo('showId', e.target.checked)}
+                  />
+                }
+                label="Show identity document on resume"
+                sx={{ mt: 1 }}
+              />
+            </Box>
           </Box>
         </CardContent>
       </Card>

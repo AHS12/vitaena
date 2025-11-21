@@ -1,87 +1,119 @@
 # Multi-stage build for better security and smaller image size
 FROM node:20-alpine AS base
 
+# Install system dependencies including Chromium
+RUN apk update && apk upgrade && apk add --no-cache \
+    # System dependencies
+    ca-certificates \
+    fontconfig \
+    dumb-init \
+    libc6-compat \
+    # Chromium dependencies
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ttf-freefont \
+    && mkdir -p /tmp \
+    && chmod 1777 /tmp \
+    && rm -rf /var/cache/apk/*
+
+# Enable corepack for pnpm
+RUN corepack enable pnpm
+
+# Set Puppeteer to use system Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    PUPPETEER_ARGS='--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --disable-gpu --single-process'
+
 # Install dependencies only when needed
 FROM base AS deps
-# Update packages first for security
-RUN apk update && apk upgrade && apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json ./
 COPY pnpm-lock.yaml ./
-RUN corepack enable pnpm && pnpm i --frozen-lockfile
+RUN pnpm i --frozen-lockfile
 
-# Rebuild the source code only when needed
+# Rebuild the source code only when needed (for production)
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Enable corepack for pnpm
-RUN corepack enable pnpm
-
 # Build the application
 RUN pnpm build
 
-# Production image with latest security updates
-FROM node:20-alpine AS runner
+# Development stage
+FROM base AS development
 WORKDIR /app
 
-# Update all packages to latest versions for security and install Puppeteer dependencies
-RUN apk update && apk upgrade && apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont \
-    ttf-dejavu \
-    fontconfig \
-    dumb-init \
-    # Additional dependencies that help with Chrome/Puppeteer
-    libstdc++ \
-    libx11 \
-    libxcomposite \
-    libxdamage \
-    libxi \
-    libxtst \
-    libc6-compat \
-    && mkdir -p /tmp \
-    && chmod 1777 /tmp \
-    && rm -rf /var/cache/apk/* \
-    && addgroup --system --gid 1001 nodejs \
-    && adduser --system --uid 1001 nextjs
+# Set development environment
+ENV NODE_ENV=development \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0"
 
-# Tell Puppeteer to skip installing Chromium. We'll be using the installed package.
-# These can be overridden by .env files and docker-compose environment settings
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
-    PUPPETEER_ARGS='--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --disable-gpu'
+# Copy package files and install all dependencies (including dev)
+COPY package.json ./
+COPY pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# Set default environment variables
+# Expose port
+EXPOSE 3000
+
+# Start development server
+CMD ["pnpm", "dev"]
+
+# Production stage - ultra-optimized for minimal size
+FROM node:20-alpine AS production
+WORKDIR /app
+
+# Set production environment
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
     HOSTNAME="0.0.0.0"
 
+# Install only minimal runtime dependencies for Puppeteer
+RUN apk add --no-cache \
+    chromium \
+    ca-certificates \
+    dumb-init \
+    && rm -rf /var/cache/apk/*
+
+# Set Puppeteer to use system Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    PUPPETEER_ARGS='--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --disable-gpu --single-process'
+
+# Enable pnpm
+RUN corepack enable pnpm
+
 # Copy built application
 COPY --from=builder /app/public ./public
 
-# Set the correct permission for prerender cache
-RUN mkdir .next && chown nextjs:nodejs .next
+# Create .next directory
+RUN mkdir -p .next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
-# Copy package.json for runtime dependencies
+# Copy package.json and pnpm-lock.yaml for production dependencies
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 
-# Switch to non-root user
-USER nextjs
+# Install only production dependencies and clean up aggressively
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts && \
+    pnpm store prune && \
+    rm -rf ~/.local/share/pnpm && \
+    rm -rf ~/.cache && \
+    rm -rf /tmp/* && \
+    rm -rf /var/tmp/* && \
+    rm -rf /usr/share/man && \
+    rm -rf /usr/share/doc
 
 # Expose port
 EXPOSE 3000

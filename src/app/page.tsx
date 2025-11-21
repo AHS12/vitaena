@@ -189,7 +189,7 @@ export default function HomePage() {
       try {
         // Import the template component dynamically
         const templates = await import('@/templates');
-        const TemplateComponent = templates[resume.templateId];
+        const TemplateComponent = (templates as Record<string, React.ComponentType<{ data: ResumeData }>>)[resume.templateId];
 
         const React = await import('react');
         const { createRoot } = await import('react-dom/client');

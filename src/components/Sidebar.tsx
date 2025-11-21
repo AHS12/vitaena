@@ -11,6 +11,8 @@ import {
     School,
     Work,
     WorkspacePremium,
+    Flag,
+    People,
 } from '@mui/icons-material';
 import {
     Box,
@@ -37,6 +39,8 @@ const sectionIcons: Record<SectionId, React.ElementType> = {
     projects: Folder,
     interests: EmojiEvents,
     activities: LocalActivity,
+    "career-objective": Flag,
+    references: People,
     // Add new section icons here as they are introduced
     "publications": Description, // Placeholder icon
     "awards": EmojiEvents, // Placeholder icon

@@ -1,6 +1,6 @@
 import { formatDateRange } from '@/lib/utils';
 import { PersonalInfo, ResumeData } from '@/types/resume';
-import { Globe, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
+import { Globe, Linkedin, Mail, MapPin, Phone, IdCard } from 'lucide-react';
 import Image from 'next/image';
 import React, { useMemo } from 'react';
 
@@ -17,6 +17,7 @@ const ContactInfoRow: React.FC<{
         if (personalInfo.showLocation && personalInfo.location) count++;
         if (personalInfo.showLinkedIn && personalInfo.linkedIn) count++;
         if (personalInfo.showWebsite && personalInfo.website) count++;
+        if (personalInfo.showId && personalInfo.idValue) count++;
         return count;
     }, [personalInfo]);
 
@@ -150,6 +151,14 @@ const ContactInfoRow: React.FC<{
                     >
                         {personalInfo.website.replace(/https?:\/\/(www\.)?/, '')}
                     </a>
+                </div>
+            )}
+            {personalInfo.showId && personalInfo.idValue && (
+                <div style={contactItemStyle}>
+                    <IdCard style={iconStyle} />
+                    <span style={textStyle}>
+                        {(personalInfo.idLabel || 'ID') + ': ' + personalInfo.idValue}
+                    </span>
                 </div>
             )}
         </div>
@@ -317,11 +326,12 @@ export const ModernClassicTemplate: React.FC<ModernClassicTemplateProps> = ({
                     flexDirection: 'column',
                     borderBottom: '1px solid #e5e7eb'
                 }}>
-                    {/* Name, Title and Photo in one row */}
+                    {/* Name/Title and independent Photo section */}
                     <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 160px',
                         alignItems: 'center',
+                        columnGap: '16px',
                         marginBottom: '10px'
                     }}>
                         <div>
@@ -345,17 +355,17 @@ export const ModernClassicTemplate: React.FC<ModernClassicTemplateProps> = ({
                             </h2>
                         </div>
 
-                        {data.personalInfo.showPhoto && data.personalInfo.photo && (
-                            <div>
+                        <div style={{ width: '160px', display: 'flex', justifyContent: 'flex-end' }}>
+                            {data.personalInfo.showPhoto && data.personalInfo.photo && (
                                 <Image
                                     src={data.personalInfo.photo}
                                     alt={data.personalInfo.name}
-                                    width={60}
-                                    height={60}
-                                    style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
+                                    width={data.personalInfo.photoSize || 80}
+                                    height={data.personalInfo.photoSize || 80}
+                                    style={{ width: (data.personalInfo.photoSize || 80) + 'px', height: (data.personalInfo.photoSize || 80) + 'px', borderRadius: '50%', objectFit: 'cover' }}
                                 />
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
 
                     {/* Contact information on full width */}
@@ -1007,6 +1017,54 @@ export const ModernClassicTemplate: React.FC<ModernClassicTemplateProps> = ({
                                 </div>
                             </div>
                         )}
+                        <div style={{ marginTop: '7mm' }}>
+                            <h3 style={{
+                                fontSize: '12px',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                marginBottom: '4px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }}>
+                                PERSONAL DETAILS
+                            </h3>
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '4px'
+                            }}>
+                                {data.personalInfo.showDateOfBirth && data.personalInfo.dateOfBirth && (
+                                    <div>
+                                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#111827' }}>Date of birth:</span>{' '}
+                                        <span style={{ fontSize: '10px', color: '#374151' }}>{data.personalInfo.dateOfBirth}</span>
+                                    </div>
+                                )}
+                                {data.personalInfo.showNationality && data.personalInfo.nationality && (
+                                    <div>
+                                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#111827' }}>Nationality:</span>{' '}
+                                        <span style={{ fontSize: '10px', color: '#374151' }}>{data.personalInfo.nationality}</span>
+                                    </div>
+                                )}
+                                {data.personalInfo.showPermanentAddress && data.personalInfo.permanentAddress && (
+                                    <div>
+                                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#111827' }}>Address:</span>{' '}
+                                        <span style={{ fontSize: '10px', color: '#374151' }}>{data.personalInfo.permanentAddress}</span>
+                                    </div>
+                                )}
+                                {data.personalInfo.showMaritalStatus && data.personalInfo.maritalStatus && (
+                                    <div>
+                                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#111827' }}>Marital Status:</span>{' '}
+                                        <span style={{ fontSize: '10px', color: '#374151' }}>{data.personalInfo.maritalStatus}</span>
+                                    </div>
+                                )}
+                                {data.personalInfo.showDrivingLicense && data.personalInfo.drivingLicense && (
+                                    <div>
+                                        <span style={{ fontSize: '10px', fontWeight: 600, color: '#111827' }}>License:</span>{' '}
+                                        <span style={{ fontSize: '10px', color: '#374151' }}>{data.personalInfo.drivingLicense}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

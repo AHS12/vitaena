@@ -25,6 +25,8 @@ export const ResumeEditor: React.FC = () => {
                 return <PersonalInfoEditor />;
             case 'summary':
                 return <SummaryEditor />;
+            case 'career-objective':
+                return <SummaryEditor />; // Use SummaryEditor for career objective
             case 'experience':
                 return <ExperienceEditor />;
             case 'education':
@@ -43,6 +45,8 @@ export const ResumeEditor: React.FC = () => {
                 return <InterestsEditor />;
             case 'activities':
                 return <ActivitiesEditor />;
+            case 'references':
+                return <ActivitiesEditor />; // Use ActivitiesEditor for references
             default:
                 return <PersonalInfoEditor />;
         }

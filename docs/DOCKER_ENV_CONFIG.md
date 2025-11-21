@@ -17,6 +17,5 @@ Vitaena now uses a `.env` file for Docker environment configuration. This makes 
 ## Docker Configuration Files
 
 - `docker-compose.yml`: Standard development Docker configuration
-- `docker-compose.prod.yml`: Production Docker configuration
 
 

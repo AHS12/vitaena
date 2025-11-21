@@ -1,6 +1,6 @@
 import { UIStore } from "@/types/resume";
 import { create } from "zustand";
-import { SectionId, TEMPLATE_SECTION_CONFIG } from "@/lib/template-configs";
+import { TEMPLATE_SECTION_CONFIG } from "@/lib/template-configs";
 import { TemplateCategory } from "@/types/resume";
 
 export const useUIStore = create<UIStore>((set, get) => ({

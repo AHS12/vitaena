@@ -3,6 +3,7 @@ import { TemplateCategory } from "@/types/resume";
 export type SectionId = 
   | "personal"
   | "summary"
+  | "career-objective"
   | "experience"
   | "education"
   | "skills"
@@ -11,12 +12,19 @@ export type SectionId =
   | "certifications"
   | "projects"
   | "interests"
-  | "activities";
+  | "activities"
+  | "references"
+  | "publications"
+  | "awards"
+  | "family-details"
+  | "physical-attributes"
+  | "hobbies";
 
 export const TEMPLATE_SECTION_CONFIG: Record<TemplateCategory, SectionId[]> = {
   [TemplateCategory.RESUME]: [
     "personal",
     "summary",
+    "career-objective",
     "experience",
     "education",
     "skills",
@@ -26,10 +34,12 @@ export const TEMPLATE_SECTION_CONFIG: Record<TemplateCategory, SectionId[]> = {
     "strengths",
     "interests",
     "activities",
+    "references",
   ],
   [TemplateCategory.CV]: [
     "personal",
     "summary",
+    "career-objective",
     "education",
     "experience",
     "projects",
@@ -40,6 +50,7 @@ export const TEMPLATE_SECTION_CONFIG: Record<TemplateCategory, SectionId[]> = {
     "languages",
     "interests",
     "activities",
+    "references",
   ],
   [TemplateCategory.BIODATA]: [
     "personal",
@@ -55,6 +66,7 @@ export const TEMPLATE_SECTION_CONFIG: Record<TemplateCategory, SectionId[]> = {
 export const SECTION_NAMES: Record<SectionId, string> = {
   personal: "Personal Info",
   summary: "Summary",
+  "career-objective": "Career Objective",
   experience: "Experience",
   education: "Education",
   skills: "Skills",
@@ -64,6 +76,7 @@ export const SECTION_NAMES: Record<SectionId, string> = {
   projects: "Projects",
   interests: "Interests",
   activities: "Activities",
+  references: "References",
   // Add new section names here as they are introduced
   "publications": "Publications",
   "awards": "Awards",

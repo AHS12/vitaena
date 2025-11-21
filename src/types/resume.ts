@@ -3,18 +3,33 @@ import { SectionId } from "@/lib/template-configs";
 export interface PersonalInfo {
   name: string;
   title: string;
+  showTitle?: boolean;
   phone: string;
   email: string;
   location: string;
   linkedIn?: string;
   website?: string;
   photo?: string;
+  photoSize?: number;
+  dateOfBirth?: string;
+  nationality?: string;
+  permanentAddress?: string;
+  maritalStatus?: string;
+  drivingLicense?: string;
+  idLabel?: string;
+  idValue?: string;
   showPhone: boolean;
   showEmail: boolean;
   showLocation: boolean;
   showLinkedIn: boolean;
   showWebsite: boolean;
   showPhoto: boolean;
+  showDateOfBirth: boolean;
+  showNationality: boolean;
+  showPermanentAddress: boolean;
+  showMaritalStatus: boolean;
+  showDrivingLicense: boolean;
+  showId?: boolean;
 }
 
 export interface DateRange {
@@ -150,6 +165,8 @@ export interface ResumeData {
   category: TemplateCategory;
   personalInfo: PersonalInfo;
   summary: string;
+  careerObjective?: string;
+  references?: string;
   workExperience: WorkExperience[];
   education: Education[];
   skills: Skill[];
@@ -158,6 +175,8 @@ export interface ResumeData {
   activities: Activity[];
   customSections: CustomSection[];
   showSummary: boolean;
+  showCareerObjective: boolean;
+  showReferences: boolean;
   showWorkExperience: boolean;
   showEducation: boolean;
   showSkills: boolean;

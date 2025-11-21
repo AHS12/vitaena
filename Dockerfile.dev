@@ -1,61 +1,44 @@
 # Development Dockerfile with hot reload support
 FROM node:20-alpine
 
-# Install dependencies and development tools
+# Install minimal dependencies for development
 RUN apk update && apk upgrade && apk add --no-cache \
-    libc6-compat \
-    # Puppeteer dependencies for PDF export
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
     ca-certificates \
-    ttf-freefont \
-    ttf-dejavu \
     fontconfig \
     dumb-init \
-    # Additional dependencies that help with Chrome/Puppeteer
-    libstdc++ \
-    libx11 \
-    libxcomposite \
-    libxdamage \
-    libxi \
-    libxtst \
-    # Add inotify tools for better file watching support
-    inotify-tools \
     && mkdir -p /tmp \
     && chmod 1777 /tmp \
     && rm -rf /var/cache/apk/* \
     && addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
 
-# The environment variables will be provided from docker-compose.dev.yml
-# which reads from the .env file and overrides NODE_ENV=development
+# Enable corepack for pnpm
+RUN corepack enable pnpm
 
-# Create app directory and set permissions
+# Set working directory
 WORKDIR /app
 
-# Copy package files for dependency installation
+# Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-# Enable pnpm and install all dependencies (including dev dependencies)
-RUN corepack enable pnpm && pnpm install
+# Install dependencies
+RUN pnpm i --frozen-lockfile
 
-# Create .next directory with proper permissions for hot reload
-RUN mkdir -p .next && chown nextjs:nodejs .next
+# Let Puppeteer download its own Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false \
+    PUPPETEER_ARGS='--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --disable-gpu --single-process'
 
-# Make sure node_modules/.bin is in the PATH
-ENV PATH /app/node_modules/.bin:$PATH
+# Set development environment variables
+ENV NODE_ENV=development \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0"
 
-# The source code will be mounted as a volume in docker-compose.dev.yml
-# This allows for hot reloading as changes are made to the local files
-
-# Expose development port
-EXPOSE 3000
+# Expose ports
+EXPOSE 3000 9229
 
 # Use dumb-init for proper signal handling
 ENTRYPOINT ["dumb-init", "--"]
 
-# The actual command will be specified in docker-compose.dev.yml
-# to enable PWA in development mode using cross-env
+# Default command for development
+CMD ["pnpm", "run", "dev:docker"]
