@@ -10,6 +10,7 @@ import { InterestsEditor } from './editors/InterestsEditor';
 import { LanguagesEditor } from './editors/LanguagesEditor';
 import { PersonalInfoEditor } from './editors/PersonalInfoEditor';
 import { ProjectsEditor } from './editors/ProjectsEditor';
+import { ReferencesEditor } from './editors/ReferencesEditor';
 import { SkillsEditor } from './editors/SkillsEditor';
 import { StrengthsEditor } from './editors/StrengthsEditor';
 import { SummaryEditor } from './editors/SummaryEditor';
@@ -46,7 +47,7 @@ export const ResumeEditor: React.FC = () => {
             case 'activities':
                 return <ActivitiesEditor />;
             case 'references':
-                return <ActivitiesEditor />; // Use ActivitiesEditor for references
+                return <ReferencesEditor />;
             default:
                 return <PersonalInfoEditor />;
         }

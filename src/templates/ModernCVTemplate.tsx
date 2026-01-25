@@ -226,10 +226,11 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
 }) => {
   const templateRef = useRef<HTMLDivElement>(null);
   const [pageBreaks, setPageBreaks] = useState<number[]>([]);
+  const [sectionMargins, setSectionMargins] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (isPreview && templateRef.current) {
-      const calculatePageBreaks = () => {
+      const calculateLayout = () => {
         const templateElement = templateRef.current;
         if (!templateElement) return;
 
@@ -241,11 +242,14 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
         tempElement.style.top = "-9999px";
         tempElement.style.left = "-9999px";
         tempElement.style.width = "210mm";
-        document.body.appendChild(tempElement);
+        
+        // Reset all margins in the clone to get natural layout
+        const sections = tempElement.querySelectorAll('[data-section-id]');
+        sections.forEach((section) => {
+          (section as HTMLElement).style.marginTop = '0px';
+        });
 
-        // Get the actual content height (unscaled)
-        const contentHeight = tempElement.scrollHeight;
-        document.body.removeChild(tempElement);
+        document.body.appendChild(tempElement);
 
         // Calculate A4 height in pixels
         const tempDiv = document.createElement("div");
@@ -256,36 +260,76 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
         const A4_HEIGHT_PX = tempDiv.offsetHeight;
         document.body.removeChild(tempDiv);
 
-        // Calculate how many pages we need
-        const totalPages = Math.ceil(contentHeight / A4_HEIGHT_PX);
+        // Calculate margins to prevent splitting
+        const newMargins: Record<string, number> = {};
+        let virtualShift = 0;
+        const PAGE_MARGIN_TOP_PX = 80; // Increased buffer for top of page (approx 21mm)
 
-        console.log("Debug page breaks:", {
-          contentHeight,
-          A4_HEIGHT_PX,
-          scale,
-          totalPages,
+        sections.forEach((section) => {
+          const el = section as HTMLElement;
+          const id = el.getAttribute('data-section-id');
+          if (!id) return;
+
+          const rect = el.getBoundingClientRect();
+          // Calculate top relative to the container
+          const containerRect = tempElement.getBoundingClientRect();
+          const naturalTop = rect.top - containerRect.top;
+          
+          // Apply cumulative shift from previous sections
+          const currentTop = naturalTop + virtualShift;
+          const height = rect.height;
+          const bottom = currentTop + height;
+
+          const startPage = Math.floor(currentTop / A4_HEIGHT_PX);
+          const endPage = Math.floor(bottom / A4_HEIGHT_PX);
+
+          // If section crosses page boundary and isn't too large to fit on a page
+          if (startPage !== endPage && height < A4_HEIGHT_PX) {
+             // Move to next page
+             const nextPageStart = (startPage + 1) * A4_HEIGHT_PX;
+             const shift = nextPageStart - currentTop + PAGE_MARGIN_TOP_PX;
+             
+             newMargins[id] = shift;
+             virtualShift += shift;
+          }
         });
+
+        // Get final content height with margins
+        const contentHeight = tempElement.scrollHeight + virtualShift;
+        document.body.removeChild(tempElement);
+
+        // Calculate total pages needed
+        const totalPages = Math.ceil((contentHeight + 20) / A4_HEIGHT_PX);
 
         const breaks: number[] = [];
         for (let i = 1; i < totalPages; i++) {
           breaks.push(i * A4_HEIGHT_PX);
         }
 
-        console.log("Calculated page breaks:", breaks);
         setPageBreaks(breaks);
+        
+        // Only update margins if they changed to avoid infinite loops
+        // (JSON.stringify is cheap for small objects)
+        setSectionMargins(prev => {
+            if (JSON.stringify(prev) !== JSON.stringify(newMargins)) {
+                return newMargins;
+            }
+            return prev;
+        });
       };
 
       // Add a small delay to ensure the template is fully rendered
-      const timeoutId = setTimeout(calculatePageBreaks, 100);
+      const timeoutId = setTimeout(calculateLayout, 100);
 
       // Recalculate on window resize or data change
-      window.addEventListener("resize", calculatePageBreaks);
+      window.addEventListener("resize", calculateLayout);
       return () => {
         clearTimeout(timeoutId);
-        window.removeEventListener("resize", calculatePageBreaks);
+        window.removeEventListener("resize", calculateLayout);
       };
     } else {
       setPageBreaks([]); // Clear page breaks if not in preview mode
+      setSectionMargins({});
     }
   }, [isPreview, data, scale]);
   const renderSkillLevel = (level: number) => {
@@ -398,7 +442,7 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
             <div
               style={{
                 position: "absolute",
-                top: `${5 * scale}mm`,
+                top: `${2 * scale}mm`,
                 left: "50%",
                 transform: `translateX(-50%) scale(${1 / scale})`,
                 zIndex: 10,
@@ -415,7 +459,8 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
             <div
               style={{
                 ...templateStyles,
-                transform: `translateY(-${pageIndex * 297}mm) scale(${scale})`,
+                // We DON'T shift here anymore, ResumeContent handles the viewport
+                transform: `scale(${scale})`, 
                 height: "297mm",
                 position: "relative",
               }}
@@ -512,6 +557,7 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
                 scale={scale}
                 pageIndex={pageIndex}
                 totalPages={totalPages}
+                sectionMargins={sectionMargins}
               />
             </div>
           </div>
@@ -613,6 +659,7 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
           isPreview={isPreview}
           pageBreaks={pageBreaks}
           scale={scale}
+          sectionMargins={sectionMargins}
         />
       </div>
     </div>
@@ -628,12 +675,14 @@ const ResumeContent: React.FC<{
   scale: number;
   pageIndex?: number;
   totalPages?: number;
+  sectionMargins?: Record<string, number>;
 }> = ({
   data,
   renderSkillLevel,
   isPreview,
   pageIndex = 0,
   totalPages = 1,
+  sectionMargins = {},
 }) => {
   // For preview mode with multiple pages, we need to show only the content for the current page
   const isMultiPage = isPreview && totalPages > 1;
@@ -657,8 +706,11 @@ const ResumeContent: React.FC<{
         <div
           style={{
             position: "relative",
-            top: `-${pageOffsetY}mm`,
+            transform: `translateY(-${pageOffsetY}mm)`,
             width: "100%",
+            // Ensure the inner container has enough height to hold all content
+            // Using a large number to ensure no clipping, or calculate exact height
+            height: "auto", 
             minHeight: `${A4_HEIGHT_MM * totalPages}mm`,
           }}
         >
@@ -688,7 +740,7 @@ const ResumeContent: React.FC<{
           <div
             style={{
               width: "100%",
-              padding: "6mm 15mm 6mm 15mm",
+              padding: "12mm 15mm 12mm 15mm",
               overflow: "visible",
               height: "auto",
             }}
@@ -696,7 +748,7 @@ const ResumeContent: React.FC<{
             {/* Header Section */}
             <div
               style={{
-                padding: "10mm 15mm 6mm 15mm",
+                padding: "0 15mm 6mm 15mm",
                 display: "flex",
                 flexDirection: "column",
                 borderBottom: "1px solid #e5e7eb",
@@ -763,7 +815,14 @@ const ResumeContent: React.FC<{
               />
               
               {/* Personal Info Details (Date of Birth, Nationality, etc.) */}
-              <PersonalInfoDetails personalInfo={data.personalInfo} />
+                <div
+                    data-section-id="personalInfoDetails"
+                    style={{
+                      marginTop: sectionMargins["personalInfoDetails"] ? `${sectionMargins["personalInfoDetails"]}px` : undefined
+                    }}
+                >
+                    <PersonalInfoDetails personalInfo={data.personalInfo} />
+                </div>
             </div>
 
             <div
@@ -785,7 +844,14 @@ const ResumeContent: React.FC<{
               >
                 {/* Summary Section */}
                 {data.showSummary && data.summary && (
-                  <div className="cv-section" style={{ marginBottom: "8mm" }}>
+                  <div 
+                    className="cv-section" 
+                    data-section-id="summary"
+                    style={{ 
+                      marginBottom: "8mm",
+                      marginTop: sectionMargins["summary"] ? `${sectionMargins["summary"]}px` : undefined
+                    }}
+                  >
                     <h3
                       style={{
                         fontSize: "13px",
@@ -816,7 +882,14 @@ const ResumeContent: React.FC<{
 
                 {/* Career Objective Section */}
                 {data.showCareerObjective && data.careerObjective && (
-                  <div className="cv-section" style={{ marginBottom: "8mm" }}>
+                  <div 
+                    className="cv-section" 
+                    data-section-id="careerObjective"
+                    style={{ 
+                      marginBottom: "8mm",
+                      marginTop: sectionMargins["careerObjective"] ? `${sectionMargins["careerObjective"]}px` : undefined
+                    }}
+                  >
                     <h3
                       style={{
                         fontSize: "13px",
@@ -848,7 +921,14 @@ const ResumeContent: React.FC<{
                 {/* Education Section */}
                 {data.showEducation &&
                   data.education.filter((edu) => edu.show).length > 0 && (
-                    <div className="cv-section" style={{ marginBottom: "7mm" }}>
+                    <div 
+                      className="cv-section" 
+                      data-section-id="education"
+                      style={{ 
+                        marginBottom: "7mm",
+                        marginTop: sectionMargins["education"] ? `${sectionMargins["education"]}px` : undefined
+                      }}
+                    >
                       <h3
                         style={{
                           fontSize: "13px",
@@ -945,7 +1025,14 @@ const ResumeContent: React.FC<{
                 {/* Experience Section */}
                 {data.showWorkExperience &&
                   data.workExperience.filter((exp) => exp.show).length > 0 && (
-                    <div className="cv-section" style={{ marginBottom: "8mm" }}>
+                    <div 
+                      className="cv-section" 
+                      data-section-id="workExperience"
+                      style={{ 
+                        marginBottom: "8mm",
+                        marginTop: sectionMargins["workExperience"] ? `${sectionMargins["workExperience"]}px` : undefined
+                      }}
+                    >
                       <h3
                         style={{
                           fontSize: "13px",
@@ -1080,7 +1167,14 @@ const ResumeContent: React.FC<{
                 {data.showProjects &&
                   data.projects.filter((project) => project.show).length >
                     0 && (
-                    <div className="cv-section" style={{ marginBottom: "7mm" }}>
+                    <div 
+                      className="cv-section" 
+                      data-section-id="projects"
+                      style={{ 
+                        marginBottom: "7mm",
+                        marginTop: sectionMargins["projects"] ? `${sectionMargins["projects"]}px` : undefined
+                      }}
+                    >
                       <h3
                         style={{
                           fontSize: "13px",
@@ -1211,7 +1305,14 @@ const ResumeContent: React.FC<{
                   Array.isArray(data.certifications) &&
                   data.certifications.filter((cert) => cert.show).length >
                     0 && (
-                    <div className="cv-section" style={{ marginBottom: "7mm" }}>
+                    <div 
+                      className="cv-section" 
+                      data-section-id="certifications"
+                      style={{ 
+                        marginBottom: "7mm",
+                        marginTop: sectionMargins["certifications"] ? `${sectionMargins["certifications"]}px` : undefined
+                      }}
+                    >
                       <h3
                         style={{
                           fontSize: "13px",
@@ -1331,7 +1432,14 @@ const ResumeContent: React.FC<{
                 {/* Skills Section */}
                 {data.showSkills &&
                   data.skills.filter((skill) => skill.show).length > 0 && (
-                    <div className="cv-section" style={{ marginBottom: "7mm" }}>
+                    <div 
+                      className="cv-section" 
+                      data-section-id="skills"
+                      style={{ 
+                        marginBottom: "7mm",
+                        marginTop: sectionMargins["skills"] ? `${sectionMargins["skills"]}px` : undefined
+                      }}
+                    >
                       <h3
                         style={{
                           fontSize: "13px",
@@ -1388,7 +1496,14 @@ const ResumeContent: React.FC<{
                 {/* Languages Section */}
                 {data.showLanguages &&
                   data.languages.filter((lang) => lang.show).length > 0 && (
-                    <div className="cv-section" style={{ marginBottom: "7mm" }}>
+                    <div 
+                      className="cv-section" 
+                      data-section-id="languages"
+                      style={{ 
+                        marginBottom: "7mm",
+                        marginTop: sectionMargins["languages"] ? `${sectionMargins["languages"]}px` : undefined
+                      }}
+                    >
                       <h3
                         style={{
                           fontSize: "13px",
@@ -1450,7 +1565,14 @@ const ResumeContent: React.FC<{
                   Array.isArray(data.strengths) &&
                   data.strengths.filter((strength) => strength.show).length >
                     0 && (
-                    <div className="cv-section" style={{ marginBottom: "7mm" }}>
+                    <div 
+                      className="cv-section" 
+                      data-section-id="strengths"
+                      style={{ 
+                        marginBottom: "7mm",
+                        marginTop: sectionMargins["strengths"] ? `${sectionMargins["strengths"]}px` : undefined
+                      }}
+                    >
                       <h3
                         style={{
                           fontSize: "13px",
@@ -1507,7 +1629,14 @@ const ResumeContent: React.FC<{
                   Array.isArray(data.interests) &&
                   data.interests.filter((interest) => interest.show).length >
                     0 && (
-                    <div className="cv-section" style={{ marginBottom: "7mm" }}>
+                    <div 
+                      className="cv-section" 
+                      data-section-id="interests"
+                      style={{ 
+                        marginBottom: "7mm",
+                        marginTop: sectionMargins["interests"] ? `${sectionMargins["interests"]}px` : undefined
+                      }}
+                    >
                       <h3
                         style={{
                           fontSize: "12px",
@@ -1563,7 +1692,14 @@ const ResumeContent: React.FC<{
                 {data.showActivities &&
                   data.activities.filter((activity) => activity.show).length >
                     0 && (
-                    <div className="cv-section" style={{ marginBottom: "0" }}>
+                    <div 
+                      className="cv-section" 
+                      data-section-id="activities"
+                      style={{ 
+                        marginBottom: "0",
+                        marginTop: sectionMargins["activities"] ? `${sectionMargins["activities"]}px` : undefined
+                      }}
+                    >
                       <h3
                         style={{
                           fontSize: "12px",
@@ -1669,7 +1805,14 @@ const ResumeContent: React.FC<{
 
                 {/* References Section */}
                 {data.showReferences && data.references && (
-                  <div className="cv-section" style={{ marginBottom: "0" }}>
+                  <div 
+                    className="cv-section" 
+                    data-section-id="references"
+                    style={{ 
+                      marginBottom: "0",
+                      marginTop: sectionMargins["references"] ? `${sectionMargins["references"]}px` : undefined
+                    }}
+                  >
                     <h3
                       style={{
                         fontSize: "12px",
