@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
   try {
     debug("Starting PDF export process");
-    const { html, filename } = await request.json();
+    const { html, filename, type } = await request.json(); // Accept type parameter
 
     if (!html) {
       return NextResponse.json(
@@ -73,6 +73,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    
+    // Determine if we are in multi-page CV mode
+    const isCV = type === 'cv';
+    debug(`Exporting as ${isCV ? 'Multi-page CV' : 'Single-page Resume'}`);
 
     // For debugging Docker environment
     debug("Environment:", {
@@ -155,10 +159,10 @@ export async function POST(request: NextRequest) {
                 margin: 0 !important;
                 padding: 0 !important;
                 width: 210mm !important;
-                height: 297mm !important;
-                overflow: hidden !important;
+                height: ${isCV ? 'auto' : '297mm'} !important;
+                overflow: visible !important;
                 /* Ensure exact font size consistency */
-                font-size: 12px !important;
+                font-size: 11px !important;
                 line-height: 1.4 !important;
                 color: #111827 !important;
             }
@@ -178,14 +182,17 @@ export async function POST(request: NextRequest) {
             
             .resume-container {
                 width: 210mm !important;
-                height: 297mm !important;
+                /* Allow height to grow for CVs */
+                height: ${isCV ? 'auto' : '297mm'} !important;
                 max-width: 210mm !important;
-                max-height: 297mm !important;
-                overflow: hidden !important;
+                /* Limit height only for single page resumes */
+                max-height: ${isCV ? 'none' : '297mm'} !important;
+                overflow: visible !important;
                 background: #ffffff !important;
-                page-break-inside: avoid;
-                page-break-after: auto;
-                page-break-before: auto;
+                /* Page break logic for CVs */
+                page-break-inside: ${isCV ? 'auto' : 'avoid'};
+                page-break-after: ${isCV ? 'auto' : 'avoid'};
+                page-break-before: ${isCV ? 'auto' : 'avoid'};
                 /* Ensure no additional spacing or transformations */
                 margin: 0 !important;
                 padding: 0 !important;
@@ -346,12 +353,84 @@ export async function POST(request: NextRequest) {
         document.body.style.display = "block";
       });
 
-      debug("Generating PDF...");
+      if (isCV) {
+        await page.evaluate(() => {
+          const template = document.querySelector(
+            "[data-resume-template]"
+          ) as HTMLElement | null;
+          if (!template) return;
+
+          template.querySelectorAll("[data-section-spacer]").forEach((spacer) => {
+            spacer.remove();
+          });
+
+          const tempDiv = document.createElement("div");
+          tempDiv.style.height = "297mm";
+          tempDiv.style.position = "absolute";
+          tempDiv.style.visibility = "hidden";
+          document.body.appendChild(tempDiv);
+          const A4_HEIGHT_PX = tempDiv.offsetHeight;
+          document.body.removeChild(tempDiv);
+
+          const A4_HEIGHT_MM = 297;
+          const pxPerMm = A4_HEIGHT_PX / A4_HEIGHT_MM;
+          const PAGE_MARGIN_TOP_MM = 12;
+
+          const sections = Array.from(
+            template.querySelectorAll("[data-section-id]")
+          ) as HTMLElement[];
+          const newMargins = new Map<string, number>();
+          let virtualShiftMm = 0;
+
+          const containerRect = template.getBoundingClientRect();
+
+          sections.forEach((section) => {
+            const id = section.getAttribute("data-section-id");
+            if (!id) return;
+
+            const rect = section.getBoundingClientRect();
+            const naturalTopMm = (rect.top - containerRect.top) / pxPerMm;
+            const currentTopMm = naturalTopMm + virtualShiftMm;
+            const heightMm = rect.height / pxPerMm;
+            const bottomMm = currentTopMm + heightMm;
+
+            const startPage = Math.floor(currentTopMm / A4_HEIGHT_MM);
+            const endPage = Math.floor(bottomMm / A4_HEIGHT_MM);
+            const offsetWithinPageMm = currentTopMm - startPage * A4_HEIGHT_MM;
+
+            if (startPage !== endPage && heightMm < A4_HEIGHT_MM) {
+              const nextPageStartMm = (startPage + 1) * A4_HEIGHT_MM;
+              const shiftMm = nextPageStartMm - currentTopMm + PAGE_MARGIN_TOP_MM;
+              newMargins.set(id, shiftMm);
+              virtualShiftMm += shiftMm;
+            } else if (startPage > 0 && offsetWithinPageMm < PAGE_MARGIN_TOP_MM) {
+              const shiftMm = PAGE_MARGIN_TOP_MM - offsetWithinPageMm;
+              newMargins.set(id, shiftMm);
+              virtualShiftMm += shiftMm;
+            }
+          });
+
+          sections.forEach((section) => {
+            const id = section.getAttribute("data-section-id");
+            if (!id) return;
+            const shiftMm = newMargins.get(id);
+            if (!shiftMm) return;
+
+            const spacer = document.createElement("div");
+            spacer.setAttribute("data-section-spacer", "true");
+            spacer.setAttribute("data-section-spacer-for", id);
+            spacer.style.height = `${shiftMm}mm`;
+            section.parentNode?.insertBefore(spacer, section);
+          });
+        });
+      }
+
       // Generate PDF with exact A4 dimensions and consistent settings
       const pdf = await page.pdf({
         format: "A4",
         width: "210mm",
-        height: "297mm",
+        // Height handled by A4 format, but we set it explicit for single page consistency
+        height: isCV ? undefined : "297mm", 
         printBackground: true,
         margin: {
           top: "0mm",

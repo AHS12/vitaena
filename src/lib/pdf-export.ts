@@ -6,12 +6,14 @@
 interface ExportPDFOptions {
   resumeElement: HTMLElement;
   filename?: string;
+  type?: string; // Add type parameter for CV/Resume distinction
   onProgress?: (status: string) => void;
 }
 
 export const exportToPDF = async ({
   resumeElement,
   filename = "resume.pdf",
+  type = "resume", // Default to resume
   onProgress,
 }: ExportPDFOptions): Promise<void> => {
   try {
@@ -31,6 +33,7 @@ export const exportToPDF = async ({
       body: JSON.stringify({
         html: resumeHTML,
         filename: filename,
+        type: type, // Pass type to API
       }),
     });
 

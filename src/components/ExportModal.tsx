@@ -70,6 +70,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ resume, onClose }) => 
             await exportToPDF({
                 resumeElement,
                 filename,
+                type: resume.category, // Pass the category (resume/cv) to handle multi-page logic
                 onProgress: () => {
                     // Progress status available but not displayed in UI
                 }

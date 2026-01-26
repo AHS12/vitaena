@@ -229,6 +229,7 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
   const [sectionMargins, setSectionMargins] = useState<Record<string, number>>({});
 
   useEffect(() => {
+    // For preview mode, we calculate page breaks to show the page indicator
     if (isPreview && templateRef.current) {
       const calculateLayout = () => {
         const templateElement = templateRef.current;
@@ -246,6 +247,7 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
         // Reset all margins in the clone to get natural layout
         const sections = tempElement.querySelectorAll('[data-section-id]');
         sections.forEach((section) => {
+          (section as HTMLElement).style.paddingTop = '0px';
           (section as HTMLElement).style.marginTop = '0px';
         });
 
@@ -260,10 +262,16 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
         const A4_HEIGHT_PX = tempDiv.offsetHeight;
         document.body.removeChild(tempDiv);
 
-        // Calculate margins to prevent splitting
+        const A4_HEIGHT_MM = 297;
+        const pxPerMm = A4_HEIGHT_PX / A4_HEIGHT_MM;
+
         const newMargins: Record<string, number> = {};
-        let virtualShift = 0;
-        const PAGE_MARGIN_TOP_PX = 80; // Increased buffer for top of page (approx 21mm)
+        let virtualShiftMm = 0;
+        const PAGE_MARGIN_TOP_MM = 12;
+
+        tempElement.querySelectorAll('[data-section-spacer]').forEach((spacer) => {
+          spacer.remove();
+        });
 
         sections.forEach((section) => {
           const el = section as HTMLElement;
@@ -273,37 +281,44 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
           const rect = el.getBoundingClientRect();
           // Calculate top relative to the container
           const containerRect = tempElement.getBoundingClientRect();
-          const naturalTop = rect.top - containerRect.top;
+          const naturalTopMm = (rect.top - containerRect.top) / pxPerMm;
           
           // Apply cumulative shift from previous sections
-          const currentTop = naturalTop + virtualShift;
-          const height = rect.height;
-          const bottom = currentTop + height;
+          const currentTopMm = naturalTopMm + virtualShiftMm;
+          const heightMm = rect.height / pxPerMm;
+          const bottomMm = currentTopMm + heightMm;
 
-          const startPage = Math.floor(currentTop / A4_HEIGHT_PX);
-          const endPage = Math.floor(bottom / A4_HEIGHT_PX);
+          const startPage = Math.floor(currentTopMm / A4_HEIGHT_MM);
+          const endPage = Math.floor(bottomMm / A4_HEIGHT_MM);
+
+          const offsetWithinPageMm = currentTopMm - startPage * A4_HEIGHT_MM;
 
           // If section crosses page boundary and isn't too large to fit on a page
-          if (startPage !== endPage && height < A4_HEIGHT_PX) {
+          if (startPage !== endPage && heightMm < A4_HEIGHT_MM) {
              // Move to next page
-             const nextPageStart = (startPage + 1) * A4_HEIGHT_PX;
-             const shift = nextPageStart - currentTop + PAGE_MARGIN_TOP_PX;
+             const nextPageStartMm = (startPage + 1) * A4_HEIGHT_MM;
+             const shiftMm = nextPageStartMm - currentTopMm + PAGE_MARGIN_TOP_MM;
              
-             newMargins[id] = shift;
-             virtualShift += shift;
+             newMargins[id] = shiftMm;
+             virtualShiftMm += shiftMm;
+          } else if (startPage > 0 && offsetWithinPageMm < PAGE_MARGIN_TOP_MM) {
+             const shiftMm = PAGE_MARGIN_TOP_MM - offsetWithinPageMm;
+             newMargins[id] = shiftMm;
+             virtualShiftMm += shiftMm;
           }
         });
 
         // Get final content height with margins
-        const contentHeight = tempElement.scrollHeight + virtualShift;
+        const contentHeightMm = tempElement.scrollHeight / pxPerMm + virtualShiftMm;
         document.body.removeChild(tempElement);
 
         // Calculate total pages needed
-        const totalPages = Math.ceil((contentHeight + 20) / A4_HEIGHT_PX);
+        const bufferMm = 20 / pxPerMm;
+        const totalPages = Math.ceil((contentHeightMm + bufferMm) / A4_HEIGHT_MM);
 
         const breaks: number[] = [];
         for (let i = 1; i < totalPages; i++) {
-          breaks.push(i * A4_HEIGHT_PX);
+          breaks.push(i * A4_HEIGHT_MM);
         }
 
         setPageBreaks(breaks);
@@ -328,8 +343,100 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
         window.removeEventListener("resize", calculateLayout);
       };
     } else {
-      setPageBreaks([]); // Clear page breaks if not in preview mode
-      setSectionMargins({});
+      // For export mode, we ALSO need to calculate margins to ensure the PDF
+      // has the correct spacing. The logic is identical, just without the preview wrappers.
+      // We can reuse the same logic or trigger a one-off calculation.
+      // However, since `useEffect` runs on mount, and export usually happens
+      // from a fresh render or existing state, we might need to handle this carefully.
+      
+      // Ideally, the margins should be passed in or calculated before export.
+      // For now, if we are in export mode (isPreview=false), we assume the margins
+      // might have been calculated if we came from preview, OR we need to calc them now.
+      
+      // Let's run the calculation once for export mode too, to ensure correct layout.
+      const calculateLayoutForExport = () => {
+        // Logic duplicated for now to ensure safety, but simplified
+        // In a real refactor, extract `calculateLayout` to a helper function
+        const templateElement = templateRef.current;
+        if (!templateElement) return;
+
+        const tempElement = templateElement.cloneNode(true) as HTMLElement;
+        tempElement.style.transform = "none";
+        tempElement.style.position = "absolute";
+        tempElement.style.visibility = "hidden";
+        tempElement.style.top = "-9999px";
+        tempElement.style.left = "-9999px";
+        tempElement.style.width = "210mm";
+        
+        const sections = tempElement.querySelectorAll('[data-section-id]');
+        sections.forEach((section) => {
+          (section as HTMLElement).style.paddingTop = '0px';
+          (section as HTMLElement).style.marginTop = '0px';
+        });
+
+        document.body.appendChild(tempElement);
+
+        const tempDiv = document.createElement("div");
+        tempDiv.style.height = "297mm";
+        tempDiv.style.position = "absolute";
+        tempDiv.style.visibility = "hidden";
+        document.body.appendChild(tempDiv);
+        const A4_HEIGHT_PX = tempDiv.offsetHeight;
+        document.body.removeChild(tempDiv);
+
+        const newMargins: Record<string, number> = {};
+        let virtualShiftMm = 0;
+        const A4_HEIGHT_MM = 297;
+        const pxPerMm = A4_HEIGHT_PX / A4_HEIGHT_MM;
+        const PAGE_MARGIN_TOP_MM = 12;
+
+        tempElement.querySelectorAll('[data-section-spacer]').forEach((spacer) => {
+          spacer.remove();
+        });
+
+        sections.forEach((section) => {
+          const el = section as HTMLElement;
+          const id = el.getAttribute('data-section-id');
+          if (!id) return;
+
+          const rect = el.getBoundingClientRect();
+          const containerRect = tempElement.getBoundingClientRect();
+          const naturalTopMm = (rect.top - containerRect.top) / pxPerMm;
+          
+          const currentTopMm = naturalTopMm + virtualShiftMm;
+          const heightMm = rect.height / pxPerMm;
+          const bottomMm = currentTopMm + heightMm;
+
+          const startPage = Math.floor(currentTopMm / A4_HEIGHT_MM);
+          const endPage = Math.floor(bottomMm / A4_HEIGHT_MM);
+
+          const offsetWithinPageMm = currentTopMm - startPage * A4_HEIGHT_MM;
+
+          if (startPage !== endPage && heightMm < A4_HEIGHT_MM) {
+             const nextPageStartMm = (startPage + 1) * A4_HEIGHT_MM;
+             const shiftMm = nextPageStartMm - currentTopMm + PAGE_MARGIN_TOP_MM;
+             newMargins[id] = shiftMm;
+             virtualShiftMm += shiftMm;
+          } else if (startPage > 0 && offsetWithinPageMm < PAGE_MARGIN_TOP_MM) {
+             const shiftMm = PAGE_MARGIN_TOP_MM - offsetWithinPageMm;
+             newMargins[id] = shiftMm;
+             virtualShiftMm += shiftMm;
+          }
+        });
+
+        document.body.removeChild(tempElement);
+        
+        setSectionMargins(prev => {
+            if (JSON.stringify(prev) !== JSON.stringify(newMargins)) {
+                return newMargins;
+            }
+            return prev;
+        });
+      };
+      
+      // Run calculation immediately for export
+      const timeoutId = setTimeout(calculateLayoutForExport, 100);
+      return () => clearTimeout(timeoutId);
     }
   }, [isPreview, data, scale]);
   const renderSkillLevel = (level: number) => {
@@ -385,6 +492,9 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
   // Calculate total pages needed
   const totalPages = pageBreaks.length + 1;
 
+  // If sectionMargins is populated but not in preview mode, it means we calculated them
+  // but aren't showing the preview wrapper. This is good for export.
+  
   // Container styles for both preview and export to ensure consistency
   const containerStyles: React.CSSProperties = isPreview
     ? {
@@ -403,7 +513,9 @@ export const ModernCVTemplate: React.FC<ModernCVTemplateProps> = ({
       }
     : {
         width: "210mm",
-        minHeight: "297mm", // Use minHeight for multi-page
+        // For export, we let it grow naturally. The PDF generator will handle pagination
+        // thanks to our margin spacers pushing content to the next visual page.
+        minHeight: "297mm", 
         overflow: "visible", // Allow content to overflow
         position: "relative",
         boxSizing: "border-box",
@@ -724,6 +836,15 @@ const ResumeContent: React.FC<{
   return renderFullContent();
 
   function renderFullContent() {
+    const renderSectionSpacer = (sectionId: string) =>
+      sectionMargins[sectionId] ? (
+        <div
+          data-section-spacer
+          data-section-spacer-for={sectionId}
+          style={{ height: `${sectionMargins[sectionId]}mm` }}
+        />
+      ) : null;
+
     return (
       <>
         {/* Header Section */}
@@ -815,14 +936,10 @@ const ResumeContent: React.FC<{
               />
               
               {/* Personal Info Details (Date of Birth, Nationality, etc.) */}
-                <div
-                    data-section-id="personalInfoDetails"
-                    style={{
-                      marginTop: sectionMargins["personalInfoDetails"] ? `${sectionMargins["personalInfoDetails"]}px` : undefined
-                    }}
-                >
-                    <PersonalInfoDetails personalInfo={data.personalInfo} />
-                </div>
+              {renderSectionSpacer("personalInfoDetails")}
+              <div data-section-id="personalInfoDetails">
+                <PersonalInfoDetails personalInfo={data.personalInfo} />
+              </div>
             </div>
 
             <div
@@ -844,404 +961,956 @@ const ResumeContent: React.FC<{
               >
                 {/* Summary Section */}
                 {data.showSummary && data.summary && (
-                  <div 
-                    className="cv-section" 
-                    data-section-id="summary"
-                    style={{ 
-                      marginBottom: "8mm",
-                      marginTop: sectionMargins["summary"] ? `${sectionMargins["summary"]}px` : undefined
-                    }}
-                  >
-                    <h3
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: "bold",
-                        color: "#111827",
-                        marginBottom: "4px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        borderBottom: "1px solid #111827",
-                        paddingBottom: "2px",
+                  <>
+                    {renderSectionSpacer("summary")}
+                    <div 
+                      className="cv-section" 
+                      data-section-id="summary"
+                      style={{ 
+                        marginBottom: "8mm"
                       }}
                     >
-                      SUMMARY
-                    </h3>
-                    <p
-                      style={{
-                        fontSize: "11px",
-                        color: "#374151",
-                        lineHeight: "1.4",
-                        margin: "0",
-                        textAlign: "justify",
-                      }}
-                    >
-                      {data.summary}
-                    </p>
-                  </div>
+                      <h3
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: "bold",
+                          color: "#111827",
+                          marginBottom: "4px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                          borderBottom: "1px solid #111827",
+                          paddingBottom: "2px",
+                        }}
+                      >
+                        SUMMARY
+                      </h3>
+                      <p
+                        style={{
+                          fontSize: "11px",
+                          color: "#374151",
+                          lineHeight: "1.4",
+                          margin: "0",
+                          textAlign: "justify",
+                        }}
+                      >
+                        {data.summary}
+                      </p>
+                    </div>
+                  </>
                 )}
 
                 {/* Career Objective Section */}
                 {data.showCareerObjective && data.careerObjective && (
-                  <div 
-                    className="cv-section" 
-                    data-section-id="careerObjective"
-                    style={{ 
-                      marginBottom: "8mm",
-                      marginTop: sectionMargins["careerObjective"] ? `${sectionMargins["careerObjective"]}px` : undefined
-                    }}
-                  >
-                    <h3
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: "bold",
-                        color: "#111827",
-                        marginBottom: "4px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        borderBottom: "1px solid #111827",
-                        paddingBottom: "2px",
+                  <>
+                    {renderSectionSpacer("careerObjective")}
+                    <div 
+                      className="cv-section" 
+                      data-section-id="careerObjective"
+                      style={{ 
+                        marginBottom: "8mm"
                       }}
                     >
-                      CAREER OBJECTIVE
-                    </h3>
-                    <p
-                      style={{
-                        fontSize: "11px",
-                        color: "#374151",
-                        lineHeight: "1.4",
-                        margin: "0",
-                        textAlign: "justify",
-                      }}
-                    >
-                      {data.careerObjective}
-                    </p>
-                  </div>
+                      <h3
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: "bold",
+                          color: "#111827",
+                          marginBottom: "4px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                          borderBottom: "1px solid #111827",
+                          paddingBottom: "2px",
+                        }}
+                      >
+                        CAREER OBJECTIVE
+                      </h3>
+                      <p
+                        style={{
+                          fontSize: "11px",
+                          color: "#374151",
+                          lineHeight: "1.4",
+                          margin: "0",
+                          textAlign: "justify",
+                        }}
+                      >
+                        {data.careerObjective}
+                      </p>
+                    </div>
+                  </>
                 )}
 
                 {/* Education Section */}
                 {data.showEducation &&
                   data.education.filter((edu) => edu.show).length > 0 && (
-                    <div 
-                      className="cv-section" 
-                      data-section-id="education"
-                      style={{ 
-                        marginBottom: "7mm",
-                        marginTop: sectionMargins["education"] ? `${sectionMargins["education"]}px` : undefined
-                      }}
-                    >
-                      <h3
-                        style={{
-                          fontSize: "13px",
-                          fontWeight: "bold",
-                          color: "#111827",
-                          marginBottom: "5px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          borderBottom: "1px solid #111827",
-                          paddingBottom: "2px",
+                    <>
+                      {renderSectionSpacer("education")}
+                      <div 
+                        className="cv-section" 
+                        data-section-id="education"
+                        style={{ 
+                          marginBottom: "7mm"
                         }}
                       >
-                        EDUCATION
-                      </h3>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "4px",
-                        }}
-                      >
-                        {data.education
-                          .filter((edu) => edu.show)
-                          .map((edu) => (
-                            <div key={edu.id}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  alignItems: "flex-start",
-                                }}
-                              >
-                                <div>
-                                  <h4
-                                    style={{
-                                      fontSize: "12px",
-                                      fontWeight: "bold",
-                                      color: "#111827",
-                                      margin: "0 0 1px 0",
-                                    }}
-                                  >
-                                    {edu.degree}
-                                  </h4>
-                                  <p
-                                    className="resume-blue"
-                                    style={{
-                                      fontSize: "11px",
-                                      fontWeight: 600,
-                                      margin: "0 0 1px 0",
-                                    }}
-                                  >
-                                    {edu.institution}
-                                  </p>
-                                  {edu.showLocation && edu.location && (
+                        <h3
+                          style={{
+                            fontSize: "13px",
+                            fontWeight: "bold",
+                            color: "#111827",
+                            marginBottom: "5px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            borderBottom: "1px solid #111827",
+                            paddingBottom: "2px",
+                          }}
+                        >
+                          EDUCATION
+                        </h3>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "4px",
+                          }}
+                        >
+                          {data.education
+                            .filter((edu) => edu.show)
+                            .map((edu) => (
+                              <div key={edu.id}>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "flex-start",
+                                  }}
+                                >
+                                  <div>
+                                    <h4
+                                      style={{
+                                        fontSize: "12px",
+                                        fontWeight: "bold",
+                                        color: "#111827",
+                                        margin: "0 0 1px 0",
+                                      }}
+                                    >
+                                      {edu.degree}
+                                    </h4>
                                     <p
+                                      className="resume-blue"
+                                      style={{
+                                        fontSize: "11px",
+                                        fontWeight: 600,
+                                        margin: "0 0 1px 0",
+                                      }}
+                                    >
+                                      {edu.institution}
+                                    </p>
+                                    {edu.showLocation && edu.location && (
+                                      <p
+                                        style={{
+                                          fontSize: "10px",
+                                          color: "#6b7280",
+                                          margin: "0",
+                                        }}
+                                      >
+                                        {edu.location}
+                                      </p>
+                                    )}
+                                    {edu.showGpa && edu.gpa && (
+                                      <p
+                                        style={{
+                                          fontSize: "10px",
+                                          color: "#6b7280",
+                                          margin: "0",
+                                        }}
+                                      >
+                                        GPA: {edu.gpa}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {edu.showDateRange && (
+                                    <div
                                       style={{
                                         fontSize: "10px",
                                         color: "#6b7280",
-                                        margin: "0",
                                       }}
                                     >
-                                      {edu.location}
-                                    </p>
-                                  )}
-                                  {edu.showGpa && edu.gpa && (
-                                    <p
-                                      style={{
-                                        fontSize: "10px",
-                                        color: "#6b7280",
-                                        margin: "0",
-                                      }}
-                                    >
-                                      GPA: {edu.gpa}
-                                    </p>
+                                      {formatDateRange(edu.dateRange)}
+                                    </div>
                                   )}
                                 </div>
-                                {edu.showDateRange && (
-                                  <div
-                                    style={{
-                                      fontSize: "10px",
-                                      color: "#6b7280",
-                                    }}
-                                  >
-                                    {formatDateRange(edu.dateRange)}
-                                  </div>
-                                )}
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
 
                 {/* Experience Section */}
                 {data.showWorkExperience &&
                   data.workExperience.filter((exp) => exp.show).length > 0 && (
-                    <div 
-                      className="cv-section" 
-                      data-section-id="workExperience"
-                      style={{ 
-                        marginBottom: "8mm",
-                        marginTop: sectionMargins["workExperience"] ? `${sectionMargins["workExperience"]}px` : undefined
-                      }}
-                    >
-                      <h3
-                        style={{
-                          fontSize: "13px",
-                          fontWeight: "bold",
-                          color: "#111827",
-                          marginBottom: "5px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          borderBottom: "1px solid #111827",
-                          paddingBottom: "2px",
+                    <>
+                      {renderSectionSpacer("workExperience")}
+                      <div 
+                        className="cv-section" 
+                        data-section-id="workExperience"
+                        style={{ 
+                          marginBottom: "8mm"
                         }}
                       >
-                        EXPERIENCE
-                      </h3>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "5px",
-                        }}
-                      >
-                        {data.workExperience
-                          .filter((exp) => exp.show)
-                          .map((exp) => (
-                            <div key={exp.id}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  alignItems: "flex-start",
-                                  marginBottom: "3px",
-                                }}
-                              >
-                                <div>
-                                  <h4
-                                    style={{
-                                      fontSize: "12px",
-                                      fontWeight: "bold",
-                                      color: "#111827",
-                                      margin: "0 0 1px 0",
-                                    }}
-                                  >
-                                    {exp.position}
-                                  </h4>
-                                  <p
-                                    className="resume-blue"
-                                    style={{
-                                      fontSize: "11px",
-                                      fontWeight: 600,
-                                      margin: "0 0 1px 0",
-                                    }}
-                                  >
-                                    {exp.company}
-                                  </p>
-                                  {exp.showLocation && exp.location && (
+                        <h3
+                          style={{
+                            fontSize: "13px",
+                            fontWeight: "bold",
+                            color: "#111827",
+                            marginBottom: "5px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            borderBottom: "1px solid #111827",
+                            paddingBottom: "2px",
+                          }}
+                        >
+                          EXPERIENCE
+                        </h3>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "5px",
+                          }}
+                        >
+                          {data.workExperience
+                            .filter((exp) => exp.show)
+                            .map((exp) => (
+                              <div key={exp.id}>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "flex-start",
+                                    marginBottom: "3px",
+                                  }}
+                                >
+                                  <div>
+                                    <h4
+                                      style={{
+                                        fontSize: "12px",
+                                        fontWeight: "bold",
+                                        color: "#111827",
+                                        margin: "0 0 1px 0",
+                                      }}
+                                    >
+                                      {exp.position}
+                                    </h4>
                                     <p
+                                      className="resume-blue"
+                                      style={{
+                                        fontSize: "11px",
+                                        fontWeight: 600,
+                                        margin: "0 0 1px 0",
+                                      }}
+                                    >
+                                      {exp.company}
+                                    </p>
+                                    {exp.showLocation && exp.location && (
+                                      <p
+                                        style={{
+                                          fontSize: "10px",
+                                          color: "#6b7280",
+                                          margin: "0",
+                                        }}
+                                      >
+                                        {exp.location}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {exp.showDateRange && (
+                                    <div
                                       style={{
                                         fontSize: "10px",
                                         color: "#6b7280",
-                                        margin: "0",
+                                        textAlign: "right",
+                                        whiteSpace: "nowrap",
                                       }}
                                     >
-                                      {exp.location}
-                                    </p>
+                                      {formatDateRange(exp.dateRange)}
+                                    </div>
                                   )}
                                 </div>
-                                {exp.showDateRange && (
-                                  <div
+                                {exp.showDescription && exp.description && (
+                                  <p
                                     style={{
-                                      fontSize: "10px",
-                                      color: "#6b7280",
-                                      textAlign: "right",
-                                      whiteSpace: "nowrap",
+                                      fontSize: "11px",
+                                      color: "#374151",
+                                      marginBottom: "2px",
+                                      lineHeight: "1.3",
                                     }}
                                   >
-                                    {formatDateRange(exp.dateRange)}
+                                    {exp.description}
+                                  </p>
+                                )}
+                                {exp.showBullets && exp.bullets.length > 0 && (
+                                  <div
+                                    style={{
+                                      fontSize: "11px",
+                                      color: "#374151",
+                                      margin: "0",
+                                      lineHeight: "1.3",
+                                    }}
+                                  >
+                                    {exp.bullets.map((bullet, index) => (
+                                      <div
+                                        key={index}
+                                        style={{
+                                          marginBottom: "2px",
+                                          display: "flex",
+                                          alignItems: "flex-start",
+                                        }}
+                                      >
+                                        <span
+                                          style={{
+                                            marginRight: "6px",
+                                            marginTop: "2px",
+                                            fontSize: "9px",
+                                            lineHeight: "1",
+                                          }}
+                                        >
+                                          •
+                                        </span>
+                                        <span style={{ flex: 1 }}>{bullet}</span>
+                                      </div>
+                                    ))}
                                   </div>
                                 )}
                               </div>
-                              {exp.showDescription && exp.description && (
-                                <p
-                                  style={{
-                                    fontSize: "11px",
-                                    color: "#374151",
-                                    marginBottom: "2px",
-                                    lineHeight: "1.3",
-                                  }}
-                                >
-                                  {exp.description}
-                                </p>
-                              )}
-                              {exp.showBullets && exp.bullets.length > 0 && (
-                                <div
-                                  style={{
-                                    fontSize: "11px",
-                                    color: "#374151",
-                                    margin: "0",
-                                    lineHeight: "1.3",
-                                  }}
-                                >
-                                  {exp.bullets.map((bullet, index) => (
-                                    <div
-                                      key={index}
-                                      style={{
-                                        marginBottom: "2px",
-                                        display: "flex",
-                                        alignItems: "flex-start",
-                                      }}
-                                    >
-                                      <span
-                                        style={{
-                                          marginRight: "6px",
-                                          marginTop: "2px",
-                                          fontSize: "9px",
-                                          lineHeight: "1",
-                                        }}
-                                      >
-                                        •
-                                      </span>
-                                      <span style={{ flex: 1 }}>{bullet}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          ))}
+                            ))}
+                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
 
                 {/* Projects Section */}
                 {data.showProjects &&
                   data.projects.filter((project) => project.show).length >
                     0 && (
-                    <div 
-                      className="cv-section" 
-                      data-section-id="projects"
-                      style={{ 
-                        marginBottom: "7mm",
-                        marginTop: sectionMargins["projects"] ? `${sectionMargins["projects"]}px` : undefined
-                      }}
-                    >
-                      <h3
-                        style={{
-                          fontSize: "13px",
-                          fontWeight: "bold",
-                          color: "#111827",
-                          marginBottom: "5px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          borderBottom: "1px solid #111827",
-                          paddingBottom: "2px",
+                    <>
+                      {renderSectionSpacer("projects")}
+                      <div 
+                        className="cv-section" 
+                        data-section-id="projects"
+                        style={{ 
+                          marginBottom: "7mm"
                         }}
                       >
-                        PROJECTS
-                      </h3>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "5px",
-                        }}
-                      >
-                        {data.projects
-                          .filter((project) => project.show)
-                          .map((project) => (
-                            <div key={project.id}>
-                              <h4
-                                style={{
-                                  fontSize: "11px",
-                                  fontWeight: "bold",
-                                  color: "#111827",
-                                  margin: "0 0 2px 0",
-                                }}
-                              >
-                                {project.title}
-                              </h4>
-                              {project.showDateRange && project.dateRange && (
-                                <p
+                        <h3
+                          style={{
+                            fontSize: "13px",
+                            fontWeight: "bold",
+                            color: "#111827",
+                            marginBottom: "5px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            borderBottom: "1px solid #111827",
+                            paddingBottom: "2px",
+                          }}
+                        >
+                          PROJECTS
+                        </h3>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "5px",
+                          }}
+                        >
+                          {data.projects
+                            .filter((project) => project.show)
+                            .map((project) => (
+                              <div key={project.id}>
+                                <h4
                                   style={{
-                                    fontSize: "9px",
-                                    color: "#6b7280",
+                                    fontSize: "11px",
+                                    fontWeight: "bold",
+                                    color: "#111827",
                                     margin: "0 0 2px 0",
                                   }}
                                 >
-                                  {formatDateRange(project.dateRange)}
+                                  {project.title}
+                                </h4>
+                                {project.showDateRange && project.dateRange && (
+                                  <p
+                                    style={{
+                                      fontSize: "9px",
+                                      color: "#6b7280",
+                                      margin: "0 0 2px 0",
+                                    }}
+                                  >
+                                    {formatDateRange(project.dateRange)}
+                                  </p>
+                                )}
+                                {project.showDescription &&
+                                  project.description && (
+                                    <p
+                                      style={{
+                                        fontSize: "10px",
+                                        color: "#374151",
+                                        marginBottom: "3px",
+                                        lineHeight: "1.4",
+                                      }}
+                                    >
+                                      {project.description}
+                                    </p>
+                                  )}
+                                {project.showLink && project.link && (
+                                  <div style={{ marginBottom: "3px" }}>
+                                    <a
+                                      href={project.link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      style={{
+                                        fontSize: "9px",
+                                        color: "#2563eb",
+                                        textDecoration: "none",
+                                        cursor: "pointer",
+                                        display: "block",
+                                        wordBreak: "break-all",
+                                      }}
+                                      onMouseEnter={(e) =>
+                                        ((
+                                          e.target as HTMLAnchorElement
+                                        ).style.textDecoration = "underline")
+                                      }
+                                      onMouseLeave={(e) =>
+                                        ((
+                                          e.target as HTMLAnchorElement
+                                        ).style.textDecoration = "none")
+                                      }
+                                    >
+                                      {project.link.replace(
+                                        /https?:\/\/(www\.)?/,
+                                        ""
+                                      )}
+                                    </a>
+                                  </div>
+                                )}
+                                {project.technologies.length > 0 && (
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      flexWrap: "wrap",
+                                      gap: "2px",
+                                      marginTop: "3px",
+                                    }}
+                                  >
+                                    {project.technologies.map(
+                                      (tech, techIndex) => (
+                                        <span
+                                          key={techIndex}
+                                          style={{
+                                            padding: "2px 4px",
+                                            backgroundColor: "#dbeafe",
+                                            color: "#1e40af",
+                                            fontSize: "8px",
+                                            borderRadius: "2px",
+                                            fontWeight: "500",
+                                          }}
+                                        >
+                                          {tech}
+                                        </span>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                {/* Certifications Section */}
+                {data.showCertifications &&
+                  Array.isArray(data.certifications) &&
+                  data.certifications.filter((cert) => cert.show).length >
+                    0 && (
+                    <>
+                      {renderSectionSpacer("certifications")}
+                      <div 
+                        className="cv-section" 
+                        data-section-id="certifications"
+                        style={{ 
+                          marginBottom: "7mm"
+                        }}
+                      >
+                        <h3
+                          style={{
+                            fontSize: "13px",
+                            fontWeight: "bold",
+                            color: "#111827",
+                            marginBottom: "5px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            borderBottom: "1px solid #111827",
+                            paddingBottom: "2px",
+                          }}
+                        >
+                          CERTIFICATIONS
+                        </h3>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "5px",
+                          }}
+                        >
+                          {data.certifications
+                            .filter((cert) => cert.show)
+                            .map((cert) => (
+                              <div key={cert.id}>
+                                <h4
+                                  style={{
+                                    fontSize: "13px",
+                                    fontWeight: "bold",
+                                    color: "#111827",
+                                    margin: "0 0 2px 0",
+                                  }}
+                                >
+                                  {cert.name}
+                                </h4>
+                                <p
+                                  className="resume-blue"
+                                  style={{
+                                    fontSize: "12px",
+                                    fontWeight: 600,
+                                    margin: "0 0 2px 0",
+                                  }}
+                                >
+                                  {cert.issuingOrganization}
                                 </p>
-                              )}
-                              {project.showDescription &&
-                                project.description && (
+                                {cert.showIssueDate && (
+                                  <p
+                                    style={{
+                                      fontSize: "11px",
+                                      color: "#6b7280",
+                                      margin: "0 0 2px 0",
+                                    }}
+                                  >
+                                    Issued:{" "}
+                                    {cert.issueDate.month
+                                      .toString()
+                                      .padStart(2, "0")}
+                                    /{cert.issueDate.year}
+                                    {cert.showExpirationDate &&
+                                      cert.expirationDate && (
+                                        <span>
+                                          {" "}
+                                          • Expires:{" "}
+                                          {cert.expirationDate.month
+                                            .toString()
+                                            .padStart(2, "0")}
+                                          /{cert.expirationDate.year}
+                                        </span>
+                                      )}
+                                  </p>
+                                )}
+                                {cert.showCredentialId && cert.credentialId && (
+                                  <p
+                                    style={{
+                                      fontSize: "11px",
+                                      color: "#374151",
+                                      margin: "0 0 2px 0",
+                                      wordBreak: "break-all",
+                                      overflowWrap: "anywhere",
+                                    }}
+                                  >
+                                    ID: {cert.credentialId}
+                                  </p>
+                                )}
+                                {cert.showCredentialUrl && cert.credentialUrl && (
+                                  <a
+                                    href={cert.credentialUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                      fontSize: "11px",
+                                      color: "#2563eb",
+                                      textDecoration: "none",
+                                      cursor: "pointer",
+                                      display: "inline-block",
+                                    }}
+                                    onMouseEnter={(e) =>
+                                      ((
+                                        e.target as HTMLAnchorElement
+                                      ).style.textDecoration = "underline")
+                                    }
+                                    onMouseLeave={(e) =>
+                                      ((
+                                        e.target as HTMLAnchorElement
+                                      ).style.textDecoration = "none")
+                                    }
+                                  >
+                                    View Certificate
+                                  </a>
+                                )}
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                {/* Skills Section */}
+                {data.showSkills &&
+                  data.skills.filter((skill) => skill.show).length > 0 && (
+                    <>
+                      {renderSectionSpacer("skills")}
+                      <div 
+                        className="cv-section" 
+                        data-section-id="skills"
+                        style={{ 
+                          marginBottom: "7mm"
+                        }}
+                      >
+                        <h3
+                          style={{
+                            fontSize: "13px",
+                            fontWeight: "bold",
+                            color: "#111827",
+                            marginBottom: "7px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                          }}
+                        >
+                          SKILLS
+                        </h3>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "7px 7px",
+                            boxSizing: "border-box",
+                            width: "100%",
+                            alignItems: "flex-start",
+                            padding: 0,
+                            margin: 0,
+                          }}
+                        >
+                          {data.skills
+                            .filter((skill) => skill.show)
+                            .map((skill, index) => (
+                              <span
+                                key={index}
+                                style={{
+                                  padding: "3px 7px",
+                                  backgroundColor: "#ffffff",
+                                  color: "#374151",
+                                  fontSize: "10px",
+                                  borderRadius: "3px",
+                                  fontWeight: "500",
+                                  border: "1px solid #d1d5db",
+                                  letterSpacing: "0.1px",
+                                  maxWidth: "100%",
+                                  boxSizing: "border-box",
+                                  display: "inline-block",
+                                  overflow: "hidden",
+                                  wordBreak: "break-word",
+                                }}
+                              >
+                                {skill.name}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                {/* Languages Section */}
+                {data.showLanguages &&
+                  data.languages.filter((lang) => lang.show).length > 0 && (
+                    <>
+                      {renderSectionSpacer("languages")}
+                      <div 
+                        className="cv-section" 
+                        data-section-id="languages"
+                        style={{ 
+                          marginBottom: "7mm"
+                        }}
+                      >
+                        <h3
+                          style={{
+                            fontSize: "13px",
+                            fontWeight: "bold",
+                            color: "#111827",
+                            marginBottom: "5px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                          }}
+                        >
+                          LANGUAGES
+                        </h3>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "5px",
+                          }}
+                        >
+                          {data.languages
+                            .filter((lang) => lang.show)
+                            .map((language, index) => (
+                              <div key={index}>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: "11px",
+                                      fontWeight: "600",
+                                      color: "#111827",
+                                    }}
+                                  >
+                                    {language.name}
+                                  </span>
+                                  <span
+                                    style={{
+                                      fontSize: "9px",
+                                      color: "#6b7280",
+                                    }}
+                                  >
+                                    {language.levelText}
+                                  </span>
+                                </div>
+                                {renderSkillLevel(language.level)}
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                {/* Strengths Section */}
+                {data.showStrengths &&
+                  Array.isArray(data.strengths) &&
+                  data.strengths.filter((strength) => strength.show).length >
+                    0 && (
+                    <>
+                      {renderSectionSpacer("strengths")}
+                      <div 
+                        className="cv-section" 
+                        data-section-id="strengths"
+                        style={{ 
+                          marginBottom: "7mm"
+                        }}
+                      >
+                        <h3
+                          style={{
+                            fontSize: "13px",
+                            fontWeight: "bold",
+                            color: "#111827",
+                            marginBottom: "5px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                          }}
+                        >
+                          STRENGTHS
+                        </h3>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "5px",
+                          }}
+                        >
+                          {data.strengths
+                            .filter((strength) => strength.show)
+                            .map((strength) => (
+                              <div key={strength.id}>
+                                <h4
+                                  style={{
+                                    fontSize: "11px",
+                                    fontWeight: "bold",
+                                    color: "#111827",
+                                    margin: "0 0 2px 0",
+                                  }}
+                                >
+                                  {strength.title}
+                                </h4>
+                                {strength.description && (
                                   <p
                                     style={{
                                       fontSize: "10px",
                                       color: "#374151",
-                                      marginBottom: "3px",
                                       lineHeight: "1.4",
+                                      margin: "0",
                                     }}
                                   >
-                                    {project.description}
+                                    {strength.description}
                                   </p>
                                 )}
-                              {project.showLink && project.link && (
-                                <div style={{ marginBottom: "3px" }}>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                {/* Interests Section */}
+                {data.showInterests &&
+                  Array.isArray(data.interests) &&
+                  data.interests.filter((interest) => interest.show).length >
+                    0 && (
+                    <>
+                      {renderSectionSpacer("interests")}
+                      <div 
+                        className="cv-section" 
+                        data-section-id="interests"
+                        style={{ 
+                          marginBottom: "7mm"
+                        }}
+                      >
+                        <h3
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: "bold",
+                            color: "#111827",
+                            marginBottom: "4px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                          }}
+                        >
+                          INTERESTS
+                        </h3>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "4px",
+                          }}
+                        >
+                          {data.interests
+                            .filter((interest) => interest.show)
+                            .map((interest) => (
+                              <div key={interest.id}>
+                                <h4
+                                  style={{
+                                    fontSize: "10px",
+                                    fontWeight: "bold",
+                                    color: "#111827",
+                                    margin: "0 0 1px 0",
+                                  }}
+                                >
+                                  {interest.title}
+                                </h4>
+                                {interest.description && (
+                                  <p
+                                    style={{
+                                      fontSize: "9px",
+                                      color: "#374151",
+                                      lineHeight: "1.3",
+                                      margin: "0",
+                                    }}
+                                  >
+                                    {interest.description}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                {/* Activities Section */}
+                {data.showActivities &&
+                  data.activities.filter((activity) => activity.show).length >
+                    0 && (
+                    <>
+                      {renderSectionSpacer("activities")}
+                      <div 
+                        className="cv-section" 
+                        data-section-id="activities"
+                        style={{ 
+                          marginBottom: "0"
+                        }}
+                      >
+                        <h3
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: "bold",
+                            color: "#111827",
+                            marginBottom: "4px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                          }}
+                        >
+                          ACTIVITIES
+                        </h3>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "4px",
+                          }}
+                        >
+                          {data.activities
+                            .filter((activity) => activity.show)
+                            .map((activity) => (
+                              <div key={activity.id}>
+                                <h4
+                                  style={{
+                                    fontSize: "10px",
+                                    fontWeight: "bold",
+                                    color: "#111827",
+                                    margin: "0 0 1px 0",
+                                  }}
+                                >
+                                  {activity.title}
+                                </h4>
+                                {activity.showLocation && activity.location && (
+                                  <p
+                                    style={{
+                                      fontSize: "8px",
+                                      color: "#6b7280",
+                                      margin: "0 0 1px 0",
+                                    }}
+                                  >
+                                    {activity.location}
+                                  </p>
+                                )}
+                                {activity.showDateRange && activity.dateRange && (
+                                  <p
+                                    style={{
+                                      fontSize: "8px",
+                                      color: "#6b7280",
+                                      margin: "0 0 1px 0",
+                                    }}
+                                  >
+                                    {formatDateRange(activity.dateRange)}
+                                  </p>
+                                )}
+                                {activity.showDescription &&
+                                  activity.description && (
+                                    <p
+                                      style={{
+                                        fontSize: "9px",
+                                        color: "#374151",
+                                        lineHeight: "1.3",
+                                      }}
+                                    >
+                                      {activity.description}
+                                    </p>
+                                  )}
+                                {activity.showLink && activity.link && (
                                   <a
-                                    href={project.link}
+                                    href={activity.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     style={{
-                                      fontSize: "9px",
+                                      fontSize: "8px",
                                       color: "#2563eb",
                                       textDecoration: "none",
                                       cursor: "pointer",
@@ -1259,583 +1928,54 @@ const ResumeContent: React.FC<{
                                       ).style.textDecoration = "none")
                                     }
                                   >
-                                    {project.link.replace(
+                                    {activity.link.replace(
                                       /https?:\/\/(www\.)?/,
                                       ""
                                     )}
                                   </a>
-                                </div>
-                              )}
-                              {project.technologies.length > 0 && (
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    flexWrap: "wrap",
-                                    gap: "2px",
-                                    marginTop: "3px",
-                                  }}
-                                >
-                                  {project.technologies.map(
-                                    (tech, techIndex) => (
-                                      <span
-                                        key={techIndex}
-                                        style={{
-                                          padding: "2px 4px",
-                                          backgroundColor: "#dbeafe",
-                                          color: "#1e40af",
-                                          fontSize: "8px",
-                                          borderRadius: "2px",
-                                          fontWeight: "500",
-                                        }}
-                                      >
-                                        {tech}
-                                      </span>
-                                    )
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Certifications Section */}
-                {data.showCertifications &&
-                  Array.isArray(data.certifications) &&
-                  data.certifications.filter((cert) => cert.show).length >
-                    0 && (
-                    <div 
-                      className="cv-section" 
-                      data-section-id="certifications"
-                      style={{ 
-                        marginBottom: "7mm",
-                        marginTop: sectionMargins["certifications"] ? `${sectionMargins["certifications"]}px` : undefined
-                      }}
-                    >
-                      <h3
-                        style={{
-                          fontSize: "13px",
-                          fontWeight: "bold",
-                          color: "#111827",
-                          marginBottom: "5px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          borderBottom: "1px solid #111827",
-                          paddingBottom: "2px",
-                        }}
-                      >
-                        CERTIFICATIONS
-                      </h3>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "5px",
-                        }}
-                      >
-                        {data.certifications
-                          .filter((cert) => cert.show)
-                          .map((cert) => (
-                            <div key={cert.id}>
-                              <h4
-                                style={{
-                                  fontSize: "13px",
-                                  fontWeight: "bold",
-                                  color: "#111827",
-                                  margin: "0 0 2px 0",
-                                }}
-                              >
-                                {cert.name}
-                              </h4>
-                              <p
-                                className="resume-blue"
-                                style={{
-                                  fontSize: "12px",
-                                  fontWeight: 600,
-                                  margin: "0 0 2px 0",
-                                }}
-                              >
-                                {cert.issuingOrganization}
-                              </p>
-                              {cert.showIssueDate && (
-                                <p
-                                  style={{
-                                    fontSize: "11px",
-                                    color: "#6b7280",
-                                    margin: "0 0 2px 0",
-                                  }}
-                                >
-                                  Issued:{" "}
-                                  {cert.issueDate.month
-                                    .toString()
-                                    .padStart(2, "0")}
-                                  /{cert.issueDate.year}
-                                  {cert.showExpirationDate &&
-                                    cert.expirationDate && (
-                                      <span>
-                                        {" "}
-                                        • Expires:{" "}
-                                        {cert.expirationDate.month
-                                          .toString()
-                                          .padStart(2, "0")}
-                                        /{cert.expirationDate.year}
-                                      </span>
-                                    )}
-                                </p>
-                              )}
-                              {cert.showCredentialId && cert.credentialId && (
-                                <p
-                                  style={{
-                                    fontSize: "11px",
-                                    color: "#374151",
-                                    margin: "0 0 2px 0",
-                                    wordBreak: "break-all",
-                                    overflowWrap: "anywhere",
-                                  }}
-                                >
-                                  ID: {cert.credentialId}
-                                </p>
-                              )}
-                              {cert.showCredentialUrl && cert.credentialUrl && (
-                                <a
-                                  href={cert.credentialUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    fontSize: "11px",
-                                    color: "#2563eb",
-                                    textDecoration: "none",
-                                    cursor: "pointer",
-                                    display: "inline-block",
-                                  }}
-                                  onMouseEnter={(e) =>
-                                    ((
-                                      e.target as HTMLAnchorElement
-                                    ).style.textDecoration = "underline")
-                                  }
-                                  onMouseLeave={(e) =>
-                                    ((
-                                      e.target as HTMLAnchorElement
-                                    ).style.textDecoration = "none")
-                                  }
-                                >
-                                  View Certificate
-                                </a>
-                              )}
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Skills Section */}
-                {data.showSkills &&
-                  data.skills.filter((skill) => skill.show).length > 0 && (
-                    <div 
-                      className="cv-section" 
-                      data-section-id="skills"
-                      style={{ 
-                        marginBottom: "7mm",
-                        marginTop: sectionMargins["skills"] ? `${sectionMargins["skills"]}px` : undefined
-                      }}
-                    >
-                      <h3
-                        style={{
-                          fontSize: "13px",
-                          fontWeight: "bold",
-                          color: "#111827",
-                          marginBottom: "7px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                        }}
-                      >
-                        SKILLS
-                      </h3>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: "7px 7px",
-                          boxSizing: "border-box",
-                          width: "100%",
-                          alignItems: "flex-start",
-                          padding: 0,
-                          margin: 0,
-                        }}
-                      >
-                        {data.skills
-                          .filter((skill) => skill.show)
-                          .map((skill, index) => (
-                            <span
-                              key={index}
-                              style={{
-                                padding: "3px 7px",
-                                backgroundColor: "#ffffff",
-                                color: "#374151",
-                                fontSize: "10px",
-                                borderRadius: "3px",
-                                fontWeight: "500",
-                                border: "1px solid #d1d5db",
-                                letterSpacing: "0.1px",
-                                maxWidth: "100%",
-                                boxSizing: "border-box",
-                                display: "inline-block",
-                                overflow: "hidden",
-                                // No whiteSpace or textOverflow, allow wrapping
-                                wordBreak: "break-word",
-                              }}
-                            >
-                              {skill.name}
-                            </span>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Languages Section */}
-                {data.showLanguages &&
-                  data.languages.filter((lang) => lang.show).length > 0 && (
-                    <div 
-                      className="cv-section" 
-                      data-section-id="languages"
-                      style={{ 
-                        marginBottom: "7mm",
-                        marginTop: sectionMargins["languages"] ? `${sectionMargins["languages"]}px` : undefined
-                      }}
-                    >
-                      <h3
-                        style={{
-                          fontSize: "13px",
-                          fontWeight: "bold",
-                          color: "#111827",
-                          marginBottom: "5px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                        }}
-                      >
-                        LANGUAGES
-                      </h3>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "5px",
-                        }}
-                      >
-                        {data.languages
-                          .filter((lang) => lang.show)
-                          .map((language, index) => (
-                            <div key={index}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  alignItems: "center",
-                                  marginBottom: "2px",
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    fontSize: "11px",
-                                    fontWeight: "600",
-                                    color: "#111827",
-                                  }}
-                                >
-                                  {language.name}
-                                </span>
-                                <span
-                                  style={{
-                                    fontSize: "9px",
-                                    color: "#6b7280",
-                                  }}
-                                >
-                                  {language.levelText}
-                                </span>
-                              </div>
-                              {renderSkillLevel(language.level)}
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Strengths Section */}
-                {data.showStrengths &&
-                  Array.isArray(data.strengths) &&
-                  data.strengths.filter((strength) => strength.show).length >
-                    0 && (
-                    <div 
-                      className="cv-section" 
-                      data-section-id="strengths"
-                      style={{ 
-                        marginBottom: "7mm",
-                        marginTop: sectionMargins["strengths"] ? `${sectionMargins["strengths"]}px` : undefined
-                      }}
-                    >
-                      <h3
-                        style={{
-                          fontSize: "13px",
-                          fontWeight: "bold",
-                          color: "#111827",
-                          marginBottom: "5px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                        }}
-                      >
-                        STRENGTHS
-                      </h3>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "5px",
-                        }}
-                      >
-                        {data.strengths
-                          .filter((strength) => strength.show)
-                          .map((strength) => (
-                            <div key={strength.id}>
-                              <h4
-                                style={{
-                                  fontSize: "11px",
-                                  fontWeight: "bold",
-                                  color: "#111827",
-                                  margin: "0 0 2px 0",
-                                }}
-                              >
-                                {strength.title}
-                              </h4>
-                              {strength.description && (
-                                <p
-                                  style={{
-                                    fontSize: "10px",
-                                    color: "#374151",
-                                    lineHeight: "1.4",
-                                    margin: "0",
-                                  }}
-                                >
-                                  {strength.description}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Interests Section */}
-                {data.showInterests &&
-                  Array.isArray(data.interests) &&
-                  data.interests.filter((interest) => interest.show).length >
-                    0 && (
-                    <div 
-                      className="cv-section" 
-                      data-section-id="interests"
-                      style={{ 
-                        marginBottom: "7mm",
-                        marginTop: sectionMargins["interests"] ? `${sectionMargins["interests"]}px` : undefined
-                      }}
-                    >
-                      <h3
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: "bold",
-                          color: "#111827",
-                          marginBottom: "4px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                        }}
-                      >
-                        INTERESTS
-                      </h3>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "4px",
-                        }}
-                      >
-                        {data.interests
-                          .filter((interest) => interest.show)
-                          .map((interest) => (
-                            <div key={interest.id}>
-                              <h4
-                                style={{
-                                  fontSize: "10px",
-                                  fontWeight: "bold",
-                                  color: "#111827",
-                                  margin: "0 0 1px 0",
-                                }}
-                              >
-                                {interest.title}
-                              </h4>
-                              {interest.description && (
-                                <p
-                                  style={{
-                                    fontSize: "9px",
-                                    color: "#374151",
-                                    lineHeight: "1.3",
-                                    margin: "0",
-                                  }}
-                                >
-                                  {interest.description}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Activities Section */}
-                {data.showActivities &&
-                  data.activities.filter((activity) => activity.show).length >
-                    0 && (
-                    <div 
-                      className="cv-section" 
-                      data-section-id="activities"
-                      style={{ 
-                        marginBottom: "0",
-                        marginTop: sectionMargins["activities"] ? `${sectionMargins["activities"]}px` : undefined
-                      }}
-                    >
-                      <h3
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: "bold",
-                          color: "#111827",
-                          marginBottom: "4px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                        }}
-                      >
-                        ACTIVITIES
-                      </h3>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "4px",
-                        }}
-                      >
-                        {data.activities
-                          .filter((activity) => activity.show)
-                          .map((activity) => (
-                            <div key={activity.id}>
-                              <h4
-                                style={{
-                                  fontSize: "10px",
-                                  fontWeight: "bold",
-                                  color: "#111827",
-                                  margin: "0 0 1px 0",
-                                }}
-                              >
-                                {activity.title}
-                              </h4>
-                              {activity.showLocation && activity.location && (
-                                <p
-                                  style={{
-                                    fontSize: "8px",
-                                    color: "#6b7280",
-                                    margin: "0 0 1px 0",
-                                  }}
-                                >
-                                  {activity.location}
-                                </p>
-                              )}
-                              {activity.showDateRange && activity.dateRange && (
-                                <p
-                                  style={{
-                                    fontSize: "8px",
-                                    color: "#6b7280",
-                                    margin: "0 0 1px 0",
-                                  }}
-                                >
-                                  {formatDateRange(activity.dateRange)}
-                                </p>
-                              )}
-                              {activity.showDescription &&
-                                activity.description && (
-                                  <p
-                                    style={{
-                                      fontSize: "9px",
-                                      color: "#374151",
-                                      lineHeight: "1.3",
-                                    }}
-                                  >
-                                    {activity.description}
-                                  </p>
                                 )}
-                              {activity.showLink && activity.link && (
-                                <a
-                                  href={activity.link}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    fontSize: "8px",
-                                    color: "#2563eb",
-                                    textDecoration: "none",
-                                    cursor: "pointer",
-                                    display: "block",
-                                    wordBreak: "break-all",
-                                  }}
-                                  onMouseEnter={(e) =>
-                                    ((
-                                      e.target as HTMLAnchorElement
-                                    ).style.textDecoration = "underline")
-                                  }
-                                  onMouseLeave={(e) =>
-                                    ((
-                                      e.target as HTMLAnchorElement
-                                    ).style.textDecoration = "none")
-                                  }
-                                >
-                                  {activity.link.replace(
-                                    /https?:\/\/(www\.)?/,
-                                    ""
-                                  )}
-                                </a>
-                              )}
-                            </div>
-                          ))}
+                              </div>
+                            ))}
+                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
 
                 {/* References Section */}
                 {data.showReferences && data.references && (
-                  <div 
-                    className="cv-section" 
-                    data-section-id="references"
-                    style={{ 
-                      marginBottom: "0",
-                      marginTop: sectionMargins["references"] ? `${sectionMargins["references"]}px` : undefined
-                    }}
-                  >
-                    <h3
-                      style={{
-                        fontSize: "12px",
-                        fontWeight: "bold",
-                        color: "#111827",
-                        marginBottom: "4px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
+                  <>
+                    {renderSectionSpacer("references")}
+                    <div 
+                      className="cv-section" 
+                      data-section-id="references"
+                      style={{ 
+                        marginBottom: "0"
                       }}
                     >
-                      REFERENCES
-                    </h3>
-                    <p
-                      style={{
-                        fontSize: "10px",
-                        color: "#374151",
-                        lineHeight: "1.3",
-                        margin: "0",
-                      }}
-                    >
-                      {data.references}
-                    </p>
-                  </div>
+                      <h3
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          color: "#111827",
+                          marginBottom: "4px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                        }}
+                      >
+                        REFERENCES
+                      </h3>
+                      <p
+                        style={{
+                          fontSize: "10px",
+                          color: "#374151",
+                          lineHeight: "1.3",
+                          margin: "0",
+                        }}
+                      >
+                        {data.references}
+                      </p>
+                    </div>
+                  </>
                 )}
               </div>
             </div>

@@ -56,7 +56,7 @@ export const ReferencesEditor: React.FC = () => {
                 />
                 <Box sx={{ px: { xs: 2, sm: 2 }, pb: 2 }}>
                     <Typography variant="body2" color="text.secondary">
-                        List your professional references or state "References available upon request".
+                        List your professional references or state &quot;References available upon request&quot;.
                     </Typography>
                 </Box>
                 <CardContent sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 3 } }}>
@@ -97,7 +97,7 @@ export const ReferencesEditor: React.FC = () => {
                             <Box component="ul" sx={{ pl: 2, m: 0 }}>
                                 <li>Include name, title, company, and contact info</li>
                                 <li>Make sure you have permission from your references</li>
-                                <li>You can also just write "Available upon request" if saving space</li>
+                                <li>You can also just write &quot;Available upon request&quot; if saving space</li>
                             </Box>
                         </Typography>
                     </Paper>
