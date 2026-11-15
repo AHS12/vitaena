@@ -5,6 +5,7 @@
 
 import {ChevronRight, Eye, EyeOff, Plus, Trash2} from 'lucide-react'
 import {BulletList} from '../../components/BulletList'
+import {FORMATTING_HINT} from '../../components/format-keys'
 import {MonthField, TextArea, TextField} from '../../components/fields'
 import {DragHandle, SortableList, type HandleProps} from '../../components/Sortable'
 import {moveItem} from '../../core/list'
@@ -12,10 +13,17 @@ import {TagInput} from '../../components/TagInput'
 import {emptyEntry, type CvEntry, type CvSection, type CvTagGroup} from '../cv'
 import {datesText} from '../render-model'
 import type {useCvEdit} from '../use-cv-edit'
-import {emptyGroup, entryWords, removeSection, updateEntries, updateEntry, updateGroup, updateGroups, updateSection} from './edit-ops'
+import {emptyGroup, entryWords, removeSection, toggled, updateEntries, updateEntry, updateGroup, updateGroups, updateSection} from './edit-ops'
 import {useEditorStore} from './editor-store'
+import {ShowParts} from './ShowParts'
 
 type Edit = ReturnType<typeof useCvEdit>
+
+const ENTRY_PARTS = [
+    {id: 'location', label: 'Location'},
+    {id: 'dates', label: 'Dates'},
+    {id: 'summary', label: 'Summary'},
+] as const
 
 function VisibilityButton({visible, what, onToggle}: {visible: boolean; what: string; onToggle(): void}) {
     return (
@@ -58,8 +66,13 @@ function EntryCard({sectionId, sectionTitle, entry, handle, edit}: {sectionId: s
                         <MonthField label="From" value={entry.start} onChange={(start) => edit.act('dates', (cv) => updateEntry(cv, sectionId, entry.id, {start}))} />
                         <MonthField label="To" value={entry.end} present={entry.current} presentLabel="Present" onChange={(end, current) => edit.act('dates', (cv) => updateEntry(cv, sectionId, entry.id, {end, current}))} />
                     </div>
-                    <TextArea label="Summary" value={entry.summary} minRows={1} hint="Optional. One or two lines on the role as a whole." onChange={(summary) => update({summary})} />
+                    <TextArea label="Summary" value={entry.summary} minRows={1} formatting hint="Optional. One or two lines on the role as a whole." onChange={(summary) => update({summary})} />
                     <BulletList label="Achievements" values={entry.bullets} placeholder="Cut build times by 40% by…" onChange={(bullets) => update({bullets})} />
+                    <ShowParts
+                        parts={ENTRY_PARTS}
+                        hidden={entry.hide}
+                        onToggle={(part) => edit.act('show part', (cv) => updateEntry(cv, sectionId, entry.id, {hide: toggled(entry.hide, part)}))}
+                    />
                 </div>
             ) : null}
         </div>
@@ -118,6 +131,8 @@ export function SectionPanel({section, handle, edit}: {section: CvSection; handl
                             label="Text"
                             value={section.text}
                             minRows={3}
+                            formatting
+                            hint={FORMATTING_HINT}
                             placeholder="Two or three sentences on who you are and what you're best at."
                             onChange={(text) => edit.type((cv) => updateSection(cv, section.id, (item) => (item.kind === 'text' ? {...item, text} : item)))}
                             onBlur={edit.commit}

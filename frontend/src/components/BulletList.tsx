@@ -7,6 +7,7 @@
 import {Plus} from 'lucide-react'
 import {useLayoutEffect, useRef} from 'react'
 import {moveItem} from '../core/list'
+import {formatShortcut} from './format-keys'
 import {DragHandle, SortableList} from './Sortable'
 
 /** Longer than this, a bullet is often cut short by screening software and skimmed by people. */
@@ -78,7 +79,7 @@ export function BulletList({label, values, onChange, placeholder}: {label: strin
                                 const start = area.selectionStart
                                 const end = area.selectionEnd
 
-                                if (event.altKey) {
+                                if (event.altKey || formatShortcut(event, (text) => onChange(values.map((item, at) => (at === index ? text : item))))) {
                                     return
                                 }
 

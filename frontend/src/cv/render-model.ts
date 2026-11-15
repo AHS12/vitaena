@@ -9,14 +9,15 @@
 
 import type {Cv, CvEntry} from './cv'
 import {fontById} from './fonts'
+import {parseRich, type Span} from './rich'
 
 export interface RenderEntry {
     readonly title: string
     readonly org: string
     readonly location: string
     readonly dates: string
-    readonly summary: string
-    readonly bullets: readonly string[]
+    readonly summary: readonly Span[]
+    readonly bullets: readonly (readonly Span[])[]
 }
 
 export interface RenderTagGroup {
@@ -25,7 +26,7 @@ export interface RenderTagGroup {
 }
 
 export type RenderSection =
-    | {readonly kind: 'text'; readonly title: string; readonly text: string}
+    | {readonly kind: 'text'; readonly title: string; readonly paragraphs: readonly (readonly Span[])[]}
     | {readonly kind: 'entries'; readonly title: string; readonly entries: readonly RenderEntry[]}
     | {readonly kind: 'tags'; readonly title: string; readonly groups: readonly RenderTagGroup[]}
 
@@ -83,9 +84,9 @@ const asUrl = (url: string): string => (/^[a-z][a-z0-9+.-]*:/i.test(url.trim()) 
 export function renderModel(cv: Cv): RenderModel {
     const {person} = cv
     const contact = [
-        person.email.trim() ? {text: person.email.trim(), url: `mailto:${person.email.trim()}`} : null,
-        person.phone.trim() ? {text: person.phone.trim(), url: `tel:${person.phone.replace(/[^\d+]/g, '')}`} : null,
-        person.location.trim() ? {text: person.location.trim(), url: ''} : null,
+        person.email.trim() && !person.hide.includes('email') ? {text: person.email.trim(), url: `mailto:${person.email.trim()}`} : null,
+        person.phone.trim() && !person.hide.includes('phone') ? {text: person.phone.trim(), url: `tel:${person.phone.replace(/[^\d+]/g, '')}`} : null,
+        person.location.trim() && !person.hide.includes('location') ? {text: person.location.trim(), url: ''} : null,
         // A link is written out in full, so a parser that drops links still has the address.
         ...person.links.filter((link) => link.url.trim()).map((link) => ({text: linkText(link.url), url: asUrl(link.url)})),
     ].filter((item) => item !== null)
@@ -100,8 +101,14 @@ export function renderModel(cv: Cv): RenderModel {
         const title = section.title.trim()
 
         if (section.kind === 'text') {
-            if (section.text.trim()) {
-                sections.push({kind: 'text', title, text: section.text.trim()})
+            const paragraphs = section.text
+                .split('\n')
+                .map(trimmed)
+                .filter(Boolean)
+                .map(parseRich)
+
+            if (paragraphs.length > 0) {
+                sections.push({kind: 'text', title, paragraphs})
             }
         } else if (section.kind === 'entries') {
             const entries = section.entries
@@ -109,10 +116,10 @@ export function renderModel(cv: Cv): RenderModel {
                 .map((entry) => ({
                     title: entry.title.trim(),
                     org: entry.org.trim(),
-                    location: entry.location.trim(),
-                    dates: datesText(entry),
-                    summary: entry.summary.trim(),
-                    bullets: entry.bullets.map(trimmed).filter(Boolean),
+                    location: entry.hide.includes('location') ? '' : entry.location.trim(),
+                    dates: entry.hide.includes('dates') ? '' : datesText(entry),
+                    summary: entry.hide.includes('summary') ? [] : parseRich(entry.summary.trim()),
+                    bullets: entry.bullets.map(trimmed).filter(Boolean).map(parseRich),
                 }))
 
             if (entries.length > 0) {

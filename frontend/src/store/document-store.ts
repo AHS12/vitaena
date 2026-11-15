@@ -35,6 +35,29 @@ import {
 export const documentType = cvType
 export type Content = Cv
 
+/** The document an older app's file becomes, or null when it isn't one the document type knows. */
+function adoptedFrom(text: string): {name: string; content: Content} | null {
+    if (!documentType.adopt) {
+        return null
+    }
+
+    try {
+        const raw: unknown = JSON.parse(text)
+
+        // A file of this app's own goes through the usual checks instead.
+        if (typeof raw === 'object' && raw !== null && 'generator' in raw) {
+            return null
+        }
+
+        const adopted = documentType.adopt(raw)
+
+        // The result must pass the same checks as any file.
+        return adopted ? {name: adopted.name, content: documentType.content.parse(adopted.content)} : null
+    } catch {
+        return null
+    }
+}
+
 /** Which screen is showing. Home and the library show no document, so editing commands sleep there. */
 export type Page = 'home' | 'documents' | 'editor'
 
@@ -357,6 +380,20 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
                 const opened = await openDocumentFile(`Open a ${documentType.noun}`)
 
                 if (!opened) {
+                    return
+                }
+
+                // A file from an older app comes in as a new document, never saved over.
+                const adopted = adoptedFrom(opened.text)
+
+                if (adopted) {
+                    take(adopted.content, {
+                        name: adopted.name,
+                        currentId: null,
+                        filePath: null,
+                        extras: {},
+                        toast: {message: `Brought in ${fileNameOf(opened.path)}. Save it to keep it.`, undoable: false},
+                    })
                     return
                 }
 

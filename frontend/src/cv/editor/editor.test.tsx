@@ -187,3 +187,38 @@ describe('the CV editor', () => {
         expect(screen.getByRole('button', {name: /Senior Software Engineer, Bkash Labs.*Mar 2022 – Present/})).toHaveAttribute('aria-expanded', 'false')
     })
 })
+
+describe('formatting and showing parts', () => {
+    beforeEach(() => {
+        window.localStorage.clear()
+        useDocumentStore.getState().startNew()
+        useDocumentStore.getState().previewEdit(sampleCv())
+    })
+
+    it('makes the selected words bold with Ctrl+B', () => {
+        render(<Bullets initial={['Cut costs by 20%']} />)
+        const bullet = screen.getByRole('textbox', {name: 'Achievements, bullet 1'}) as HTMLTextAreaElement
+
+        bullet.setSelectionRange(4, 9)
+        fireEvent.keyDown(bullet, {key: 'b', ctrlKey: true})
+
+        expect(valuesNow()).toEqual(['Cut **costs** by 20%'])
+    })
+
+    it('leaves an entry\'s dates off the page, keeping them, as one step to undo', () => {
+        render(<CvEditor />)
+
+        fireEvent.click(screen.getByRole('button', {name: /^Senior Software Engineer, Bkash Labs/, expanded: false}))
+        fireEvent.click(screen.getByRole('button', {name: 'Dates', pressed: true}))
+
+        const entry = () => {
+            const section = useDocumentStore.getState().content.sections[1]
+
+            return section.kind === 'entries' ? section.entries[0] : null
+        }
+
+        expect(entry()).toMatchObject({start: '2022-03', hide: ['dates']})
+        useDocumentStore.getState().undo()
+        expect(entry()?.hide).toEqual([])
+    })
+})

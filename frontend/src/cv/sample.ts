@@ -16,6 +16,7 @@ const job = (id: string, title: string, org: string, start: string, end: string,
     current,
     summary: '',
     bullets,
+    hide: [],
 })
 
 export function sampleCv(): Cv {
@@ -27,6 +28,7 @@ export function sampleCv(): Cv {
             phone: '+880 1700 000000',
             location: 'Dhaka, Bangladesh',
             links: [{id: 'link-1', label: '', url: 'https://linkedin.com/in/nadia-rahman-example'}],
+            hide: [],
         },
         sections: [
             {
@@ -65,6 +67,7 @@ export function sampleCv(): Cv {
                         current: false,
                         summary: 'Thesis on fast route planning for city delivery fleets.',
                         bullets: [],
+                        hide: [],
                     },
                 ],
             },

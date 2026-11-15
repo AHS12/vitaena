@@ -29,6 +29,11 @@ export interface DocumentType<T> {
     readonly migrations?: Readonly<Record<number, (content: unknown) => unknown>>
     /** A small picture of the content for the library, as a PNG data URL, or null for none. */
     thumbnail?(content: T): Promise<string | null>
+    /**
+     * Recognises a file from another app, or an older one with a different shape, and
+     * turns it into a document. Null when it doesn't recognise it.
+     */
+    adopt?(raw: unknown): {readonly name: string; readonly content: T} | null
 }
 
 /** What loading a document gives back. */

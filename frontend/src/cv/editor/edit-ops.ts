@@ -94,3 +94,6 @@ export const emailWarning = (email: string): string | null =>
 
 export const linkWarning = (url: string): string | null =>
     url.trim() && !/^(https?:\/\/)?[^\s/]+\.[^\s]{2,}/i.test(url.trim()) ? 'Links look like linkedin.com/in/your-name.' : null
+
+/** The list with part added or taken out: for the parts shown or hidden on the CV. */
+export const toggled = <P extends string>(list: readonly P[], part: P): P[] => (list.includes(part) ? list.filter((item) => item !== part) : [...list, part])

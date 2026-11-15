@@ -6,15 +6,22 @@ import {TextField} from '../../components/fields'
 import {SortableList} from '../../components/Sortable'
 import {newId, type Cv, type CvPerson} from '../cv'
 import type {useCvEdit} from '../use-cv-edit'
-import {emailWarning, linkWarning, moveSection, newSection, SECTION_CHOICES, updatePerson} from './edit-ops'
+import {emailWarning, linkWarning, moveSection, newSection, SECTION_CHOICES, toggled, updatePerson} from './edit-ops'
 import {useEditorStore} from './editor-store'
 import {CheckPanel} from './CheckPanel'
 import {DesignPanel} from './DesignPanel'
 import {SectionPanel} from './SectionPanel'
+import {ShowParts} from './ShowParts'
 
 type Edit = ReturnType<typeof useCvEdit>
 
 const PERSON = 'person'
+
+const PERSON_PARTS = [
+    {id: 'email', label: 'Email'},
+    {id: 'phone', label: 'Phone'},
+    {id: 'location', label: 'Location'},
+] as const
 
 const TAB_LABELS = {content: 'Content', design: 'Design', check: 'Check'} as const
 
@@ -40,6 +47,11 @@ function PersonPanel({person, edit}: {person: CvPerson; edit: Edit}) {
                         <TextField label="Phone" type="tel" value={person.phone} placeholder="+880 1700 000000" autoComplete="tel" onChange={set('phone')} />
                     </div>
                     <TextField label="Location" value={person.location} placeholder="City, Country" onChange={set('location')} />
+                    <ShowParts
+                        parts={PERSON_PARTS}
+                        hidden={person.hide}
+                        onToggle={(part) => edit.act('show part', (cv) => updatePerson(cv, {hide: toggled(cv.person.hide, part)}))}
+                    />
                     <div className="form-field">
                         <span className="form-field__label">Links</span>
                         {person.links.map((link) => (

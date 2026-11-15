@@ -8,6 +8,7 @@
 
 import {z} from 'zod'
 import type {DocumentType} from '../core/document/document-file'
+import {cvFromV1} from './import-v1'
 
 /** A month as "2023-01", or "" when not given. */
 const month = z.union([z.literal(''), z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/)])
@@ -25,6 +26,8 @@ const personSchema = z.object({
     phone: z.string(),
     location: z.string(),
     links: z.array(linkSchema),
+    /** Details kept but left off the page. */
+    hide: z.array(z.enum(['email', 'phone', 'location'])),
 })
 
 const entrySchema = z.object({
@@ -40,6 +43,8 @@ const entrySchema = z.object({
     current: z.boolean(),
     summary: z.string(),
     bullets: z.array(z.string()),
+    /** Parts kept but left off the page. */
+    hide: z.array(z.enum(['location', 'dates', 'summary'])),
 })
 
 const tagGroupSchema = z.object({
@@ -86,6 +91,8 @@ export type CvSection = Cv['sections'][number]
 export type CvEntry = z.infer<typeof entrySchema>
 export type CvTagGroup = z.infer<typeof tagGroupSchema>
 export type CvDesign = Cv['design']
+export type EntryPart = CvEntry['hide'][number]
+export type PersonPart = CvPerson['hide'][number]
 
 let counter = 0
 
@@ -103,6 +110,7 @@ export const emptyEntry = (): CvEntry => ({
     current: false,
     summary: '',
     bullets: [],
+    hide: [],
 })
 
 export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', font: 'inter', fontSize: 10, paper: 'a4', margins: 'normal', spacing: 'normal', atsMode: false}
@@ -110,7 +118,7 @@ export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79',
 /** A new CV: the sections most people need, empty, under the headings ATS parsers look for. */
 export function emptyCv(): Cv {
     return {
-        person: {name: '', headline: '', email: '', phone: '', location: '', links: []},
+        person: {name: '', headline: '', email: '', phone: '', location: '', links: [], hide: []},
         sections: [
             {id: newId('section'), kind: 'text', title: 'Summary', visible: true, text: ''},
             {id: newId('section'), kind: 'entries', title: 'Experience', visible: true, entries: []},
@@ -124,7 +132,7 @@ export function emptyCv(): Cv {
 export const cvType: DocumentType<Cv> = {
     kind: 'cv',
     noun: 'CV',
-    version: 3,
+    version: 4,
     content: cvSchema,
     empty: emptyCv,
     migrations: {
@@ -140,7 +148,18 @@ export const cvType: DocumentType<Cv> = {
 
             return {...cv, design: {atsMode: false, ...cv.design}}
         },
+        // Version 4 let a person and each entry keep details off the page.
+        3: (content) => {
+            const cv = content as {person?: Record<string, unknown>; sections?: {kind?: string; entries?: Record<string, unknown>[]}[]}
+
+            return {
+                ...cv,
+                person: {hide: [], ...cv.person},
+                sections: (cv.sections ?? []).map((section) => (section.kind === 'entries' ? {...section, entries: (section.entries ?? []).map((entry) => ({hide: [], ...entry}))} : section)),
+            }
+        },
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.
     thumbnail: async (cv) => (await import('./thumbnail')).cvThumbnail(cv),
+    adopt: (raw) => cvFromV1(raw),
 }

@@ -6,6 +6,7 @@
 import {Popover} from '@heroui/react'
 import {Calendar, ChevronLeft, ChevronRight} from 'lucide-react'
 import {useId, useLayoutEffect, useRef, useState, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes} from 'react'
+import {formatShortcut} from './format-keys'
 
 function FieldFrame({label, hint, warning, htmlFor, children, className}: {label: string; hint?: ReactNode; warning?: string | null; htmlFor: string; children: ReactNode; className?: string}) {
     return (
@@ -55,9 +56,11 @@ export function TextArea({
     hint,
     warning,
     minRows = 2,
+    formatting = false,
     className,
+    onKeyDown,
     ...rest
-}: AreaProps & {label: string; value: string; onChange(value: string): void; hint?: ReactNode; warning?: string | null; minRows?: number}) {
+}: AreaProps & {label: string; value: string; onChange(value: string): void; hint?: ReactNode; warning?: string | null; minRows?: number; /** Ctrl+B and Ctrl+I add bold and italic marks. */ formatting?: boolean}) {
     const id = useId()
     const ref = useRef<HTMLTextAreaElement>(null)
 
@@ -72,7 +75,20 @@ export function TextArea({
 
     return (
         <FieldFrame label={label} hint={hint} warning={warning} htmlFor={id} className={className}>
-            <textarea id={id} ref={ref} rows={minRows} className="form-field__input form-field__area" value={value} onChange={(event) => onChange(event.target.value)} {...rest} />
+            <textarea
+                id={id}
+                ref={ref}
+                rows={minRows}
+                className="form-field__input form-field__area"
+                value={value}
+                onChange={(event) => onChange(event.target.value)}
+                onKeyDown={(event) => {
+                    if (!(formatting && formatShortcut(event, onChange))) {
+                        onKeyDown?.(event)
+                    }
+                }}
+                {...rest}
+            />
         </FieldFrame>
     )
 }

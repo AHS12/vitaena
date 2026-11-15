@@ -587,3 +587,40 @@ input.panel__title:focus {
     white-space: pre-wrap;
     word-break: break-word;
 }
+
+/* Show on the CV */
+
+.show-parts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+}
+
+.show-parts__label {
+    margin-right: 4px;
+    font: var(--text-caption);
+    color: var(--text-tertiary);
+}
+
+.show-part {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 22px;
+    padding: 0 8px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text-tertiary);
+    font: var(--text-caption);
+    text-decoration: line-through;
+    cursor: pointer;
+}
+
+.show-part[aria-pressed='true'] {
+    border-color: color-mix(in srgb, var(--brand-teal) 50%, var(--border-subtle));
+    background: color-mix(in srgb, var(--brand-teal) 14%, transparent);
+    color: var(--text-primary);
+    text-decoration: none;
+}

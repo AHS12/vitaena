@@ -3,6 +3,7 @@
 import type {ExportFormat} from '../features/export/formats'
 import type {Cv} from './cv'
 import {renderModel, type RenderModel} from './render-model'
+import {plainOf} from './rich'
 
 /** The CV as plain text, in reading order: about what an ATS keeps of it. */
 export function plainText(model: RenderModel): string {
@@ -24,7 +25,7 @@ export function plainText(model: RenderModel): string {
         lines.push('', section.title.toUpperCase())
 
         if (section.kind === 'text') {
-            lines.push(section.text)
+            lines.push(...section.paragraphs.map(plainOf))
         } else if (section.kind === 'entries') {
             for (const entry of section.entries) {
                 lines.push('', [entry.title, entry.org].filter(Boolean).join(', '))
@@ -35,11 +36,11 @@ export function plainText(model: RenderModel): string {
                     lines.push(meta)
                 }
 
-                if (entry.summary) {
-                    lines.push(entry.summary)
+                if (entry.summary.length > 0) {
+                    lines.push(plainOf(entry.summary))
                 }
 
-                lines.push(...entry.bullets.map((bullet) => `• ${bullet}`))
+                lines.push(...entry.bullets.map((bullet) => `• ${plainOf(bullet)}`))
             }
         } else {
             lines.push(...section.groups.map((group) => (group.label ? `${group.label}: ${group.items}` : group.items)))

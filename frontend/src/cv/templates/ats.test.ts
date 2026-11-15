@@ -158,3 +158,17 @@ describe.each(CV_FONTS.map((font) => font.id))('the %s font, as an ATS reads it'
         expect(read.text).not.toMatch(/[ﬀ-ﬆ]/)
     })
 })
+
+describe.each(CV_TEMPLATES.map((template) => template.id))('formatting in the %s template', (template) => {
+    it('shows bold, italic and links as words, never as the stars and brackets typed', async () => {
+        const cv = sampleCv()
+        const sections = cv.sections.map((section) =>
+            section.kind === 'text' ? {...section, text: 'Known for **making slow systems fast** and *calm* reviews. See [my talks](talks.example.com).'} : section,
+        )
+        const read = await textOf(await pdfOf(template, {...cv, sections}))
+
+        expect(read.text).toContain('making slow systems fast')
+        expect(read.text).toContain('my talks')
+        expect(read.text).not.toMatch(/\*\*|\]\(/)
+    })
+})

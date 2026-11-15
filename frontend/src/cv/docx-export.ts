@@ -5,6 +5,7 @@
  */
 
 import type {RenderEntry, RenderModel} from './render-model'
+import type {Span} from './rich'
 
 const BULLETS = 'cv-bullets'
 
@@ -12,6 +13,14 @@ export async function cvDocx(model: RenderModel): Promise<Uint8Array> {
     const {AlignmentType, BorderStyle, Document, ExternalHyperlink, HeadingLevel, LevelFormat, Packer, Paragraph, TextRun} = await import('docx')
     const accent = model.design.accent.replace('#', '')
     const size = Math.round(model.design.fontSize * 2)
+
+    /** Bold, italic and links as Word runs. */
+    const runs = (spans: readonly Span[]) =>
+        spans.map((span) =>
+            span.url
+                ? new ExternalHyperlink({link: span.url, children: [new TextRun({text: span.text, style: 'Hyperlink', bold: span.bold, italics: span.italic})]})
+                : new TextRun({text: span.text, bold: span.bold, italics: span.italic}),
+        )
 
     const entry = (item: RenderEntry): InstanceType<typeof Paragraph>[] => {
         const head = [item.title ? new TextRun({text: item.title, bold: true}) : null, item.title && item.org ? new TextRun(', ') : null, item.org ? new TextRun(item.org) : null].filter(
@@ -22,8 +31,8 @@ export async function cvDocx(model: RenderModel): Promise<Uint8Array> {
         return [
             new Paragraph({children: head, spacing: {before: 160, after: 0}, keepNext: true}),
             ...(meta ? [new Paragraph({children: [new TextRun({text: meta, color: '595959'})], keepNext: true})] : []),
-            ...(item.summary ? [new Paragraph({text: item.summary})] : []),
-            ...item.bullets.map((bullet) => new Paragraph({text: bullet, numbering: {reference: BULLETS, level: 0}})),
+            ...(item.summary.length > 0 ? [new Paragraph({children: runs(item.summary)})] : []),
+            ...item.bullets.map((bullet) => new Paragraph({children: runs(bullet), numbering: {reference: BULLETS, level: 0}})),
         ]
     }
 
@@ -60,7 +69,7 @@ export async function cvDocx(model: RenderModel): Promise<Uint8Array> {
         )
 
         if (section.kind === 'text') {
-            body.push(...section.text.split('\n').filter((line) => line.trim()).map((line) => new Paragraph({text: line})))
+            body.push(...section.paragraphs.map((paragraph) => new Paragraph({children: runs(paragraph)})))
         } else if (section.kind === 'entries') {
             body.push(...section.entries.flatMap(entry))
         } else {

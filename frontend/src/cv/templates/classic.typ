@@ -11,6 +11,16 @@
 // Every gap scales with the chosen spacing.
 #let gap(n) = n * cv.design.spacing * 1em
 
+// Text arrives as spans of plain words with bold, italic or a link set on them, so
+// nothing anyone types is ever read as Typst markup.
+#let rich(spans) = spans.map(s => {
+  let body = [#s.text]
+  if s.at("bold", default: false) { body = strong(body) }
+  if s.at("italic", default: false) { body = emph(body) }
+  if s.at("url", default: "") != "" { body = link(s.url, body) }
+  body
+}).join()
+
 #set document(title: if cv.name != "" { cv.name + " – CV" } else { "CV" }, author: cv.name)
 #set text(font: (cv.design.font, "Inter"), size: cv.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(20))
 #set par(leading: 0.55em, spacing: gap(0.7), justify: false)
@@ -83,19 +93,19 @@
       text(size: 0.92em, fill: muted, meta.join("  |  "))
     }
   })
-  if e.summary != "" {
-    par(e.summary)
+  if e.summary.len() > 0 {
+    par(rich(e.summary))
   }
   if e.bullets.len() > 0 {
-    list(..e.bullets.map(b => [#b]))
+    list(..e.bullets.map(b => rich(b)))
   }
 }
 
 #for s in cv.sections {
   heading(level: 2, s.title)
   if s.kind == "text" {
-    for p in s.text.split("\n").filter(p => p.trim() != "") {
-      par(p)
+    for p in s.paragraphs {
+      par(rich(p))
     }
   } else if s.kind == "entries" {
     for e in s.entries {
