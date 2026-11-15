@@ -77,7 +77,8 @@
   band
 })
 
-#let entry(e) = {
+// In the narrow column, place and dates each get a line: side by side they wrap mid-date.
+#let entry(e, side) = {
   let head = ()
   if e.title != "" { head.push(strong(e.title)) }
   if e.org != "" { head.push(e.org) }
@@ -87,19 +88,19 @@
     head.join([, ])
     if meta.len() > 0 {
       linebreak()
-      text(size: 0.9em, fill: muted, meta.join("  |  "))
+      text(size: 0.9em, fill: muted, if side { meta.join(linebreak()) } else { meta.join("  |  ") })
     }
   })
   if e.summary.len() > 0 { par(rich(e.summary)) }
   if e.bullets.len() > 0 { list(..e.bullets.map(b => rich(b))) }
 }
 
-#let section(s) = {
+#let section(s, side) = {
   heading(level: 2, s.title)
   if s.kind == "text" {
     for p in s.paragraphs { par(rich(p)) }
   } else if s.kind == "entries" {
-    for e in s.entries { entry(e) }
+    for e in s.entries { entry(e, side) }
   } else if s.kind == "tags" {
     for g in s.groups {
       block(above: gap(0.5), below: gap(0.5))[
@@ -117,9 +118,11 @@
   grid(
     columns: (1fr, 0.42fr),
     column-gutter: 1.4em,
-    { for s in main { section(s) } },
-    block(width: 100%, inset: (x: 0.9em, top: 0.1em, bottom: 0.9em), fill: tint, radius: 3pt, { for s in side { section(s) } }),
+    { for s in main { section(s, false) } },
+    // Space at the start of a block is dropped, so the first heading's gap above it
+    // would vanish: the inset gives the tinted panel its own room at the top.
+    block(width: 100%, inset: (x: 1.1em, top: 1em, bottom: 1.1em), fill: tint, radius: 3pt, { for s in side { section(s, true) } }),
   )
 } else {
-  for s in cv.sections { section(s) }
+  for s in cv.sections { section(s, false) }
 }

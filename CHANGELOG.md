@@ -20,7 +20,7 @@ What's new in each version.
 
 **Make it look right**
 
-- Four templates: Classic, Modern, Minimal and Compact, each shown with your own CV.
+- Ten templates, each shown with your own CV: Classic, Modern, Minimal, Compact, Professional, Academic, Executive, Bold, Timeline and Sidebar.
 - Five fonts, any colour, and your choice of text size, margins, spacing and paper.
 
 **Send it with confidence**

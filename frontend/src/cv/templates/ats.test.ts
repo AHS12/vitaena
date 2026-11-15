@@ -86,7 +86,7 @@ async function textOf(pdf: Uint8Array): Promise<{pages: number; text: string; in
     return {pages: document.numPages, text: lines.join('\n'), info: info as Record<string, unknown>}
 }
 
-const TWO_COLUMNS = new Set(['modern', 'professional'])
+const TWO_COLUMNS = new Set(CV_TEMPLATES.filter((template) => template.twoColumns).map((template) => template.id))
 const CASES = [...TEMPLATES.map((template) => ({template, atsMode: false})), ...[...TWO_COLUMNS].map((template) => ({template, atsMode: true}))]
 
 describe.each(CASES)('the $template template (ATS mode $atsMode), as an ATS reads it', ({template, atsMode}) => {
@@ -191,7 +191,7 @@ describe.each(CV_TEMPLATES.map((template) => template.id))('formatting in the %s
 /** A one-pixel PNG, standing in for a photo. */
 const PHOTO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
 
-describe.each(['classic', 'modern', 'professional', 'academic'])('a photo in the %s template', (template) => {
+describe.each(['classic', 'modern', 'professional', 'academic', 'executive', 'bold', 'timeline'])('a photo in the %s template', (template) => {
     it('is drawn, and leaves the words a parser reads exactly as they were', async () => {
         const cv = sampleCv()
         const without = await textOf(await pdfOf(template, cv))

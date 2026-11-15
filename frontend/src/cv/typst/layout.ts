@@ -10,11 +10,15 @@ import type {TypstCompiler, TypstRenderer} from '@myriaddreamin/typst.ts'
 import compilerWasm from '@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url'
 import rendererWasm from '@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url'
 import academic from '../templates/academic.typ?raw'
+import bold from '../templates/bold.typ?raw'
 import classic from '../templates/classic.typ?raw'
 import compact from '../templates/compact.typ?raw'
+import executive from '../templates/executive.typ?raw'
 import minimal from '../templates/minimal.typ?raw'
 import modern from '../templates/modern.typ?raw'
 import professional from '../templates/professional.typ?raw'
+import sidebar from '../templates/sidebar.typ?raw'
+import timeline from '../templates/timeline.typ?raw'
 import {CV_FONTS} from '../fonts'
 import {fontUrl} from './font-urls'
 import {withPhotoFile} from './photo'
@@ -22,7 +26,7 @@ import type {RenderModel} from '../render-model'
 
 const FONTS = CV_FONTS.flatMap((font) => font.files.map(fontUrl))
 
-const TEMPLATES: Readonly<Record<string, string>> = {classic, modern, minimal, compact, professional, academic}
+const TEMPLATES: Readonly<Record<string, string>> = {classic, modern, minimal, compact, professional, academic, executive, bold, timeline, sidebar}
 
 const MAIN = '/main.typ'
 const DATA = '/cv.json'

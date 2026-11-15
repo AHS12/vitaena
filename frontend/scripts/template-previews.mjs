@@ -23,7 +23,7 @@ const {CV_FONTS} = await jiti.import('../src/cv/fonts.ts')
 const {withPhotoFile} = await jiti.import('../src/cv/typst/photo.ts')
 
 /** Each template in a colour of its own, so the gallery doesn't look like one template four times. */
-const LOOKS = {academic: {accent: '#3b3b6d', font: 'source-serif-4'}, professional: {accent: '#2563eb'}, classic: {accent: '#1f4e79'}, modern: {accent: '#22706d'}, minimal: {accent: '#7a1f4b', font: 'source-serif-4'}, compact: {accent: '#2e6b3e', font: 'ibm-plex-sans'}}
+const LOOKS = {academic: {accent: '#3b3b6d', font: 'source-serif-4'}, professional: {accent: '#2563eb'}, classic: {accent: '#1f4e79'}, modern: {accent: '#22706d'}, minimal: {accent: '#7a1f4b', font: 'source-serif-4'}, compact: {accent: '#2e6b3e', font: 'ibm-plex-sans'}, executive: {accent: '#5b4636', font: 'eb-garamond'}, bold: {accent: '#b4442c'}, timeline: {accent: '#0f766e', font: 'lato'}, sidebar: {accent: '#1e3a5f'}}
 const WIDTH = 900
 
 /** A plain drawn silhouette, so templates with a photo show one without a real face. */
@@ -34,7 +34,7 @@ const AVATAR = `data:image/png;base64,${new Resvg(
     .render()
     .asPng()
     .toString('base64')}`
-const WITH_PHOTO = new Set(['professional', 'modern', 'classic'])
+const WITH_PHOTO = new Set(['professional', 'modern', 'classic', 'bold', 'sidebar'])
 // Academic is shown with publications, as a CV of that kind would have.
 const EXTRA = {academic: [{id: 'pubs', kind: 'entries', title: 'Publications', visible: true, entries: [
     {id: 'pub1', visible: true, title: 'Finding the slow part in production services', org: 'Journal of Example Systems, 12(3)', location: '', start: '2023-04', end: '2023-04', current: false, summary: '', bullets: ['Doe J., Roe R.'], hide: []},

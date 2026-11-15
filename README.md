@@ -3,9 +3,13 @@
 **A private, offline CV and resume builder for the desktop.** Everything stays on your
 computer: no account, no cloud, no tracking, and no AI writing for you.
 
-| Classic | Modern | Minimal | Compact |
-|---|---|---|---|
-| ![Classic](docs/assets/templates/classic.png) | ![Modern](docs/assets/templates/modern.png) | ![Minimal](docs/assets/templates/minimal.png) | ![Compact](docs/assets/templates/compact.png) |
+| Classic | Modern | Professional | Sidebar | Bold |
+|---|---|---|---|---|
+| ![Classic](docs/assets/templates/classic.png) | ![Modern](docs/assets/templates/modern.png) | ![Professional](docs/assets/templates/professional.png) | ![Sidebar](docs/assets/templates/sidebar.png) | ![Bold](docs/assets/templates/bold.png) |
+
+| Executive | Timeline | Minimal | Compact | Academic |
+|---|---|---|---|---|
+| ![Executive](docs/assets/templates/executive.png) | ![Timeline](docs/assets/templates/timeline.png) | ![Minimal](docs/assets/templates/minimal.png) | ![Compact](docs/assets/templates/compact.png) | ![Academic](docs/assets/templates/academic.png) |
 
 Vitaena 2 is a rework of the [web version](https://github.com/AHS12/vitaena/tree/v1-web) as a
 desktop app. Pages are laid out by [Typst](https://typst.app), running inside the app, so
@@ -13,7 +17,7 @@ long CVs break across pages properly and the PDF matches the preview exactly. No
 engine or server is needed to make a PDF.
 
 - Live preview of real pages, with page numbers and the name repeated from page 2
-- Four templates, five fonts, any accent colour, margins, spacing, A4 or US Letter
+- Ten templates, five fonts, any accent colour, margins, spacing, A4 or US Letter
 - Drag to reorder everything; month picker, skill chips, a proper bullet editor
 - Bold, italic and links; keep details but leave them off the page
 - Export PDF, Word or plain text
