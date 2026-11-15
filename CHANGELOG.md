@@ -56,7 +56,7 @@ What's new in each version.
 
 - Your CV is laid out as real pages while you type, and the PDF you export is exactly what
   the preview shows, however many pages it runs to.
-- Everything stays on your computer. No account, no cloud, no AI writing for you.
+- Everything stays on your computer. No account, no cloud and no tracking.
 
 **Write it your way**
 
