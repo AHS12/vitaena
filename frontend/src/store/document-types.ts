@@ -4,13 +4,14 @@
  */
 
 import {pluralOf, type DocumentType} from '../core/document/document-file'
+import {biodataType, type Biodata} from '../biodata/biodata'
 import {cvType, type Cv} from '../cv/cv'
 
 /** What any document in this app holds. */
-export type Content = Cv
+export type Content = Cv | Biodata
 
 /** Every type, the one a new document gets by default first. */
-export const DOCUMENT_TYPES: readonly DocumentType<Content>[] = [cvType]
+export const DOCUMENT_TYPES: readonly DocumentType<Content>[] = [cvType as DocumentType<Content>, biodataType as DocumentType<Content>]
 
 /** The type a new document gets when nothing says otherwise. */
 export const defaultType = (): DocumentType<Content> => DOCUMENT_TYPES[0]

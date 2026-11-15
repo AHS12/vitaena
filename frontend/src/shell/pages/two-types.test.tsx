@@ -9,7 +9,7 @@ import {emptyCv} from '../../cv/cv'
 import {DocumentsPage} from './DocumentsPage'
 import {HomePage} from './HomePage'
 
-// A second type, so the app can be seen holding two. The real second type comes later.
+// One more type, made up, so the tests don't hang on what a real type holds.
 const noteType = {
     kind: 'note',
     noun: 'note',
@@ -45,7 +45,7 @@ beforeEach(() => {
 afterEach(() => {
     cleanup()
     fakeDesktop()
-    ;(DOCUMENT_TYPES as DocumentType<Content>[]).splice(1)
+    ;(DOCUMENT_TYPES as DocumentType<Content>[]).splice(DOCUMENT_TYPES.indexOf(noteType), 1)
 })
 
 describe('a library holding two types of document', () => {

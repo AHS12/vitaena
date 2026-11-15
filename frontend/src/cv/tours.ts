@@ -51,7 +51,7 @@ export const TOURS: Tours = {
         steps: [
             {
                 target: 'editor',
-                title: 'Fill in your CV',
+                title: 'Fill it in',
                 text: 'Type on the left and the pages on the right follow. Everything is kept as a draft while you work, so closing the app by mistake loses nothing.',
                 side: 'over',
             },
@@ -60,17 +60,19 @@ export const TOURS: Tours = {
                 title: 'Check it before you send it',
                 text: 'Check shows what a screening system reads from your PDF, and what might trip it up.',
                 side: 'below',
+                // Only a CV has it for now.
+                optional: true,
             },
             {
                 target: 'design',
                 title: 'Make it look right',
-                text: 'On the right, Templates shows your CV in every template to compare, and Style sets the colour, font and spacing.',
+                text: 'On the right, Templates shows yours in every template to compare, and Style sets the colour, font and spacing.',
                 side: 'left',
             },
             {
                 target: 'export',
                 title: 'Send it',
-                text: 'Export PDF makes the file to send. The arrow beside it offers Word and plain text, for forms that ask for them.',
+                text: 'Export PDF makes the file to send or share. The arrow beside it offers other kinds of file.',
                 side: 'below',
             },
             {

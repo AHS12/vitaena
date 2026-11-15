@@ -1,6 +1,8 @@
 import {useEffect, useState} from 'react'
 import {commandForKeys, runCommand, shortcutOf} from '../shell/commands'
 import {applyTheme, resolveTheme, watchSystemTheme, type ThemeChoice} from '../core/settings/theme'
+import {BiodataEditor} from '../biodata/BiodataEditor'
+import {biodataType} from '../biodata/biodata'
 import {CvEditor} from '../cv/CvEditor'
 import {StartFromTemplate} from '../cv/StartFromTemplate'
 import {CloseDialog} from '../shell/CloseDialog'
@@ -48,13 +50,13 @@ function applyAppearance() {
     root.style.setProperty('--ui-scale', String(uiScale()))
 }
 
-/** The page with a document on screen: the app's editor, and the status bar under it. */
+/** The page with a document on screen: the editor for its type, and the status bar under it. */
 function Editor() {
+    const kind = useDocumentStore((state) => state.kind)
+
     return (
         <>
-            <div className="editor-body">
-                <CvEditor />
-            </div>
+            <div className="editor-body">{kind === biodataType.kind ? <BiodataEditor key={kind} /> : <CvEditor key={kind} />}</div>
             <StatusBar />
         </>
     )

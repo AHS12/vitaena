@@ -18,7 +18,7 @@ import type {Cv} from '../cv'
 import {CV_FONTS} from '../fonts'
 import {CV_TEMPLATES} from './templates'
 import {renderModel} from '../render-model'
-import {withPhotoFile} from '../typst/photo'
+import {withImageFiles} from '../typst/images'
 import {sampleCv} from '../sample'
 
 const require = createRequire(import.meta.url)
@@ -56,11 +56,11 @@ function longCv(): Cv {
 
 async function pdfOf(template: string, cv: Cv = longCv()): Promise<Uint8Array> {
     compiler.addSource('/main.typ', readFileSync(fileURLToPath(new URL(`./${template}.typ`, import.meta.url)), 'utf8'))
-    const {model, file} = withPhotoFile(renderModel(cv))
+    const {model, files} = withImageFiles(renderModel(cv))
 
     compiler.mapShadow('/cv.json', new TextEncoder().encode(JSON.stringify(model)))
 
-    if (file) {
+    for (const file of files) {
         compiler.mapShadow(file.path, file.bytes)
     }
 

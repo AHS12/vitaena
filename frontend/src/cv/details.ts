@@ -3,7 +3,7 @@
  * or both, and a height in feet and inches, centimetres or both.
  */
 
-import {newId, type CvDetailRow} from './cv'
+import {newId, type DetailRow as CvDetailRow} from './sections'
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 

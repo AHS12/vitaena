@@ -6,6 +6,7 @@ import {SplitPane} from '../../components/SplitPane'
 import {TagInput} from '../../components/TagInput'
 import {useDocumentStore} from '../../store/document-store'
 import {CvEditor} from '../CvEditor'
+import type {CvSection} from '../cv'
 import {sampleCv} from '../sample'
 import {emailWarning, entryWords, linkWarning, moveSection, newSection, updateEntry} from './edit-ops'
 
@@ -250,7 +251,7 @@ describe('levels on a list', () => {
 describe('a details section', () => {
     beforeEach(() => {
         useDocumentStore.getState().startNew()
-        useDocumentStore.getState().previewEdit({...sampleCv(), sections: [newSection('Personal details', 'details')]})
+        useDocumentStore.getState().previewEdit({...sampleCv(), sections: [newSection('Personal details', 'details') as CvSection]})
     })
 
     const rows = () => {
@@ -284,7 +285,7 @@ describe('a details section', () => {
         const details = screen.getByRole('region', {name: 'Personal details'})
 
         fireEvent.click(within(details).getByRole('button', {name: 'Add a date'}))
-        fireEvent.click(within(details).getAllByRole('button', {name: 'Hide this row from the CV'})[0])
+        fireEvent.click(within(details).getAllByRole('button', {name: 'Hide this row from the page'})[0])
         expect(rows().map((row) => row.visible)).toEqual([false, true])
 
         fireEvent.click(within(details).getByRole('button', {name: 'Remove Date of birth'}))

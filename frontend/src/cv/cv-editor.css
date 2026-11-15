@@ -634,6 +634,17 @@ input.panel__title:focus {
 
 /* Home: start from a template */
 
+/* Home's starters, one group for each type */
+.start-group + .start-group {
+    margin-top: var(--space-6);
+}
+
+.start-group__title {
+    margin: 0 0 var(--space-2);
+    font: var(--text-label);
+    color: var(--text-secondary);
+}
+
 .start-templates {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -997,4 +1008,41 @@ input.panel__title:focus {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
+}
+
+/* Family: relation and name, then work and a note */
+
+.member-row {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 0.8fr) minmax(0, 1.2fr) auto;
+    align-items: center;
+    gap: 4px 6px;
+    padding: 6px 4px 6px 0;
+    border-radius: var(--radius-sm);
+    background: var(--surface-sunken);
+}
+
+.member-row[data-hidden] {
+    opacity: 0.55;
+}
+
+.member-row .form-field__input {
+    min-width: 0;
+    width: 100%;
+}
+
+.member-row__relation {
+    font-weight: 600;
+}
+
+.member-row__actions {
+    display: flex;
+}
+
+.member-row__work {
+    grid-column: 2;
+}
+
+.member-row__note {
+    grid-column: 3 / -1;
 }

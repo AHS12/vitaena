@@ -1,6 +1,6 @@
 /**
- * The CV's first page in every template, for the template picker, so people choose by
- * seeing their own CV rather than a stock picture.
+ * A document's first page in every template it can use, for the template picker, so
+ * people choose by seeing their own document rather than a stock picture.
  *
  * Kept smooth three ways. Each picture is drawn once into a small bitmap: Typst's page is
  * a few hundred kilobytes of glyph outlines, slow to paint ten times over. Pictures are
@@ -11,10 +11,8 @@
 
 import {useEffect, useMemo, useState} from 'react'
 import {yieldIfBusy} from '../../core/yield'
-import type {Cv} from '../cv'
-import {renderModel} from '../render-model'
-import {CV_TEMPLATES} from '../templates/templates'
 import {firstPageOnly} from '../thumbnail'
+import type {PageModel} from '../typst/images'
 
 /** Twice a gallery card's width, so the picture stays sharp on a high-density screen. */
 const BITMAP_WIDTH = 560
@@ -41,14 +39,14 @@ function remember(key: string, url: string): void {
     }
 }
 
-function cached(model: string): Previews {
+function cached(model: string, templates: readonly string[]): Previews {
     const found: Record<string, string> = {}
 
-    for (const template of CV_TEMPLATES) {
-        const url = cache.get(keyOf(template.id, model))
+    for (const template of templates) {
+        const url = cache.get(keyOf(template, model))
 
         if (url) {
-            found[template.id] = url
+            found[template] = url
         }
     }
 
@@ -91,17 +89,18 @@ async function bitmapOf(page: string): Promise<string> {
 }
 
 /**
- * Pictures of `cv` in every template, by id. While new ones are made, the last ones stay
- * up; a template with none yet has no entry, and its card shows a placeholder.
+ * Pictures of a render model in each template, by id. While new ones are made, the last
+ * ones stay up; a template with none yet has no entry, and its card shows a placeholder.
+ * `templates` must keep its identity between renders, as a module's constant does.
  */
-export function useTemplatePreviews(cv: Cv, settleMs = 600): Previews {
-    const model = useMemo(() => JSON.stringify(renderModel(cv)), [cv])
-    const [previews, setPreviews] = useState<Previews>(() => cached(model))
+export function useTemplatePreviews(render: PageModel, templates: readonly string[], settleMs = 600): Previews {
+    const model = useMemo(() => JSON.stringify(render), [render])
+    const [previews, setPreviews] = useState<Previews>(() => cached(model, templates))
 
     useEffect(() => {
         let current = true
-        const ready = cached(model)
-        const missing = CV_TEMPLATES.filter((template) => !ready[template.id])
+        const ready = cached(model, templates)
+        const missing = templates.filter((template) => !ready[template])
 
         setPreviews((previous) => ({...previous, ...ready}))
 
@@ -112,7 +111,7 @@ export function useTemplatePreviews(cv: Cv, settleMs = 600): Previews {
         const timer = window.setTimeout(() => {
             void (async () => {
                 const engine = await import('../typst/engine')
-                const parsed = JSON.parse(model) as ReturnType<typeof renderModel>
+                const parsed = JSON.parse(model) as PageModel
 
                 for (const template of missing) {
                     try {
@@ -122,7 +121,7 @@ export function useTemplatePreviews(cv: Cv, settleMs = 600): Previews {
                             return
                         }
 
-                        const page = firstPageOnly(await engine.svg(parsed, template.id))
+                        const page = firstPageOnly(await engine.svg(parsed, template))
 
                         if (!page || !current) {
                             continue
@@ -130,10 +129,10 @@ export function useTemplatePreviews(cv: Cv, settleMs = 600): Previews {
 
                         const url = await bitmapOf(page)
 
-                        remember(keyOf(template.id, model), url)
+                        remember(keyOf(template, model), url)
 
                         if (current) {
-                            setPreviews((previous) => ({...previous, [template.id]: url}))
+                            setPreviews((previous) => ({...previous, [template]: url}))
                         }
                     } catch {
                         // A preview that can't be drawn leaves its card with its placeholder.
@@ -150,7 +149,7 @@ export function useTemplatePreviews(cv: Cv, settleMs = 600): Previews {
             current = false
             window.clearTimeout(timer)
         }
-    }, [model, settleMs])
+    }, [model, templates, settleMs])
 
     return previews
 }

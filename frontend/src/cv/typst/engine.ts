@@ -9,7 +9,7 @@
  * any still waiting, so typing never queues work.
  */
 
-import type {RenderModel} from '../render-model'
+import type {PageModel} from './images'
 import type {LayoutReply, LayoutRequest} from './engine.worker'
 
 export interface TypstProblem {
@@ -18,7 +18,7 @@ export interface TypstProblem {
 
 export class TypstError extends Error {
     constructor(readonly problems: readonly TypstProblem[]) {
-        super(problems[0]?.message ?? 'The CV could not be laid out.')
+        super(problems[0]?.message ?? 'The pages could not be laid out.')
         this.name = 'TypstError'
     }
 }
@@ -30,7 +30,7 @@ export interface Preview {
     readonly ms: number
 }
 
-type Job = {readonly op: 'svg' | 'pdf'; readonly model: RenderModel; readonly template: string} | {readonly op: 'warm'}
+type Job = {readonly op: 'svg' | 'pdf'; readonly model: PageModel; readonly template: string} | {readonly op: 'warm'}
 
 /** Something that lays out: the worker, or the page itself. */
 type Runner = (job: Job) => Promise<{svg?: string; pdf?: Uint8Array}>
@@ -98,13 +98,13 @@ export const warmUp = (): Promise<unknown> => serial(() => run({op: 'warm'}))
 
 const pageCount = (svgText: string): number => svgText.match(/class="typst-page"/g)?.length ?? 0
 
-let waiting: {model: RenderModel; template: string; settle: (preview: Promise<Preview | null>) => void} | null = null
+let waiting: {model: PageModel; template: string; settle: (preview: Promise<Preview | null>) => void} | null = null
 
 /**
  * Lays the CV out as pages. Resolves to null when a newer preview took its place
  * before it began, so the caller can just drop it.
  */
-export function preview(model: RenderModel, template: string): Promise<Preview | null> {
+export function preview(model: PageModel, template: string): Promise<Preview | null> {
     waiting?.settle(Promise.resolve(null))
 
     return new Promise((resolve) => {
@@ -145,7 +145,7 @@ export async function whenIdle(): Promise<void> {
 }
 
 /** All pages as SVG, waiting its turn rather than giving way to newer previews. */
-export const svg = (model: RenderModel, template: string): Promise<string> => serial(async () => (await run({op: 'svg', model, template})).svg ?? '')
+export const svg = (model: PageModel, template: string): Promise<string> => serial(async () => (await run({op: 'svg', model, template})).svg ?? '')
 
-/** The CV as a PDF, the same layout the preview shows. */
-export const pdf = (model: RenderModel, template: string): Promise<Uint8Array> => serial(async () => (await run({op: 'pdf', model, template})).pdf ?? new Uint8Array())
+/** The document as a PDF, the same layout the preview shows. */
+export const pdf = (model: PageModel, template: string): Promise<Uint8Array> => serial(async () => (await run({op: 'pdf', model, template})).pdf ?? new Uint8Array())

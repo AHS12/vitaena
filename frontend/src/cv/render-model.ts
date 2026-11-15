@@ -8,6 +8,7 @@
  */
 
 import type {Cv, CvEntry} from './cv'
+import type {Section} from './sections'
 import {fontById} from './fonts'
 import {parseRich, type Span} from './rich'
 import {levelOfWords, splitItem} from './levels'
@@ -50,12 +51,14 @@ export interface RenderDetail {
 /** Where a section sits in a two-column template; one-column templates ignore it. */
 export type Column = 'main' | 'side'
 
-export type RenderSection = {readonly column: Column} & (
+/** A section of a kind every type shares, as a template is given it. */
+export type SectionBody =
     | {readonly kind: 'text'; readonly title: string; readonly paragraphs: readonly (readonly Span[])[]}
     | {readonly kind: 'entries'; readonly title: string; readonly entries: readonly RenderEntry[]}
     | {readonly kind: 'tags'; readonly title: string; readonly groups: readonly RenderTagGroup[]}
     | {readonly kind: 'details'; readonly title: string; readonly rows: readonly RenderDetail[]}
-)
+
+export type RenderSection = {readonly column: Column} & SectionBody
 
 export type ContactKind = 'email' | 'phone' | 'location' | 'linkedin' | 'github' | 'web'
 
@@ -83,8 +86,9 @@ export interface RenderModel {
     }
 }
 
-const MARGINS = {narrow: 1.3, normal: 1.8, wide: 2.4} as const
-const SPACING = {compact: 0.8, normal: 1, relaxed: 1.2} as const
+/** Page margins in centimetres, and room between blocks, for the design's choices. */
+export const MARGINS = {narrow: 1.3, normal: 1.8, wide: 2.4} as const
+export const SPACING = {compact: 0.8, normal: 1, relaxed: 1.2} as const
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -128,6 +132,67 @@ const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r
 
 const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education/i.test(title)) ? 'side' : 'main')
 
+/**
+ * A section as a template is given it: hidden parts left out, and null when nothing in
+ * it shows. A family section is a biodata's own, and its render model handles it.
+ */
+export function sectionBody(section: Section, today: Date): SectionBody | null {
+    if (!section.visible) {
+        return null
+    }
+
+    const title = section.title.trim()
+
+    if (section.kind === 'text') {
+        const paragraphs = section.text
+            .split('\n')
+            .map(trimmed)
+            .filter(Boolean)
+            .map(parseRich)
+
+        return paragraphs.length > 0 ? {kind: 'text', title, paragraphs} : null
+    }
+
+    if (section.kind === 'entries') {
+        const entries = section.entries
+            .filter((entry) => entry.visible && (entry.title.trim() || entry.org.trim()))
+            .map((entry) => ({
+                title: entry.title.trim(),
+                org: entry.org.trim(),
+                location: entry.hide.includes('location') ? '' : entry.location.trim(),
+                dates: entry.hide.includes('dates') ? '' : datesText(entry),
+                summary: entry.hide.includes('summary') ? [] : parseRich(entry.summary.trim()),
+                bullets: entry.bullets.map(trimmed).filter(Boolean).map(parseRich),
+            }))
+
+        return entries.length > 0 ? {kind: 'entries', title, entries} : null
+    }
+
+    if (section.kind === 'details') {
+        const rows = section.rows.filter((row) => row.visible).map((row) => ({label: row.label.trim(), value: detailValue(row, today)})).filter((row) => row.value)
+
+        return rows.length > 0 ? {kind: 'details', title, rows} : null
+    }
+
+    if (section.kind === 'tags') {
+        const groups = section.groups
+            .filter((group) => group.visible)
+            .map((group) => {
+                const kept = group.items.map((item, index) => ({text: trimmed(item), level: group.levels[index] ?? 0})).filter((item) => item.text)
+                const items = kept.map((item) => item.text)
+                // A level set by hand wins; else one the item's own words name.
+                const list = kept.map((item) => tagItem(item.text, group.showLevels ? item.level || undefined : 0))
+
+                return {label: group.label.trim(), items: items.join(', '), levels: group.showLevels, list}
+            })
+            .filter((group) => group.items)
+
+        return groups.length > 0 ? {kind: 'tags', title, groups} : null
+    }
+
+    return null
+}
+
 /** `today` is the day ages are worked out on. */
 export function renderModel(cv: Cv, today: Date = new Date()): RenderModel {
     const {person} = cv
@@ -139,65 +204,11 @@ export function renderModel(cv: Cv, today: Date = new Date()): RenderModel {
         ...person.links.filter((link) => link.url.trim()).map((link) => ({text: linkText(link.url), url: asUrl(link.url), kind: linkKind(link.url)})),
     ].filter((item) => item !== null)
 
-    const sections: RenderSection[] = []
+    const sections = cv.sections.flatMap((section) => {
+        const body = section.visible ? sectionBody(section, today) : null
 
-    for (const section of cv.sections) {
-        if (!section.visible) {
-            continue
-        }
-
-        const title = section.title.trim()
-        const column = columnOf(section.kind, title)
-
-        if (section.kind === 'text') {
-            const paragraphs = section.text
-                .split('\n')
-                .map(trimmed)
-                .filter(Boolean)
-                .map(parseRich)
-
-            if (paragraphs.length > 0) {
-                sections.push({kind: 'text', title, column, paragraphs})
-            }
-        } else if (section.kind === 'entries') {
-            const entries = section.entries
-                .filter((entry) => entry.visible && (entry.title.trim() || entry.org.trim()))
-                .map((entry) => ({
-                    title: entry.title.trim(),
-                    org: entry.org.trim(),
-                    location: entry.hide.includes('location') ? '' : entry.location.trim(),
-                    dates: entry.hide.includes('dates') ? '' : datesText(entry),
-                    summary: entry.hide.includes('summary') ? [] : parseRich(entry.summary.trim()),
-                    bullets: entry.bullets.map(trimmed).filter(Boolean).map(parseRich),
-                }))
-
-            if (entries.length > 0) {
-                sections.push({kind: 'entries', title, column, entries})
-            }
-        } else if (section.kind === 'details') {
-            const rows = section.rows.filter((row) => row.visible).map((row) => ({label: row.label.trim(), value: detailValue(row, today)})).filter((row) => row.value)
-
-            if (rows.length > 0) {
-                sections.push({kind: 'details', title, column, rows})
-            }
-        } else {
-            const groups = section.groups
-                .filter((group) => group.visible)
-                .map((group) => {
-                    const kept = group.items.map((item, index) => ({text: trimmed(item), level: group.levels[index] ?? 0})).filter((item) => item.text)
-                    const items = kept.map((item) => item.text)
-                    // A level set by hand wins; else one the item's own words name.
-                    const list = kept.map((item) => tagItem(item.text, group.showLevels ? item.level || undefined : 0))
-
-                    return {label: group.label.trim(), items: items.join(', '), levels: group.showLevels, list}
-                })
-                .filter((group) => group.items)
-
-            if (groups.length > 0) {
-                sections.push({kind: 'tags', title, column, groups})
-            }
-        }
-    }
+        return body ? [{...body, column: columnOf(section.kind, body.title)}] : []
+    })
 
     return {
         name: person.name.trim(),

@@ -98,7 +98,7 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
     }
 
     if (person.photo && !person.hide.includes('photo')) {
-        results.push({id: 'photo', level: 'tip', title: 'Your CV has a photo', detail: 'Expected in much of Europe and Asia, but often left out for jobs in the US and UK. Show on the CV turns it off without removing it.'})
+        results.push({id: 'photo', level: 'tip', title: 'Your CV has a photo', detail: 'Expected in much of Europe and Asia, but often left out for jobs in the US and UK. Show on the page turns it off without removing it.'})
     }
 
     const entries = shown.flatMap((section) => (section.kind === 'entries' ? section.entries.filter((entry) => entry.visible).map((entry) => ({section: section.title, entry})) : []))

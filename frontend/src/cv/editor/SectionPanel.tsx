@@ -1,7 +1,7 @@
 /**
  * One section of the CV in the editor: a card that folds, with its heading, a switch to
- * leave it off the page, and what it holds: text, entries, groups of skills or rows of
- * details.
+ * leave it off the page, and what it holds: text, entries, groups of skills, rows of
+ * details or the family.
  */
 
 import {ChevronRight, Plus, Trash2} from 'lucide-react'
@@ -14,16 +14,17 @@ import {Switch} from '../../components/controls'
 import {TagInput} from '../../components/TagInput'
 import {levelsFor} from '../levels'
 import {LevelList} from './LevelList'
-import {emptyEntry, type CvEntry, type CvSection, type CvTagGroup} from '../cv'
+import {emptyEntry, type Entry, type Section, type Sectioned, type TagGroup} from '../sections'
 import {datesText} from '../render-model'
-import type {useCvEdit} from '../use-cv-edit'
+import type {DocumentEdit} from '../use-cv-edit'
 import {emptyGroup, entryWords, removeSection, toggled, updateEntries, updateEntry, updateGroup, updateGroups, updateSection} from './edit-ops'
 import {useEditorStore} from './editor-store'
 import {ShowParts} from './ShowParts'
 import {DetailRows} from './DetailRows'
+import {FamilyRows} from './FamilyRows'
 import {VisibilityButton} from './VisibilityButton'
 
-type Edit = ReturnType<typeof useCvEdit>
+type Edit = DocumentEdit<Sectioned>
 
 const ENTRY_PARTS = [
     {id: 'location', label: 'Location'},
@@ -31,11 +32,11 @@ const ENTRY_PARTS = [
     {id: 'summary', label: 'Summary'},
 ] as const
 
-function EntryCard({sectionId, sectionTitle, entry, handle, edit}: {sectionId: string; sectionTitle: string; entry: CvEntry; handle: HandleProps; edit: Edit}) {
+function EntryCard({sectionId, sectionTitle, entry, handle, edit}: {sectionId: string; sectionTitle: string; entry: Entry; handle: HandleProps; edit: Edit}) {
     const open = useEditorStore((state) => state.openEntries.has(entry.id))
     const toggle = useEditorStore((state) => state.toggleEntry)
     const words = entryWords(sectionTitle)
-    const update = (change: Partial<CvEntry>) => edit.type((cv) => updateEntry(cv, sectionId, entry.id, change))
+    const update = (change: Partial<Entry>) => edit.type((cv) => updateEntry(cv, sectionId, entry.id, change))
     const name = [entry.title, entry.org].filter((part) => part.trim()).join(', ') || `New ${words.title.toLowerCase()}`
     const dates = datesText(entry)
 
@@ -77,7 +78,7 @@ function EntryCard({sectionId, sectionTitle, entry, handle, edit}: {sectionId: s
     )
 }
 
-function GroupRow({sectionId, group, handle, edit, single}: {sectionId: string; group: CvTagGroup; handle: HandleProps; edit: Edit; single: boolean}) {
+function GroupRow({sectionId, group, handle, edit, single}: {sectionId: string; group: TagGroup; handle: HandleProps; edit: Edit; single: boolean}) {
     return (
         <div className="group-row" data-hidden={!group.visible || undefined} onBlur={edit.commit}>
             <DragHandle handle={handle} />
@@ -122,11 +123,11 @@ function GroupRow({sectionId, group, handle, edit, single}: {sectionId: string; 
     )
 }
 
-export function SectionPanel({section, handle, edit}: {section: CvSection; handle: HandleProps; edit: Edit}) {
+export function SectionPanel({section, handle, edit}: {section: Section; handle: HandleProps; edit: Edit}) {
     const closed = useEditorStore((state) => state.closedSections.has(section.id))
     const toggle = useEditorStore((state) => state.toggleSection)
     const openEntry = useEditorStore((state) => state.openEntry)
-    const count = section.kind === 'entries' ? section.entries.length : section.kind === 'tags' ? section.groups.length : section.kind === 'details' ? section.rows.length : 0
+    const count = section.kind === 'entries' ? section.entries.length : section.kind === 'tags' ? section.groups.length : section.kind === 'details' ? section.rows.length : section.kind === 'family' ? section.members.length : 0
 
     return (
         <section className="panel" data-open={!closed || undefined} data-hidden={!section.visible || undefined} aria-label={section.title || 'Untitled section'}>
@@ -189,6 +190,8 @@ export function SectionPanel({section, handle, edit}: {section: CvSection; handl
                         </>
                     ) : section.kind === 'details' ? (
                         <DetailRows sectionId={section.id} rows={section.rows} edit={edit} />
+                    ) : section.kind === 'family' ? (
+                        <FamilyRows sectionId={section.id} members={section.members} edit={edit} />
                     ) : (
                         <>
                             <SortableList

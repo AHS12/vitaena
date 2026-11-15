@@ -9,13 +9,13 @@ import {CalendarDays, Plus, Ruler, Trash2} from 'lucide-react'
 import {Segmented} from '../../components/Segmented'
 import {DragHandle, SortableList, type HandleProps} from '../../components/Sortable'
 import {moveItem} from '../../core/list'
-import type {CvDetailRow} from '../cv'
+import type {DetailRow as CvDetailRow, Sectioned} from '../sections'
 import {cmOf, detailValue, emptyDetailRow, feetAndInches} from '../details'
-import type {useCvEdit} from '../use-cv-edit'
+import type {DocumentEdit} from '../use-cv-edit'
 import {updateRow, updateRows} from './edit-ops'
 import {VisibilityButton} from './VisibilityButton'
 
-type Edit = ReturnType<typeof useCvEdit>
+type Edit = DocumentEdit<Sectioned>
 
 const DATE_SHOWS = [
     {value: 'date', label: 'Date'},

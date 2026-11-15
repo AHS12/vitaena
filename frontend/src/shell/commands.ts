@@ -13,7 +13,7 @@ import {
 import {APP} from '../core/app'
 import {canRedo, canUndo} from '../core/history/history'
 import {hasUnsavedChanges, typeInHand, useDocumentStore, type DocumentStore} from '../store/document-store'
-import {defaultType, libraryWords} from '../store/document-types'
+import {defaultType, DOCUMENT_TYPES, libraryWords} from '../store/document-types'
 import {settingValue, useSettingsStore} from '../store/settings-store'
 import {useUiStore} from '../store/ui-store'
 import {useUpdateStore} from '../store/update-store'
@@ -85,6 +85,18 @@ const SHELL_COMMANDS: readonly Command[] = [
         keywords: 'start create blank empty',
         run: (state) => guardUnsaved(state, `Start a new ${defaultType().noun}`, () => state.startNew()),
     },
+    // Every other type gets one too, without a key of its own.
+    ...DOCUMENT_TYPES.filter((type) => type !== defaultType()).map(
+        (type): Command => ({
+            id: `new-${type.kind}`,
+            label: `New ${type.noun}`,
+            group: 'File',
+            icon: FilePlus,
+            global: true,
+            keywords: 'start create blank empty',
+            run: (state) => guardUnsaved(state, `Start a new ${type.noun}`, () => state.startNew(undefined, type.kind)),
+        }),
+    ),
     {
         id: 'documents',
         label: `Your ${libraryWords().plural}`,

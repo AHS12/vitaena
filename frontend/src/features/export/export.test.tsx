@@ -108,9 +108,9 @@ describe('exporting many documents', () => {
         act(() => useExportStore.getState().openMany(['shop', 'ideas']))
 
         await screen.findByRole('checkbox', {name: 'Ideas'})
-        fireEvent.click(screen.getByRole('button', {name: 'Export 2 CVs'}))
+        fireEvent.click(screen.getByRole('button', {name: 'Export 2 documents'}))
 
-        expect(await screen.findByText('Exported 2 CVs.')).toBeInTheDocument()
+        expect(await screen.findByText('Exported 2 documents.')).toBeInTheDocument()
         expect([...app.written.keys()].sort()).toEqual(['Ideas.pdf', 'Shopping.pdf'])
     })
 

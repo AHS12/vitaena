@@ -431,6 +431,15 @@
     object-fit: cover;
 }
 
+/* A whole picture keeps its shape, so it's shown whole in a rounded box. */
+.photo-field[data-shape='whole'] .photo-field__picture {
+    border-radius: var(--radius-md);
+}
+
+.photo-field[data-shape='whole'] .photo-field__picture img {
+    object-fit: contain;
+}
+
 .photo-field__picture:hover {
     border-color: var(--brand-teal);
 }

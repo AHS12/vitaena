@@ -1,10 +1,11 @@
 /**
- * The library's picture of a CV: its first page, drawn by the same compile as the
- * preview and the PDF, so the library shows what the CV really looks like.
+ * The library's picture of a document: its first page, drawn by the same compile as the
+ * preview and the PDF, so the library shows what it really looks like.
  */
 
 import type {Cv} from './cv'
 import {renderModel} from './render-model'
+import type {PageModel} from './typst/images'
 
 /** Wide enough to read the name in a library tile, small enough to save often. */
 const WIDTH = 360
@@ -33,9 +34,12 @@ export function firstPageOnly(svgText: string): string | null {
     return new XMLSerializer().serializeToString(svg)
 }
 
-export async function cvThumbnail(cv: Cv): Promise<string | null> {
+export const cvThumbnail = (cv: Cv): Promise<string | null> => pageThumbnail(renderModel(cv), cv.design.template)
+
+/** Any document's first page, in the template given, as a small PNG. */
+export async function pageThumbnail(model: PageModel, template: string): Promise<string | null> {
     const {svg} = await import('./typst/engine')
-    const page = firstPageOnly(await svg(renderModel(cv), cv.design.template))
+    const page = firstPageOnly(await svg(model, template))
 
     if (!page) {
         return null
