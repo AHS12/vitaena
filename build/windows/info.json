@@ -1,0 +1,17 @@
+{
+	"fixed": {
+		"file_version": "0.1.5",
+		"product_version": "0.1.5"
+	},
+	"info": {
+		"0409": {
+			"FileVersion": "0.1.5",
+			"ProductVersion": "0.1.5",
+			"CompanyName": "AHS12",
+			"FileDescription": "Make a CV or resume that screening systems read correctly.",
+			"LegalCopyright": "© 2026 AHS12",
+			"ProductName": "Vitaena",
+			"Comments": "Make a CV or resume that screening systems read correctly."
+		}
+	}
+}

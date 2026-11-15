@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=Vitaena
+GenericName=CV Builder
+Comment=Make a CV or resume that screening systems read correctly.
+Exec=/usr/bin/vitaena
+Icon=vitaena
+Terminal=false
+Categories=Office;
+Keywords=CV;resume;curriculum vitae;job;ATS;
+StartupNotify=true
+StartupWMClass=com.ahs12.vitaena

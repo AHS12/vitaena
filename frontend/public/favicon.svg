@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Vitaena, drawn for 16–32 px: fewer, thicker lines than build/appicon.svg. -->
+  <rect width="64" height="64" rx="13" fill="#1b1b1b"/>
+  <path d="M23 9H46Q51 9 51 14V50Q51 55 46 55H18Q13 55 13 50V19Z" fill="#5cb4b2"/>
+  <circle cx="32" cy="22" r="5.5" fill="#1b1b1b"/>
+  <path d="M23.5 34Q23.5 28.5 29 28.5H35Q40.5 28.5 40.5 34V35H23.5Z" fill="#1b1b1b"/>
+  <rect x="19" y="39" width="26" height="4" rx="1" fill="#1b1b1b"/>
+  <rect x="19" y="46" width="26" height="4" rx="1" fill="#1b1b1b"/>
+</svg>

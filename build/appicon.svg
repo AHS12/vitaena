@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Vitaena: the CV page from the original logo, on its dark ground. -->
+  <rect x="40" y="40" width="944" height="944" rx="200" fill="#1b1b1b"/>
+  <path d="M392 202H714Q762 202 762 250V774Q762 822 714 822H310Q262 822 262 774V332Z" fill="#5cb4b2"/>
+  <path d="M262 332C336 334 386 292 392 202" fill="none" stroke="#1b1b1b" stroke-width="20" stroke-linecap="round"/>
+  <circle cx="512" cy="352" r="62" fill="#1b1b1b"/>
+  <path d="M420 486Q420 428 478 424H546Q604 428 604 486V494H420Z" fill="#1b1b1b"/>
+  <rect x="332" y="552" width="360" height="40" rx="6" fill="#1b1b1b"/>
+  <rect x="332" y="624" width="360" height="40" rx="6" fill="#1b1b1b"/>
+  <rect x="332" y="696" width="360" height="40" rx="6" fill="#1b1b1b"/>
+</svg>

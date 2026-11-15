@@ -1,0 +1,286 @@
+name: Release Installers
+
+# Automatic: publishing a GitHub Release builds its tag and attaches the installers.
+# Manual: run this workflow with a tag. It rebuilds that release and replaces its
+# installers, or creates the release from the chosen branch if there isn't one yet.
+# Manual runs also choose the platform(s).
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.1.0)"
+        required: true
+        type: string
+      platform:
+        description: "Platform(s) to build"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - windows
+          - macos
+          - linux
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || github.event.inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.vars.outputs.tag }}
+      version: ${{ steps.vars.outputs.version }}
+    steps:
+      - name: Resolve tag and version
+        id: vars
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "release" ]; then
+            TAG="$RELEASE_TAG"
+          else
+            TAG="$INPUT_TAG"
+          fi
+          VERSION="${TAG#v}"
+          if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Tag '$TAG' is not a vX.Y.Z release tag" >&2
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether the release exists
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.vars.outputs.tag }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # An existing release is built from its tag, and a new one from the chosen branch.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.release.outputs.exists == 'true' && steps.vars.outputs.tag || github.sha }}
+
+      - name: Verify version sources match the tag
+        env:
+          VERSION: ${{ steps.vars.outputs.version }}
+        run: |
+          set -euo pipefail
+          v="$VERSION"
+          mismatch=0
+          for file in build/config.yml build/windows/nsis/wails_tools.nsh build/windows/info.json build/darwin/Info.plist build/linux/nfpm/nfpm.yaml; do
+            grep -q "$v" "$file" || { echo "::error file=$file::version != $v"; mismatch=1; }
+          done
+          # Go and the frontend read the version from here; `make check` keeps the build files in step with it.
+          grep -q "\"version\": \"$v\"" appconfig/app.config.json \
+            || { echo "::error file=appconfig/app.config.json::version != $v"; mismatch=1; }
+          if [ "$mismatch" -ne 0 ]; then
+            echo "Tag $v does not match the repo's version sources." >&2
+            exit 1
+          fi
+
+      - name: Create the release
+        if: steps.release.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.vars.outputs.tag }}
+        run: gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
+
+  windows:
+    needs: resolve
+    if: ${{ github.event_name == 'release' || inputs.platform == 'all' || inputs.platform == 'windows' }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.tag }}
+
+      - uses: actions/setup-go@v5
+        with:
+          # Go 1.26.10 and later carry a security fix that Wails 3 asks for.
+          go-version: "1.26.11"
+          cache: true
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install Wails CLI
+        shell: pwsh
+        run: |
+          go install github.com/wailsapp/wails/v3/cmd/wails3@v3.1.0
+          "$(go env GOPATH)\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Install NSIS
+        shell: pwsh
+        run: |
+          choco install nsis --no-progress -y
+          "${env:ProgramFiles(x86)}\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the installer
+        run: wails3 task windows:package
+
+      - name: Stage installer
+        shell: pwsh
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          New-Item -ItemType Directory -Force -Path build/dist | Out-Null
+          Copy-Item bin/vitaena-amd64-installer.exe "build/dist/vitaena-$env:VERSION-windows-amd64-setup.exe" -Force
+
+      - name: Upload to release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: gh release upload "$env:TAG" "build/dist/vitaena-$env:VERSION-windows-amd64-setup.exe" --clobber --repo "$env:GITHUB_REPOSITORY"
+
+  macos:
+    needs: resolve
+    if: ${{ github.event_name == 'release' || inputs.platform == 'all' || inputs.platform == 'macos' }}
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.tag }}
+
+      - uses: actions/setup-go@v5
+        with:
+          # Go 1.26.10 and later carry a security fix that Wails 3 asks for.
+          go-version: "1.26.11"
+          cache: true
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install Wails CLI
+        run: |
+          go install github.com/wailsapp/wails/v3/cmd/wails3@v3.1.0
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      # This also signs the app for running on the Mac it was built on, and checks it.
+      - name: Build universal app
+        run: wails3 task darwin:package:universal
+
+      - name: Build DMG
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: ./build/darwin/make_dmg.sh vitaena "$VERSION"
+
+      # The app updates itself from this zip, which must hold the app alone: no
+      # __MACOSX folder (so no --sequesterRsrc) and no extended attributes.
+      - name: Build update zip
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: ditto -c -k --norsrc --noextattr --noqtn --keepParent bin/vitaena.app "build/dist/vitaena-$VERSION-mac-universal.zip"
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: gh release upload "$TAG" "build/dist/vitaena-$VERSION-mac-universal.dmg" "build/dist/vitaena-$VERSION-mac-universal.zip" --clobber --repo "$GITHUB_REPOSITORY"
+
+  linux:
+    needs: resolve
+    if: ${{ github.event_name == 'release' || inputs.platform == 'all' || inputs.platform == 'linux' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.tag }}
+
+      - uses: actions/setup-go@v5
+        with:
+          # Go 1.26.10 and later carry a security fix that Wails 3 asks for.
+          go-version: "1.26.11"
+          cache: true
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      # GTK 4 and WebKitGTK 6.0, which Wails 3.1 builds against.
+      - name: Install build libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential pkg-config libgtk-4-dev libwebkitgtk-6.0-dev file
+
+      - name: Install Wails CLI
+        run: |
+          go install github.com/wailsapp/wails/v3/cmd/wails3@v3.1.0
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the deb, rpm and Arch package
+        run: wails3 task linux:package
+
+      # The AppImage is also what an AppImage updates itself from; see backend/update_appimage.go.
+      - name: Build the AppImage
+        run: wails3 task linux:appimage
+
+      - name: Name the files
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p build/dist
+          cp bin/vitaena.deb "build/dist/vitaena-$VERSION-linux-amd64.deb"
+          cp bin/vitaena.rpm "build/dist/vitaena-$VERSION-linux-x86_64.rpm"
+          cp bin/vitaena.pkg.tar.zst "build/dist/vitaena-$VERSION-linux-x86_64.pkg.tar.zst"
+          cp bin/vitaena-x86_64.AppImage "build/dist/vitaena-$VERSION-linux-x86_64.AppImage"
+          chmod +x build/dist/*.AppImage
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          gh release upload "$TAG"             "build/dist/vitaena-$VERSION-linux-amd64.deb"             "build/dist/vitaena-$VERSION-linux-x86_64.rpm"             "build/dist/vitaena-$VERSION-linux-x86_64.pkg.tar.zst"             "build/dist/vitaena-$VERSION-linux-x86_64.AppImage"             --clobber --repo "$GITHUB_REPOSITORY"

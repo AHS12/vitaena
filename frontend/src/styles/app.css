@@ -1,0 +1,21 @@
+/*
+ * The interface's styles: HeroUI, the design tokens, then one file per area of the
+ * shell. Features and the example app import their own, so removing one takes its
+ * styles with it.
+ */
+
+@import '@heroui/styles';
+@import './tokens.css';
+@import './base.css';
+@import './shell.css';
+@import './menubar.css';
+@import './buttons.css';
+@import './controls.css';
+@import './fields.css';
+@import './property-rows.css';
+@import './statusbar.css';
+@import './dialogs.css';
+@import './palette.css';
+@import './settings.css';
+@import './toast.css';
+@import './library.css';

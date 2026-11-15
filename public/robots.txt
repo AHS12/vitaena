@@ -1,8 +1,0 @@
-User-agent: *
-Allow: /
-
-# Disallow crawling of editor pages with IDs (private user data)
-Disallow: /editor/
-
-# Sitemap
-Sitemap: https://vitaena.com/sitemap.xml
