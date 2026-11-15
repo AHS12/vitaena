@@ -201,6 +201,9 @@ jobs:
           # every AppImage must, so it matches the GPU. Any desktop has these; this
           # runner, with no screen, doesn't until they're installed.
           sudo apt-get install -y --no-install-recommends libegl1 libgl1 libgles2 libgl1-mesa-dri
+          # WebKit sandboxes web content with bubblewrap, a system tool an AppImage can't
+          # carry. GNOME and Flatpak bring it, and WebKitGTK's own package depends on it.
+          sudo apt-get install -y --no-install-recommends bubblewrap xdg-dbus-proxy
           dpkg -s libwebkitgtk-6.0-4 >/dev/null 2>&1 && echo "WebKitGTK is installed on this runner" || echo "No WebKitGTK on this runner, as on a fresh system"
           chmod +x ./*.AppImage
           mkdir -p out

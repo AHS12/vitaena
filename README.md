@@ -62,6 +62,9 @@ Debian 13, Fedora 40, or a current rolling release.
 | Arch, Manjaro, EndeavourOS | `.pkg.tar.zst` | `sudo pacman -U vitaena-X.Y.Z-linux-x86_64.pkg.tar.zst` |
 | Anything else | `.AppImage` | `chmod +x vitaena-*.AppImage`, then run it |
 
+The AppImage brings its own copy of WebKitGTK, but uses the system's `bubblewrap` to
+sandbox it, as most desktops already have. If it doesn't start, install `bubblewrap`.
+
 The AppImage updates itself. With the other packages, Vitaena tells you when a new version
 is out and links to it.
 
