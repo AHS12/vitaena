@@ -23,6 +23,7 @@ const PAGE_PX = 794
 /** Fit never makes a page bigger than this, so a wide window doesn't blow it up. */
 const FIT_MAX = 1.25
 const ZOOMS = [0.5, 0.67, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 2]
+/** Room either side of a fitted page, a scrollbar's width included. */
 const GUTTER = 48
 
 type State =
@@ -56,7 +57,16 @@ export function CvPreview({left, right, ats, onExample}: {left: SplitPaneHandle;
             return
         }
 
-        const observer = new ResizeObserver(([entry]) => setAvailable(Math.max(200, entry.contentRect.width - GUTTER)))
+        // The width outside the scrollbar, not inside it: fitting to the inside shrinks the
+        // page when a scrollbar appears, which can make it fit again and the scrollbar go,
+        // over and over, wherever scrollbars take room, as on a Mac with a mouse.
+        const measure = () => {
+            const style = getComputedStyle(scroll)
+            const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
+
+            setAvailable(Math.max(200, scroll.offsetWidth - padding - GUTTER))
+        }
+        const observer = new ResizeObserver(measure)
 
         observer.observe(scroll)
         return () => observer.disconnect()

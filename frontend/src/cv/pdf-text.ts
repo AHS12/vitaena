@@ -10,6 +10,30 @@ export interface PdfText {
     readonly text: string
 }
 
+type Page = Awaited<ReturnType<Awaited<ReturnType<typeof import('pdfjs-dist/legacy/build/pdf.mjs').getDocument>['promise']>['getPage']>>
+type TextContent = Awaited<ReturnType<Page['getTextContent']>>
+
+/**
+ * A page's text, read chunk by chunk. Not getTextContent(): that loops over a stream
+ * with for await, which a Mac's web view can't do, so it fails there.
+ */
+async function pageText(page: Page): Promise<string> {
+    const reader = (page.streamTextContent() as ReadableStream<TextContent>).getReader()
+    let text = ''
+
+    for (;;) {
+        const {done, value} = await reader.read()
+
+        if (done) {
+            return text
+        }
+
+        for (const item of value.items) {
+            text += 'str' in item ? item.str + (item.hasEOL ? '\n' : '') : ''
+        }
+    }
+}
+
 export async function pdfText(pdf: Uint8Array): Promise<PdfText> {
     const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
 
@@ -22,9 +46,7 @@ export async function pdfText(pdf: Uint8Array): Promise<PdfText> {
         const document = await task.promise
 
         for (let number = 1; number <= document.numPages; number += 1) {
-            const content = await (await document.getPage(number)).getTextContent()
-
-            pages.push(content.items.map((item) => ('str' in item ? item.str + (item.hasEOL ? '\n' : '') : '')).join(''))
+            pages.push(await pageText(await document.getPage(number)))
         }
     } finally {
         // Frees the document and its worker's copy of it.

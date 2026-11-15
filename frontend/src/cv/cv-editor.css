@@ -309,6 +309,13 @@ input.panel__title:focus {
     height: auto;
 }
 
+/* Typst's invisible text, there to be selected, is fixed in place inside the SVG. Safari,
+   the Mac's web view, places it against the window instead, so it stretches over the
+   design pane and swallows its clicks. Absolute keeps it on its page everywhere. */
+.cv-preview__pages .tsel {
+    position: absolute;
+}
+
 .cv-preview__pages .typst-page {
     filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.22));
 }
