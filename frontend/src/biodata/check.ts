@@ -5,6 +5,7 @@
  */
 
 import type {CheckResult} from '../cv/ats-check'
+import {notSortedLines} from '../cv/import/not-sorted'
 import type {Biodata} from './biodata'
 
 /**
@@ -25,6 +26,18 @@ export function checkBiodata(biodata: Biodata, pages: number | null): CheckResul
     const {person} = biodata
     const shown = biodata.sections.filter((section) => section.visible)
     const rows = shown.flatMap((section) => (section.kind === 'details' ? section.rows.filter(filled).map((row) => ({section: section.title, row})) : []))
+
+    const unsorted = notSortedLines(biodata)
+
+    // Lines an import couldn't place are hidden, so nothing else would point them out.
+    if (unsorted > 0) {
+        results.push({
+            id: 'not-sorted',
+            level: 'warning',
+            title: unsorted === 1 ? "One line from your file isn't sorted yet" : `${unsorted} lines from your file aren't sorted yet`,
+            detail: 'They wait in Not sorted, which is hidden from the page. Move each where it belongs, then remove that section.',
+        })
+    }
 
     results.push(person.name.trim() ? {id: 'name', level: 'good', title: 'Your name is at the top'} : {id: 'name', level: 'warning', title: 'Add your name'})
 

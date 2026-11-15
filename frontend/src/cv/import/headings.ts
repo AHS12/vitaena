@@ -3,15 +3,18 @@
  * its name, and its kind is guessed from what is under it.
  */
 
-/** What a heading starts: a CV section, or more about the person (merged into theirs). */
-export type HeadingKind = 'text' | 'entries' | 'tags' | 'details' | 'contact'
+/** What a heading starts: a section, or more about the person (merged into theirs). */
+export type HeadingKind = 'text' | 'entries' | 'tags' | 'details' | 'contact' | 'family'
 
 const KNOWN: readonly [HeadingKind, readonly string[]][] = [
-    ['text', ['summary', 'professional summary', 'career summary', 'profile', 'professional profile', 'personal profile', 'about', 'about me', 'objective', 'career objective', 'personal statement', 'overview', 'references']],
+    ['text', ['summary', 'professional summary', 'career summary', 'profile', 'professional profile', 'personal profile', 'about', 'about me', 'objective', 'career objective', 'personal statement', 'overview', 'references', 'expectations', 'partner preferences', 'preferences', 'looking for']],
     [
         'entries',
         [
             'experience',
+            'work',
+            'occupation',
+            'profession',
             'work experience',
             'professional experience',
             'relevant experience',
@@ -47,7 +50,8 @@ const KNOWN: readonly [HeadingKind, readonly string[]][] = [
         ],
     ],
     ['tags', ['skills', 'technical skills', 'key skills', 'core skills', 'core competencies', 'competencies', 'expertise', 'areas of expertise', 'languages', 'tools', 'technologies', 'tools and technologies', 'interests', 'hobbies', 'hobbies and interests']],
-    ['details', ['personal details', 'personal information', 'personal data', 'details']],
+    ['details', ['personal details', 'personal information', 'personal data', 'details', 'horoscope', 'religious practice', 'lifestyle', 'more about me']],
+    ['family', ['family', 'family details', 'family background', 'family information', 'parents', 'siblings']],
     ['contact', ['contact', 'contact details', 'contact information', 'contact me', 'get in touch']],
 ]
 

@@ -27,6 +27,9 @@ export interface ImportedCv {
 
 export {NOT_SORTED}
 
+/** A title saying what the document is, which is neither the person's name nor their heading. */
+export const BIODATA_TITLE = /^(?:marriage\s+|matrimonial\s+)?bio-?\s?data(?:\s+for\s+marriage)?$/i
+
 const BULLET = /^(?:[•▪◦‣●■○◆►✓➢]\s*|[*–-]\s+)/
 const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/
 const URL_LIKE = /^(?:https?:\/\/)?(?:www\.)?(?:[\w-]+\.)+[a-z]{2,}(?:\/\S*)?$/i
@@ -56,7 +59,7 @@ const isCaps = (text: string) => /\p{L}/u.test(text) && text === text.toUpperCas
 const words = (text: string) => text.split(/\s+/).filter(Boolean).length
 
 /** "SENIOR SOFTWARE ENGINEER" as "Senior Software Engineer", for a name or headline. */
-const titleCase = (text: string) => (isCaps(text) ? text.toLowerCase().replace(/(^|[\s'-])(\p{L})/gu, (_, before: string, letter: string) => before + letter.toUpperCase()) : text)
+export const titleCase = (text: string) => (isCaps(text) ? text.toLowerCase().replace(/(^|[\s'-])(\p{L})/gu, (_, before: string, letter: string) => before + letter.toUpperCase()) : text)
 
 /** "WORK HISTORY" as "Work history", as the app writes headings. */
 const sentenceCase = (text: string) => (isCaps(text) ? text.charAt(0) + text.slice(1).toLowerCase() : text)
@@ -125,7 +128,7 @@ function segmentsOf(line: PdfLine): {text: string; bold: boolean; afterTitle: bo
 
 // ---------------------------------------------------------------- the person
 
-interface Contact {
+export interface Contact {
     email: string
     phone: string
     location: string
@@ -190,13 +193,8 @@ function addLinks(targets: readonly string[], contact: Contact): void {
 
 // ---------------------------------------------------------------- sections
 
-interface RawSection {
-    readonly title: string
-    readonly kind: HeadingKind | null
-    readonly lines: PdfLine[]
-}
 
-function textOf(lines: readonly PdfLine[]): string {
+export function textOf(lines: readonly PdfLine[]): string {
     let text = ''
 
     for (const line of lines) {
@@ -327,14 +325,14 @@ function entryHead(lines: readonly PdfLine[], columnRight: number, jobs: boolean
 
     let title = parts[titleAt]?.text ?? ''
 
-    // "Designer, Northwind" in one look, with no organisation anywhere else; "Designer at
-    // Northwind" too, under jobs, where "First Aid at Work" isn't likely.
-    if (rest.length === 0) {
+    // "Designer, Northwind" in one look, with no organisation after it on its line; "Designer
+    // at Northwind" too, under jobs, where "First Aid at Work" isn't likely.
+    if (!parts.some((part) => part.afterTitle)) {
         const split = (jobs ? /^(.+?)(?:,\s+|\s+(?:at|@)\s+)(.+)$/ : /^(.+?),\s+(.+)$/).exec(title)
 
         if (split) {
             title = split[1]
-            rest.push(...split[2].split(/\s*,\s*/))
+            rest.unshift(...split[2].split(/\s*,\s*/))
         }
     }
 
@@ -368,9 +366,9 @@ function entryHead(lines: readonly PdfLine[], columnRight: number, jobs: boolean
 }
 
 /** Section names about jobs, where "Role at Company" means a role at a company. */
-const JOBS = /experience|employment|work|career|positions|volunteer|leadership/i
+export const JOBS = /experience|employment|work|career|positions|volunteer|leadership/i
 
-function entriesOf(lines: readonly PdfLine[], body: number, linesBeforeDates: number, jobs: boolean): CvEntry[] {
+export function entriesOf(lines: readonly PdfLine[], body: number, linesBeforeDates: number, jobs: boolean): CvEntry[] {
     const roles = rolesOf(lines, body)
     const columnRight = Math.max(...lines.map((line) => line.right))
     const groups: {head: PdfLine[]; body: {role: Role; line: PdfLine}[]}[] = []
@@ -449,9 +447,9 @@ function learnLinesBeforeDates(sections: readonly RawSection[], body: number): n
     return [...counts].reduce((best, entry) => (entry[1] > best[1] ? entry : best), [1, 0])[0]
 }
 
-const LABELLED = /^([^:,]{1,30}):\s*(.*)$/
+export const LABELLED = /^([^:,]{1,30}):\s*(.*)$/
 
-function tagGroupsOf(lines: readonly PdfLine[]): CvTagGroup[] {
+export function tagGroupsOf(lines: readonly PdfLine[]): CvTagGroup[] {
     const groups: {label: string; items: string[]; text: string}[] = []
     const current = () => groups[groups.length - 1] ?? (groups.push({label: '', items: [], text: ''}), groups[groups.length - 1])
     const start = (label: string, text = '') => groups.push({label, items: [], text})
@@ -509,7 +507,7 @@ function tagGroupsOf(lines: readonly PdfLine[]): CvTagGroup[] {
 }
 
 /** A section whose heading isn't known: entries if it has dates, a list if it reads like one, otherwise text. */
-function guessKind(lines: readonly PdfLine[]): HeadingKind {
+export function guessKind(lines: readonly PdfLine[]): HeadingKind {
     if (lines.some((line) => findDates(line.text))) {
         return 'entries'
     }
@@ -521,26 +519,78 @@ function guessKind(lines: readonly PdfLine[]): HeadingKind {
 
 // ---------------------------------------------------------------- the CV
 
-export function cvFromLayout(layout: PdfLayout): ImportedCv {
+/** A details row's label and value: "Label: value", or a label and a value apart, with or without a colon between. */
+export function labelAndValue(line: PdfLine): [label: string, value: string] | null {
+    const runs = line.runs.filter((run) => run.text !== ':')
+
+    if (runs.length === 2 && !BULLET.test(line.text)) {
+        return [runs[0].text.replace(/\s*:$/, ''), runs[1].text.replace(/^:\s*/, '')]
+    }
+
+    const labelled = LABELLED.exec(line.text)
+
+    return labelled && !BULLET.test(line.text) ? [labelled[1].trim(), labelled[2].trim()] : null
+}
+
+/** Lines of a details section as rows of words; what isn't a row goes to `unsorted`. */
+export function detailRowsOf(lines: readonly PdfLine[], unsorted: string[]): {label: string; value: string}[] {
+    return lines.flatMap((line) => {
+        const row = labelAndValue(line)
+
+        if (!row) {
+            unsorted.push(line.text)
+            return []
+        }
+
+        return [{label: row[0], value: row[1]}]
+    })
+}
+
+/** What every document read from a PDF or Word file has, before it becomes a CV or a biodata. */
+export interface DocumentParts {
+    /** The size most of the text is in. */
+    readonly body: number
+    readonly name: string
+    readonly headline: string
+    /** Lines above the name in its column, as a biodata's own heading line. */
+    readonly above: readonly PdfLine[]
+    /** Other lines before the first heading, which hold contact details. */
+    readonly header: readonly PdfLine[]
+    readonly sections: readonly RawSection[]
+    /** How many heading lines a job has before its dates, in this document's layout. */
+    readonly linesBeforeDates: number
+    readonly twoColumns: boolean
+}
+
+export interface RawSection {
+    readonly title: string
+    readonly kind: HeadingKind | null
+    readonly lines: PdfLine[]
+}
+
+/** The name, what's around it, and the sections under their headings, in reading order. */
+export function documentParts(layout: PdfLayout): DocumentParts {
     const body = bodySize(layout.lines)
     const content = layout.lines.filter((line) => !isFurniture(line, body))
     // Each column read through every page: the main one first, then the side one.
     const streams = [content.filter((line) => line.column !== 'right'), content.filter((line) => line.column === 'right')]
-    const firstPage = content.filter((line) => line.page === 1)
+    // The name is the largest text on the first page, unless that's a title saying "Biodata".
+    const firstPage = content.filter((line) => line.page === 1 && !BIODATA_TITLE.test(line.text.trim()))
     const nameLine = firstPage.length > 0 ? firstPage.reduce((a, b) => (b.size > a.size ? b : a)) : undefined
 
     // The column with the name is the main one, read first, even when it is on the right.
     if (nameLine?.column === 'right') {
         streams.reverse()
     }
+
     const nameStream = streams.find((stream) => nameLine && stream.includes(nameLine)) ?? []
     // A headline in capitals can look like a heading; under the name, it's the headline.
     const afterName = nameStream[nameStream.indexOf(nameLine!) + 1]
-    const header = [nameLine, afterName && !knownHeading(afterName.text) ? afterName : undefined].filter((line): line is PdfLine => line !== undefined)
-    const headings = findHeadings(content, body, header)
-    const contact: Contact = {email: '', phone: '', location: '', links: []}
-    const unsorted: string[] = []
+    const nameAndHeadline = [nameLine, afterName && !knownHeading(afterName.text) ? afterName : undefined].filter((line): line is PdfLine => line !== undefined)
+    const headings = findHeadings(content, body, nameAndHeadline)
     const sections: RawSection[] = []
+    const above: PdfLine[] = []
+    const header: PdfLine[] = []
     let headline = ''
 
     for (const stream of streams) {
@@ -556,50 +606,62 @@ export function cvFromLayout(layout: PdfLayout): ImportedCv {
                 // The name, read below.
             } else if (stream[index - 1] === nameLine && !headline && line.text.length <= 80 && !EMAIL.test(line.text) && !findDates(line.text)) {
                 headline = titleCase(line.text)
+            } else if (nameLine && stream === nameStream && line.page === 1 && line.y < nameLine.y) {
+                above.push(line)
             } else {
-                for (const segment of segmentsOf(line)) {
-                    if (!placeDetail(segment.text, contact)) {
-                        unsorted.push(segment.text)
-                    }
-                }
+                header.push(line)
             }
         })
     }
 
-    const linesBeforeDates = learnLinesBeforeDates(
-        sections.filter((section) => (section.kind ?? guessKind(section.lines)) === 'entries'),
+    return {
         body,
-    )
+        name: nameLine ? titleCase(nameLine.text) : '',
+        headline,
+        above,
+        header,
+        sections,
+        linesBeforeDates: learnLinesBeforeDates(
+            sections.filter((section) => (section.kind ?? guessKind(section.lines)) === 'entries'),
+            body,
+        ),
+        twoColumns: layout.lines.some((line) => line.column !== 'full'),
+    }
+}
+
+/** Contact details from lines, by their shape; what has no place goes to `unsorted`. */
+export function contactFrom(lines: readonly PdfLine[], contact: Contact, unsorted: string[]): void {
+    for (const segment of lines.flatMap(segmentsOf)) {
+        if (!placeDetail(segment.text, contact)) {
+            unsorted.push(segment.text)
+        }
+    }
+}
+
+export const emptyContact = (): Contact => ({email: '', phone: '', location: '', links: []})
+
+export function cvFromLayout(layout: PdfLayout): ImportedCv {
+    const parts = documentParts(layout)
+    const contact = emptyContact()
+    const unsorted: string[] = []
     const cvSections: CvSection[] = []
 
-    for (const section of sections) {
+    contactFrom([...parts.above, ...parts.header], contact, unsorted)
+
+    for (const section of parts.sections) {
         const kind = section.kind ?? guessKind(section.lines)
         const base = {id: newId('section'), title: section.title, visible: true}
 
         if (kind === 'contact') {
-            for (const segment of section.lines.flatMap(segmentsOf)) {
-                if (!placeDetail(segment.text, contact)) {
-                    unsorted.push(segment.text)
-                }
-            }
+            contactFrom(section.lines, contact, unsorted)
         } else if (kind === 'entries') {
-            cvSections.push({...base, kind: 'entries', entries: entriesOf(section.lines, body, linesBeforeDates, JOBS.test(section.title))})
+            cvSections.push({...base, kind: 'entries', entries: entriesOf(section.lines, parts.body, parts.linesBeforeDates, JOBS.test(section.title))})
         } else if (kind === 'tags') {
             cvSections.push({...base, kind: 'tags', groups: tagGroupsOf(section.lines)})
         } else if (kind === 'details') {
-            const rows = section.lines.flatMap((line) => {
-                const labelled = LABELLED.exec(line.text) ?? (line.runs.length === 2 ? [line.text, line.runs[0].text, line.runs[1].text] : null)
-
-                if (!labelled) {
-                    unsorted.push(line.text)
-                    return []
-                }
-
-                return [{id: newId('row'), visible: true, kind: 'text' as const, label: labelled[1].trim(), value: labelled[2].trim()}]
-            })
-
-            cvSections.push({...base, kind: 'details', rows})
+            cvSections.push({...base, kind: 'details', rows: detailRowsOf(section.lines, unsorted).map(({label, value}) => ({id: newId('row'), visible: true, kind: 'text' as const, label, value}))})
         } else {
+            // A family, which a CV doesn't list, comes in as text like any other.
             cvSections.push({...base, kind: 'text', text: textOf(section.lines)})
         }
     }
@@ -612,8 +674,8 @@ export function cvFromLayout(layout: PdfLayout): ImportedCv {
     }
 
     const person: CvPerson = {
-        name: nameLine ? titleCase(nameLine.text) : '',
-        headline,
+        name: parts.name,
+        headline: parts.headline,
         email: contact.email,
         phone: contact.phone,
         location: contact.location,
@@ -621,7 +683,6 @@ export function cvFromLayout(layout: PdfLayout): ImportedCv {
         photo: '',
         hide: [],
     }
-    const twoColumns = layout.lines.some((line) => line.column !== 'full')
 
-    return {cv: {person, sections: cvSections, design: {...DEFAULT_DESIGN, template: twoColumns ? 'modern' : 'classic'}}, unsorted: unsorted.length}
+    return {cv: {person, sections: cvSections, design: {...DEFAULT_DESIGN, template: parts.twoColumns ? 'modern' : 'classic'}}, unsorted: unsorted.length}
 }

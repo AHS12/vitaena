@@ -62,7 +62,7 @@ set in code uses `rem` or `uiScale()`. Check your change at more than 100% inter
 including anything under the GPL or a paid license. The bundled fonts come from npm
 packages under the SIL Open Font License.
 
-**Every template passes the screening test.** `frontend/src/cv/templates/ats.test.ts` lays
+**Every template passes the screening test.** `frontend/src/cv/templates/ats.typst.test.ts` lays
 each template out, reads the text back from the PDF, and checks its order, dates and
 contact details. A new template is listed in `templates.ts` and passes it.
 

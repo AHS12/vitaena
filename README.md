@@ -12,7 +12,7 @@ storage of your own. Vitaena runs on Windows, macOS and Linux.
   name repeated on every page, however long the CV runs.
 - **Start from the CV you have.** Import it as a PDF or a Word file and Vitaena makes it
   into a CV you can edit: your details and photo, each job with its dates and bullets,
-  your skills. It's read on your computer, with no AI and nothing sent anywhere; what it
+  your skills. A biodata comes in as a biodata, with its details and family. It's read on your computer, with no AI and nothing sent anywhere; what it
   can't place waits in a hidden section for you to sort.
 - **Ten templates,** each shown with your own CV, for a resume, an academic CV, or both.
 - **Made to get through screening.** Every template is tested the way an applicant

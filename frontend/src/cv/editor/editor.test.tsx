@@ -188,7 +188,7 @@ describe('the CV editor', () => {
         useDocumentStore.getState().previewEdit({...cv, sections: [...cv.sections, {id: 'not-sorted', kind: 'text', title: 'Not sorted', visible: false, text: 'Available from May'}]})
         render(<CvEditor />)
 
-        expect(screen.getByRole('note')).toHaveTextContent(/One line from your PDF had no clear place/)
+        expect(screen.getByRole('note')).toHaveTextContent(/One line from your file had no clear place/)
     })
 
     it('shows each entry folded, with its name and dates', () => {

@@ -49,7 +49,7 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
         results.push({
             id: 'not-sorted',
             level: 'warning',
-            title: unsorted === 1 ? "One line from your PDF isn't sorted yet" : `${unsorted} lines from your PDF aren't sorted yet`,
+            title: unsorted === 1 ? "One line from your file isn't sorted yet" : `${unsorted} lines from your file aren't sorted yet`,
             detail: 'They wait in Not sorted, which is hidden from the page. Move each where it belongs, then remove that section.',
         })
     }

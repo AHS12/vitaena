@@ -28,6 +28,7 @@ import type {Biodata} from './biodata'
 import {BiodataCheck} from './BiodataCheck'
 import {BIODATA_SECTION_CHOICES, updateHeading, updatePerson} from './edit-ops'
 import {biodataRenderModel, isBlank} from './render-model'
+import {NotSortedNote} from '../cv/import/NotSortedNote'
 import {sampleBiodata} from './sample'
 import {BIODATA_TEMPLATES} from './templates/templates'
 
@@ -63,6 +64,7 @@ function ContentPanel({biodata, edit}: {biodata: Biodata; edit: Edit}) {
 
     return (
         <>
+            <NotSortedNote doc={biodata} />
             <FixedPanel id="heading" title="Heading">
                 <div onBlur={edit.commit}>
                     <TextField

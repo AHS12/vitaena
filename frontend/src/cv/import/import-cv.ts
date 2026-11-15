@@ -8,6 +8,7 @@ import {create} from 'zustand'
 import {squarePhoto} from '../../components/square-photo'
 import {afterPaint} from '../../core/yield'
 import {useDocumentStore} from '../../store/document-store'
+import {biodataType} from '../../biodata/biodata'
 import {cvType, type Cv} from '../cv'
 import type {PdfPhoto} from './photo'
 
@@ -117,7 +118,12 @@ export async function importCv(bytes: Uint8Array, path: string): Promise<void> {
         await afterPaint()
 
         const word = /\.docx$/i.test(file)
-        const [{readPdfLayout}, {readDocxLayout}, {cvFromLayout}] = await Promise.all([import('./read-pdf'), import('./read-docx'), import('./parse')])
+        const [{readPdfLayout}, {readDocxLayout}, {cvFromLayout, documentParts}, {biodataFromLayout, isBiodata}] = await Promise.all([
+            import('./read-pdf'),
+            import('./read-docx'),
+            import('./parse'),
+            import('./biodata-parse'),
+        ])
         const layout = word ? await readDocxLayout(bytes) : await readPdfLayout(bytes, {signal: controller.signal, onPage: (page, pages) => set({kind: 'reading', page, pages})})
 
         if (layout.lines.length === 0) {
@@ -128,21 +134,35 @@ export async function importCv(bytes: Uint8Array, path: string): Promise<void> {
         set({kind: 'making'})
         await afterPaint()
 
-        const made = cvFromLayout(layout)
+        const parts = documentParts(layout)
         // A browser draws the photo; elsewhere, as in tests, there's no canvas to.
-        const cv = typeof document === 'undefined' ? made.cv : withPhoto(made.cv, photoOf(layout.photo))
-        const {unsorted} = made
+        const photo = typeof document === 'undefined' ? '' : photoOf(layout.photo)
+        const biodata = isBiodata(layout, parts)
+        const made = biodata ? biodataFromLayout(layout, parts) : cvFromLayout(layout)
 
         if (controller.signal.aborted) {
             return
         }
 
         const store = useDocumentStore.getState()
+        const {unsorted} = made
         const sorted = unsorted === 0 ? '' : ` ${unsorted === 1 ? 'One line is' : `${unsorted} lines are`} in Not sorted.`
+        const original = word ? 'Word file' : 'PDF'
 
-        store.startNew(cvType.content.parse(cv), cvType.kind)
-        store.setName(cv.person.name || file.replace(/\.(?:pdf|docx)$/i, ''))
-        store.notify(`Made a CV from ${file}. Check it against your ${word ? 'Word file' : 'PDF'}, the dates especially.${sorted}`)
+        if ('biodata' in made) {
+            const content = {...made.biodata, person: {...made.biodata.person, photo}}
+
+            store.startNew(biodataType.content.parse(content), biodataType.kind)
+            store.setName(content.person.name || file.replace(/\.(?:pdf|docx)$/i, ''))
+            store.notify(`Made a biodata from ${file}. Check it against your ${original}.${sorted}`)
+        } else {
+            const cv = withPhoto(made.cv, photo)
+
+            store.startNew(cvType.content.parse(cv), cvType.kind)
+            store.setName(cv.person.name || file.replace(/\.(?:pdf|docx)$/i, ''))
+            store.notify(`Made a CV from ${file}. Check it against your ${original}, the dates especially.${sorted}`)
+        }
+
         useCvImport.setState({file: null})
     } catch (error) {
         if (!controller.signal.aborted) {

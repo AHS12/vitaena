@@ -55,14 +55,20 @@ Commit or push only when asked. Work on `dev`, and don't touch `main`.
 - `frontend/src/cv` is the CV: its document type (`cv.ts`), the render model a template
   is given (`render-model.ts`), the Typst engine (`typst/engine.ts`), templates
   (`templates/*.typ`), export formats and tours. Every template must pass
-  `templates/ats.test.ts`, which reads the PDF back the way an ATS does. It also holds
+  `templates/ats.typst.test.ts`, which reads the PDF back the way an ATS does. It also holds
   what every type made of sections shares: the section schemas (`sections.ts`), the
   editor's section panels, the preview (`PagePreview.tsx`) and the design pane's parts.
 - `frontend/src/biodata` is the biodata: its document type, render model, editor,
-  templates (`templates/*.typ`, read back by `templates/templates.test.ts`) and export
+  templates (`templates/*.typ`, read back by `templates/templates.typst.test.ts`) and export
   formats. `store/document-types.ts` lists the types of document; a file's `kind` picks
   its type, the store keeps the open document's `kind`, and the app shows that type's
   editor.
+- `frontend/src/cv/import` makes a CV or a biodata from a PDF or Word file, by rules: the
+  readers (`read-pdf.ts`, `read-docx.ts`) give lines with their look, and `parse.ts` and
+  `biodata-parse.ts` make the document. It's tested on every template's own PDF and on
+  CVs from other apps in `fixtures/` (`make import-fixtures` rebuilds them).
+- A test that lays pages out with Typst is named `*.typst.test.ts`: each starts a
+  compiler with every font, so `vitest.config.ts` runs only two of them at a time.
 - `build/` holds each system's build files; [build/README.md](build/README.md) says which
   are written from `app.config.json`. Linux packages (deb, rpm, Arch, AppImage) come from
   `build/linux`, and the **Linux Test Build** workflow installs and starts each one, since

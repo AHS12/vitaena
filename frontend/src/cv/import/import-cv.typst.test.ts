@@ -6,6 +6,8 @@ import {beforeAll, beforeEach, describe, expect, it} from 'vitest'
 import type {TypstCompiler} from '@myriaddreamin/typst.ts'
 import {useDocumentStore} from '../../store/document-store'
 import type {Cv} from '../cv'
+import {biodataRenderModel} from '../../biodata/render-model'
+import {sampleBiodata} from '../../biodata/sample'
 import {renderModel} from '../render-model'
 import {sampleCv} from '../sample'
 import {templatePdf, typstCompiler} from '../../tests/typst'
@@ -44,6 +46,15 @@ describe('importing a CV from a PDF', () => {
         expect(cv.design.template).toBe('modern')
         expect(state.toast?.message).toMatch(/^Made a CV from jane-cv\.pdf\. Check it against your PDF/)
         expect(useCvImport.getState().file).toBeNull()
+    })
+
+    it('opens a biodata as a biodata', async () => {
+        const pdf = await templatePdf(compiler, new URL('../../biodata/templates/heritage.typ', import.meta.url), '/biodata.json', biodataRenderModel(sampleBiodata(), new Date(2026, 10, 15)))
+
+        await importCv(pdf, 'jane-biodata.pdf')
+
+        expect(useDocumentStore.getState()).toMatchObject({kind: 'biodata', name: 'Jane Doe'})
+        expect(useDocumentStore.getState().toast?.message).toMatch(/^Made a biodata from jane-biodata\.pdf/)
     })
 
     it('says so when the PDF has no text, as a scan has none', async () => {

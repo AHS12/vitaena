@@ -55,7 +55,7 @@ describe('the check', () => {
         const cv = sampleCv()
         const withUnsorted = (text: string): Cv => ({...cv, sections: [...cv.sections, {id: 'not-sorted', kind: 'text', title: 'Not sorted', visible: false, text}]})
 
-        expect(checkCv(withUnsorted(['Available from May', 'Driving licence'].join('\n')), 2).find((result) => result.id === 'not-sorted')).toMatchObject({level: 'warning', title: "2 lines from your PDF aren't sorted yet"})
+        expect(checkCv(withUnsorted(['Available from May', 'Driving licence'].join('\n')), 2).find((result) => result.id === 'not-sorted')).toMatchObject({level: 'warning', title: "2 lines from your file aren't sorted yet"})
         expect(levelOf(withUnsorted(''), 'not-sorted')).toBeUndefined()
         expect(levelOf(cv, 'not-sorted')).toBeUndefined()
     })
