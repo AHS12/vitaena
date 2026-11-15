@@ -12,8 +12,9 @@ import {canUndo} from '../../core/history/history'
 import {features} from '../feature'
 import type {SavedDocument} from '../../platform/documents'
 import {AppMark} from '../../components/AppMark'
-import {documentType, useDocumentStore} from '../../store/document-store'
-import {displayName, savedLabel} from './document-labels'
+import {useDocumentStore} from '../../store/document-store'
+import {defaultType, libraryCount, libraryWords} from '../../store/document-types'
+import {displayName, savedLabel, typeMark} from './document-labels'
 import {DocumentPicture} from './document-tile'
 
 /** The most recent documents Home shows, if that many fit across. */
@@ -87,6 +88,7 @@ function DocumentCard({document, current, onOpen, onRemove, onRename}: CardProps
                 </span>
                 <span className="document-tile__name">{name}</span>
                 <span className="document-tile__meta">
+                    {typeMark(document) ? <span className="document-tile__type">{typeMark(document)}</span> : null}
                     {savedLabel(document.savedAt)}
                     {current ? <span className="document-tile__badge">Editing</span> : null}
                 </span>
@@ -130,7 +132,8 @@ export function HomePage({start}: {start?: ReactNode}) {
     const name = useDocumentStore((state) => state.name)
     const history = useDocumentStore((state) => state.history)
     const documentInHand = useDocumentStore((state) => state.documentInHand)
-    const plural = `${documentType.noun}s`
+    const {noun, plural} = libraryWords()
+    const newNoun = defaultType().noun
 
     const [perRow, setPerRow] = useState(RECENT_MOST)
     const [query, setQuery] = useState('')
@@ -188,7 +191,7 @@ export function HomePage({start}: {start?: ReactNode}) {
                         <AppMark size={44} className="home__mark" />
                         <div>
                             <h1 className="home__title">{APP.name}</h1>
-                            <p className="home__sub">{hasDocuments ? `Pick up a ${documentType.noun}, or start a new one.` : `Make your first ${documentType.noun}. Everything stays on this computer.`}</p>
+                            <p className="home__sub">{hasDocuments ? `Pick up a ${noun}, or start a new one.` : `Make your first ${noun}. Everything stays on this computer.`}</p>
                         </div>
                     </div>
                     <div className="home__actions" data-coach="home-start">
@@ -205,10 +208,10 @@ export function HomePage({start}: {start?: ReactNode}) {
                         <button
                             type="button"
                             className="button button--primary button--large"
-                            onClick={() => guardUnsaved(store(), `Start a new ${documentType.noun}`, () => store().startNew())}
+                            onClick={() => guardUnsaved(store(), `Start a new ${newNoun}`, () => store().startNew())}
                         >
                             <FilePlus size={15} aria-hidden="true" />
-                            New {documentType.noun}
+                            New {newNoun}
                         </button>
                     </div>
                 </header>
@@ -235,7 +238,7 @@ export function HomePage({start}: {start?: ReactNode}) {
                         <div className="home__section-head">
                             <h2 className="home__section-title">Recent</h2>
                             <button type="button" className="button home__see-all" onClick={showDocuments}>
-                                See all {documents.length} {documents.length === 1 ? documentType.noun : plural}
+                                See all {libraryCount(documents.length)}
                                 <ChevronRight size={14} aria-hidden="true" />
                             </button>
                         </div>
@@ -298,6 +301,7 @@ export function HomePage({start}: {start?: ReactNode}) {
                                             <DocumentPicture document={document} iconSize={16} />
                                         </span>
                                         <span className="home-list__name">{displayName(document)}</span>
+                                        {typeMark(document) ? <span className="document-tile__type">{typeMark(document)}</span> : null}
                                         {document.id === currentId ? <span className="document-tile__badge">Editing</span> : null}
                                         <span className="home-list__saved">{savedLabel(document.savedAt)}</span>
                                         <ChevronRight size={14} aria-hidden="true" className="home-list__go" />

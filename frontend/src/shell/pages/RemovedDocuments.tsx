@@ -9,7 +9,8 @@
 import {RotateCcw, Trash2} from 'lucide-react'
 import {useEffect, useState} from 'react'
 import type {RemovedDocument} from '../../platform/documents'
-import {documentType, useDocumentStore} from '../../store/document-store'
+import {useDocumentStore} from '../../store/document-store'
+import {libraryWords} from '../../store/document-types'
 import {displayName, savedLabel} from './document-labels'
 import {DocumentPicture} from './document-tile'
 
@@ -72,7 +73,7 @@ export function RemovedDocuments({layout}: {layout: 'tiles' | 'rows'}) {
 
     return (
         <div className="removed-documents" data-layout={layout}>
-            <p className="dialog__hint">Removed {documentType.noun}s wait here for 30 days, then they're gone for good.</p>
+            <p className="dialog__hint">Removed {libraryWords().plural} wait here for 30 days, then they're gone for good.</p>
 
             {removed.length === 0 ? (
                 <p className="dialog__hint">Nothing here.</p>
@@ -81,7 +82,7 @@ export function RemovedDocuments({layout}: {layout: 'tiles' | 'rows'}) {
                     {removed.length > 1 ? (
                         forgetting === 'all' ? (
                             <ForgetQuestion
-                                label={`Remove all ${removed.length} ${documentType.noun}s for good?`}
+                                label={`Remove all ${removed.length} ${libraryWords().plural} for good?`}
                                 onKeep={() => setForgetting(null)}
                                 onForget={() => {
                                     setForgetting(null)

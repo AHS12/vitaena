@@ -14,7 +14,8 @@ import {allCommands, findCommand, guardUnsaved, runCommand, shortcutFor, type Co
 import {parsePrefix, rankEntries, type PaletteSection} from '../core/commands/palette-search'
 import {SETTING_SPECS} from '../core/settings/settings-spec'
 import {hasTray} from '../platform/window'
-import {documentType, isHomePage, useDocumentStore, type DocumentStore} from '../store/document-store'
+import {isHomePage, useDocumentStore, type DocumentStore} from '../store/document-store'
+import {libraryWords, nounOfKind} from '../store/document-types'
 import {settingValue, useSettingsStore} from '../store/settings-store'
 import {useUiStore} from '../store/ui-store'
 
@@ -112,7 +113,7 @@ function allEntries(state: DocumentStore): readonly Entry[] {
             id: `saved-${document.id}`,
             label: document.name,
             section: 'Documents',
-            keywords: documentType.noun,
+            keywords: nounOfKind(document.kind) ?? libraryWords().noun,
             icon: FileText,
             run: () => guardUnsaved(state, `Open “${document.name}”`, () => void state.open(document.id)),
         }),
@@ -337,7 +338,7 @@ export function CommandPalette() {
                         <span><kbd className="keys">↑↓</kbd> move</span>
                         <span><kbd className="keys">Enter</kbd> run</span>
                         <span className="palette__prefixes">
-                            <kbd className="keys">&gt;</kbd> actions <kbd className="keys">@</kbd> {documentType.noun}s
+                            <kbd className="keys">&gt;</kbd> actions <kbd className="keys">@</kbd> {libraryWords().plural}
                         </span>
                     </>
                 )}

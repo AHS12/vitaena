@@ -6,16 +6,19 @@
 import {useEffect, useMemo, useState} from 'react'
 import {Dialog} from '../../components/controls'
 import {chooseFolder} from '../../platform/desktop'
-import {documentType, useDocumentStore} from '../../store/document-store'
+import {typeInHand, useDocumentStore, type Content} from '../../store/document-store'
 import {FolderChoice, FormatChoices} from './ExportChoices'
 import {useExportStore} from './export-store'
-import {exportFiles, filesAre} from './formats'
+import {exportFiles, filesAre, type ExportFormat} from './formats'
 import {existingFiles, writeFiles, writesToFolders} from './platform'
 import {loadExportPreferences, saveExportPreferences, type ExportPreferences} from './preferences'
 
+const NO_FORMATS: readonly ExportFormat<Content>[] = []
+
 export function ExportDialog() {
     const open = useExportStore((state) => state.dialog === 'one')
-    const all = useExportStore((state) => state.formats)
+    const kind = useDocumentStore((state) => state.kind)
+    const all = useExportStore((state) => state.formats[kind]) ?? NO_FORMATS
     const content = useDocumentStore((state) => state.content)
     const formats = useMemo(() => all.filter((format) => format.available?.(content) ?? true), [all, content])
     const close = useExportStore((state) => state.close)
@@ -74,7 +77,7 @@ export function ExportDialog() {
     }
 
     return (
-        <Dialog open={open} onClose={close} title={`Export this ${documentType.noun}`} width={480}>
+        <Dialog open={open} onClose={close} title={`Export this ${typeInHand({kind}).noun}`} width={480}>
             <div className="dialog__form export">
                 {inTheWay ? (
                     <>

@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest'
 import {z} from 'zod'
 import {APP} from '../app'
-import {DocumentFileError, parseDocument, serializeDocument, type DocumentType} from './document-file'
+import {countOf, DocumentFileError, kindOf, parseAnyDocument, parseDocument, serializeDocument, type DocumentType} from './document-file'
 
 interface Card {
     readonly title: string
@@ -83,5 +83,59 @@ describe('the document file', () => {
 
     it('gives a document with no name a plain one', () => {
         expect(parseDocument(fileOf({name: undefined}), cardType).name).toBe('Untitled card')
+    })
+})
+
+interface Note {
+    readonly text: string
+}
+
+const noteType: DocumentType<Note> = {
+    kind: 'note',
+    noun: 'note',
+    plural: 'notes',
+    version: 1,
+    content: z.object({text: z.string()}),
+    empty: () => ({text: ''}),
+}
+
+const types = [cardType, noteType] as readonly DocumentType<Card | Note>[]
+
+describe('a file of one of several types', () => {
+    it('is read as the type its kind names', () => {
+        const loaded = parseAnyDocument(fileOf({kind: 'note', version: 1, content: {text: 'Call home'}}), types)
+
+        expect(loaded.type).toBe(noteType)
+        expect(loaded.content).toEqual({text: 'Call home'})
+    })
+
+    it('is upgraded by its own type', () => {
+        const loaded = parseAnyDocument(fileOf({version: 1, content: {title: 'Milk'}}), types)
+
+        expect(loaded.type).toBe(cardType)
+        expect(loaded.content).toEqual({title: 'Milk', done: false})
+    })
+
+    it('of a kind this build does not know is taken to be from a newer version', () => {
+        expect(() => parseAnyDocument(fileOf({kind: 'recipe'}), types)).toThrow(/is a recipe, which this version of .* can't open/)
+    })
+
+    it('that is not from this app is refused as the first type', () => {
+        expect(() => parseAnyDocument('{"title": "Milk"}', types)).toThrow(DocumentFileError)
+        expect(() => parseAnyDocument('not json', types)).toThrow(/isn't valid JSON/)
+    })
+
+    it('says its kind without being read', () => {
+        expect(kindOf(fileOf({kind: 'note'}))).toBe('note')
+        expect(kindOf('{"kind": "note"}')).toBeNull()
+        expect(kindOf('not json')).toBeNull()
+    })
+})
+
+describe('counting documents', () => {
+    it('uses the plural a type gives', () => {
+        expect(countOf(1, cardType)).toBe('1 card')
+        expect(countOf(3, cardType)).toBe('3 cards')
+        expect(countOf(2, {noun: 'biodata', plural: 'biodata'})).toBe('2 biodata')
     })
 })

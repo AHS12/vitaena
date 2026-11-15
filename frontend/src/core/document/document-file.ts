@@ -19,6 +19,8 @@ export interface DocumentType<T> {
     readonly kind: string
     /** What a person calls one, in lower case: "note". */
     readonly noun: string
+    /** More than one, when it isn't the noun and an s: "biodata". */
+    readonly plural?: string
     /** The version of `content`. Raise it when the shape changes, and add a migration. */
     readonly version: number
     /** Checks the content. A failure names the first thing wrong. */
@@ -70,6 +72,12 @@ function describeIssue(issue: z.core.$ZodIssue): string {
 
     return path ? `${path}: ${issue.message}` : issue.message
 }
+
+/** More than one of a type: "notes". */
+export const pluralOf = (type: Pick<DocumentType<unknown>, 'noun' | 'plural'>): string => type.plural ?? `${type.noun}s`
+
+/** "1 note", or "3 notes". */
+export const countOf = (count: number, type: Pick<DocumentType<unknown>, 'noun' | 'plural'>): string => `${count} ${count === 1 ? type.noun : pluralOf(type)}`
 
 /** The name a document gets when it has none: "Untitled note". */
 export const untitled = (type: DocumentType<unknown>): string => `Untitled ${type.noun}`
@@ -140,6 +148,40 @@ export function parseDocument<T>(text: string, type: DocumentType<T>): LoadedDoc
     extras.createdAt = file.createdAt
 
     return {name: file.name?.trim() || untitled(type), content: checked.data, extras}
+}
+
+/** The `kind` a file says it is, or null when it doesn't say or isn't this app's. */
+export function kindOf(text: string): string | null {
+    try {
+        const raw: unknown = JSON.parse(text)
+
+        return isObject(raw) && raw.generator === APP.id && typeof raw.kind === 'string' && raw.kind !== '' ? raw.kind : null
+    } catch {
+        return null
+    }
+}
+
+/** What loading a file of any of an app's types gives back: the document, and which type it is. */
+export interface LoadedAnyDocument<T> extends LoadedDocument<T> {
+    readonly type: DocumentType<T>
+}
+
+/**
+ * Reads a document file of any of these types, picked by the file's `kind`. The first
+ * type speaks for a file that isn't one of this app's, and a kind this build doesn't
+ * know is taken to come from a newer version.
+ */
+export function parseAnyDocument<T>(text: string, types: readonly DocumentType<T>[]): LoadedAnyDocument<T> {
+    const kind = kindOf(text)
+    const type = types.find((candidate) => candidate.kind === kind)
+
+    if (kind !== null && !type) {
+        throw new DocumentFileError(`This file is a ${kind}, which this version of ${APP.name} can't open. Update the app to open it.`)
+    }
+
+    const chosen = type ?? types[0]
+
+    return {...parseDocument(text, chosen), type: chosen}
 }
 
 export interface SaveInput<T> {

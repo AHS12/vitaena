@@ -6,6 +6,21 @@
 import {FileText} from 'lucide-react'
 import {calendarDaysBetween} from '../../core/library/document-summary'
 import type {SavedDocument} from '../../platform/documents'
+import {hasSeveralTypes, nounOfKind} from '../../store/document-types'
+
+/**
+ * The type a saved document is marked with, such as "CV", while the library can hold
+ * more than one type. Null with one type, where a mark would say nothing.
+ */
+export function typeMark(document: Pick<SavedDocument, 'kind'>): string | null {
+    if (!hasSeveralTypes() || document.kind === null) {
+        return null
+    }
+
+    const noun = nounOfKind(document.kind) ?? document.kind
+
+    return `${noun[0].toUpperCase()}${noun.slice(1)}`
+}
 
 /** Shown where a document has no picture. */
 export const DOCUMENT_ICON = FileText

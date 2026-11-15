@@ -55,7 +55,7 @@ Commit or push only when asked. Work on `dev`, and don't touch `main`.
 - `frontend/src/cv` is the CV: its document type (`cv.ts`), the render model a template
   is given (`render-model.ts`), the Typst engine (`typst/engine.ts`), templates
   (`templates/*.typ`), export formats and tours. Every template must pass
-  `templates/ats.test.ts`, which reads the PDF back the way an ATS does. `documentType` in `store/document-store.ts` picks the document type.
+  `templates/ats.test.ts`, which reads the PDF back the way an ATS does. `store/document-types.ts` lists the types of document; a file's `kind` picks its type, and the store keeps the open document's `kind`.
 - `build/` holds each system's build files; [build/README.md](build/README.md) says which
   are written from `app.config.json`. Linux packages (deb, rpm, Arch, AppImage) come from
   `build/linux`, and the **Linux Test Build** workflow installs and starts each one, since

@@ -6,7 +6,7 @@
  * without a word. A test reads the templates and checks this list against them.
  */
 
-import {documentType} from '../../store/document-store'
+import {libraryWords} from '../../store/document-types'
 
 export type ReportKind = 'bug' | 'feature'
 
@@ -34,12 +34,12 @@ export interface ReportForm {
     readonly fields: readonly ReportField[]
 }
 
-// The issue forms name the app's own document, so these do too, through its noun.
-const noun = documentType.noun
+// The issue forms name the app's own documents, so these do too, in the same words.
+const {noun, plural} = libraryWords()
 
 export const BUG_ACTIONS = [
     'Installing, opening or updating the app',
-    `Browsing Home or my saved ${noun}s`,
+    `Browsing Home or my saved ${plural}`,
     `Editing a ${noun}`,
     'Choosing a template or changing the style',
     'The page preview looks wrong',
@@ -93,7 +93,7 @@ export const REPORT_FORMS: readonly ReportForm[] = [
                 label: 'Which part of the app is it about?',
                 type: 'dropdown',
                 required: true,
-                options: [`Home and saved ${noun}s`, `Editing a ${noun}`, 'Templates and style', 'The Check tab and screening systems', 'Export', 'Backup', 'Settings and shortcuts', 'Something else'],
+                options: [`Home and saved ${plural}`, `Editing a ${noun}`, 'Templates and style', 'The Check tab and screening systems', 'Export', 'Backup', 'Settings and shortcuts', 'Something else'],
             },
             {
                 id: 'problem',

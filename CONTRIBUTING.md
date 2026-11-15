@@ -38,7 +38,8 @@ for the line to use.
 ## What a change has to respect
 
 **The shell stays generic.** Code outside `frontend/src/cv` doesn't know what a CV is. It
-talks about documents, and asks `documentType` for the word to show.
+talks about documents, and asks `store/document-types.ts` for the word to show: the open
+document's own type (`typeInHand`), or `libraryWords()` for documents all together.
 
 **Optional features stay removable.** Nothing outside `frontend/src/features` imports a
 feature, and nothing outside a feature's Go package imports that package except

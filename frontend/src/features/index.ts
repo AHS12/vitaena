@@ -5,6 +5,7 @@
  * one: docs/removing-features.md has the steps for each.
  */
 
+import {cvType} from '../cv/cv'
 import {CV_FORMATS} from '../cv/cv-export'
 import {TOURS} from '../cv/tours'
 import type {Feature} from '../shell/feature'
@@ -14,7 +15,7 @@ import {report} from './report'
 import {tour} from './tour'
 
 export const FEATURES: readonly Feature[] = [
-    exporting(CV_FORMATS),
+    exporting({[cvType.kind]: CV_FORMATS}),
     backup,
     report,
     tour(TOURS),

@@ -10,8 +10,9 @@ by what a person does with them, not by how they work.
 
 | Technical term | People see | Notes |
 |---|---|---|
-| Document, file, record | **CV** | `documentType.noun` in code, so the word lives in one place. **Resume** only where a template suits one |
-| Library, data folder | **Your CVs** | The page; **Where your work is saved** in Settings |
+| Document, file, record | **CV** | The type's `noun` in code, so the word lives in one place. **Resume** only where a template suits one |
+| Documents of several types | **Documents** | Only once the app makes more than one type; `libraryWords()` says which. Each is then marked with its type |
+| Library, data folder | **Your CVs** | The page; **Where your work is saved** in Settings. **Your documents** once there are several types |
 | ATS, applicant tracking system, parser | **Screening system** | **ATS** only in **One column (ATS)** and **ATS mode**, where job ads have taught people the word |
 | Render, compile, Typst | *(never shown)* | The **page**, the **preview** |
 | Proficiency, rating | **Level** | Five dots, with a word such as **Native** beside them |

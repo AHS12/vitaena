@@ -125,6 +125,14 @@ export function groupByTime<T extends ListedDocument>(documents: readonly T[], n
     return groups
 }
 
+/** Every type, for `matchesType`. */
+export const EVERY_TYPE = 'all'
+
+/** Of the type asked for, by its `kind`, or of any type with `EVERY_TYPE`. */
+export function matchesType(document: Pick<DocumentSummary, 'kind'>, kind: string): boolean {
+    return kind === EVERY_TYPE || document.kind === kind
+}
+
 /** Part of the name, ignoring case. */
 export function matchesSearch(document: ListedDocument, needle: string): boolean {
     const wanted = needle.trim().toLowerCase()

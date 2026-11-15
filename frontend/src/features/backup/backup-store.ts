@@ -50,7 +50,8 @@ import {
     type HeldDocument,
 } from './platform'
 import {newDocumentId} from '../../platform/documents'
-import {documentType, useDocumentStore} from '../../store/document-store'
+import {useDocumentStore} from '../../store/document-store'
+import {libraryCount, libraryWords} from '../../store/document-types'
 import type {CloudBackupSettings} from '../../core/settings/settings-spec'
 import {useSettingsStore} from '../../store/settings-store'
 import {useUiStore} from '../../store/ui-store'
@@ -187,7 +188,7 @@ function describeBackupFailure(error: unknown, doing: 'back up' | 'open' | 'rest
 /** The folder a file is in, for Show the files. */
 const folderOf = (path: string): string => path.slice(0, Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\')))
 
-const documentsLabel = (count: number) => (count === 1 ? `1 ${documentType.noun}` : `${count} ${documentType.noun}s`)
+const documentsLabel = libraryCount
 
 /**
  * Text a backup carries beside the documents, such as an app's own lists. Empty by
@@ -232,8 +233,8 @@ export function cloudSummaryMessage(summary: {documents: number; changedElsewher
         summary.changedElsewhere === 0
             ? ''
             : summary.changedElsewhere === 1
-              ? `. 1 ${documentType.noun} was changed on another computer and was left as it is there`
-              : `. ${summary.changedElsewhere} ${documentType.noun}s were changed on another computer and were left as they are there`
+              ? `. 1 ${libraryWords().noun} was changed on another computer and was left as it is there`
+              : `. ${libraryCount(summary.changedElsewhere)} were changed on another computer and were left as they are there`
 
     return `Backed up ${documentsLabel(summary.documents)} to the cloud${elsewhere}`
 }

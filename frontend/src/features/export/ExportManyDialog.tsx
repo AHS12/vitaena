@@ -4,17 +4,18 @@
  * the end what it couldn't do.
  */
 
-import {useEffect, useState} from 'react'
+import {useEffect, useMemo, useState} from 'react'
 import {Dialog} from '../../components/controls'
 import {chooseFolder, showFolder} from '../../platform/desktop'
-import {documentType, useDocumentStore} from '../../store/document-store'
+import {useDocumentStore} from '../../store/document-store'
+import {libraryCount, libraryWords} from '../../store/document-types'
 import {FolderChoice, FormatChoices} from './ExportChoices'
-import {filesAlreadyThere, useExportStore} from './export-store'
+import {everyFormat, filesAlreadyThere, useExportStore} from './export-store'
 import {filesAre} from './formats'
 import {writesToFolders} from './platform'
 import {loadExportPreferences, saveExportPreferences, type ExportPreferences} from './preferences'
 
-const plural = () => `${documentType.noun}s`
+const plural = () => libraryWords().plural
 
 function Progress() {
     const run = useExportStore((state) => state.run)
@@ -53,7 +54,7 @@ function Summary({onDone}: {onDone(): void}) {
         <div className="export__summary" role="status">
             <p className="dialog__hint">
                 {run.stopped ? 'Stopped. ' : ''}
-                Exported {exported === 1 ? `1 ${documentType.noun}` : `${exported} ${plural()}`}
+                Exported {libraryCount(exported)}
                 {run.stopped ? ` of ${run.total}` : ''}.
             </p>
             {run.failed.length > 0 ? (
@@ -76,7 +77,8 @@ function Summary({onDone}: {onDone(): void}) {
 export function ExportManyDialog() {
     const open = useExportStore((state) => state.dialog === 'many')
     const picked = useExportStore((state) => state.picked)
-    const formats = useExportStore((state) => state.formats)
+    const byKind = useExportStore((state) => state.formats)
+    const formats = useMemo(() => everyFormat(byKind), [byKind])
     const run = useExportStore((state) => state.run)
     const close = useExportStore((state) => state.close)
     const exportMany = useExportStore((state) => state.exportMany)
@@ -187,7 +189,7 @@ export function ExportManyDialog() {
                             </button>
                         </div>
                         {readable.length === 0 ? (
-                            <p className="dialog__hint">Save a {documentType.noun} first, then export it from here.</p>
+                            <p className="dialog__hint">Save a {libraryWords().noun} first, then export it from here.</p>
                         ) : (
                             <ul className="export__list">
                                 {readable.map((document) => (
@@ -212,7 +214,7 @@ export function ExportManyDialog() {
                                 disabled={chosen.length === 0 || preferences.formats.length === 0}
                                 onClick={() => void start(false)}
                             >
-                                {chosen.length === 1 ? `Export 1 ${documentType.noun}` : `Export ${chosen.length} ${plural()}`}
+                                {`Export ${libraryCount(chosen.length)}`}
                             </button>
                         </div>
                     </>

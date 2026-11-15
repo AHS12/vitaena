@@ -12,7 +12,8 @@ import {
 } from 'lucide-react'
 import {APP} from '../core/app'
 import {canRedo, canUndo} from '../core/history/history'
-import {documentType, hasUnsavedChanges, useDocumentStore, type DocumentStore} from '../store/document-store'
+import {hasUnsavedChanges, typeInHand, useDocumentStore, type DocumentStore} from '../store/document-store'
+import {defaultType, libraryWords} from '../store/document-types'
 import {settingValue, useSettingsStore} from '../store/settings-store'
 import {useUiStore} from '../store/ui-store'
 import {useUpdateStore} from '../store/update-store'
@@ -59,7 +60,7 @@ export function guardUnsaved(state: DocumentStore, action: string, run: () => vo
 
     useUiStore.getState().askConfirm({
         title: `${action}?`,
-        text: `You have unsaved changes to this ${documentType.noun}. Undo can't bring them back after this.`,
+        text: `You have unsaved changes to this ${typeInHand(state).noun}. Undo can't bring them back after this.`,
         action,
         danger: true,
         run,
@@ -76,17 +77,17 @@ const togglePalette = () => {
 const SHELL_COMMANDS: readonly Command[] = [
     {
         id: 'new',
-        label: `New ${documentType.noun}`,
+        label: `New ${defaultType().noun}`,
         group: 'File',
         shortcut: 'Ctrl+N',
         icon: FilePlus,
         global: true,
         keywords: 'start create blank empty',
-        run: (state) => guardUnsaved(state, `Start a new ${documentType.noun}`, () => state.startNew()),
+        run: (state) => guardUnsaved(state, `Start a new ${defaultType().noun}`, () => state.startNew()),
     },
     {
         id: 'documents',
-        label: `Your ${documentType.noun}s`,
+        label: `Your ${libraryWords().plural}`,
         group: 'File',
         shortcut: 'Ctrl+G',
         icon: Library,

@@ -11,9 +11,8 @@
  */
 
 import {create} from 'zustand'
-import {DocumentFileError, parseDocument, serializeDocument, untitled} from '../core/document/document-file'
+import {DocumentFileError, parseAnyDocument, serializeDocument, untitled, type DocumentType} from '../core/document/document-file'
 import {EMPTY_HISTORY, pushHistory, redo as redoHistory, undo as undoHistory, type History} from '../core/history/history'
-import {cvType, type Cv} from '../cv/cv'
 import {openDocumentFile, saveDocumentFile} from '../platform/desktop'
 import {clearDraftText, readDraftText, writeDraftText} from '../platform/draft'
 import {
@@ -30,17 +29,15 @@ import {
     type RemovedDocument,
     type SavedDocument,
 } from '../platform/documents'
+import {defaultType, DOCUMENT_TYPES, libraryCount, libraryWords, typeOfKind, type Content} from './document-types'
 
-/** The app's document type. */
-export const documentType = cvType
-export type Content = Cv
+export type {Content}
 
-/** The document an older app's file becomes, or null when it isn't one the document type knows. */
-function adoptedFrom(text: string): {name: string; content: Content} | null {
-    if (!documentType.adopt) {
-        return null
-    }
+/** The type of the document in hand. */
+export const typeInHand = (state: Pick<DocumentStore, 'kind'>): DocumentType<Content> => typeOfKind(state.kind) ?? defaultType()
 
+/** The document an older app's file becomes, and its type, or null when no type knows it. */
+function adoptedFrom(text: string): {name: string; content: Content; kind: string} | null {
     try {
         const raw: unknown = JSON.parse(text)
 
@@ -49,10 +46,16 @@ function adoptedFrom(text: string): {name: string; content: Content} | null {
             return null
         }
 
-        const adopted = documentType.adopt(raw)
+        for (const type of DOCUMENT_TYPES) {
+            const adopted = type.adopt?.(raw)
 
-        // The result must pass the same checks as any file.
-        return adopted ? {name: adopted.name, content: documentType.content.parse(adopted.content)} : null
+            // The result must pass the same checks as any file.
+            if (adopted) {
+                return {name: adopted.name, content: type.content.parse(adopted.content), kind: type.kind}
+            }
+        }
+
+        return null
     } catch {
         return null
     }
@@ -107,7 +110,14 @@ function fileNameOf(path: string): string {
 }
 
 /** "Shopping", or "3 notes". */
-const namesLabel = (names: readonly string[]): string => (names.length === 1 ? `"${names[0]}"` : `${names.length} ${documentType.noun}s`)
+const namesLabel = (names: readonly string[]): string => (names.length === 1 ? `"${names[0]}"` : libraryCount(names.length))
+
+/** A listed document's name, or the name its type gives one with none. */
+const nameIn = (documents: readonly SavedDocument[], id: string): string => {
+    const document = documents.find((candidate) => candidate.id === id)
+
+    return document?.name ?? untitled(typeOfKind(document?.kind ?? null) ?? defaultType())
+}
 
 /** A name not already in the library. "Shopping" becomes "Shopping 2". */
 function copyNameOf(base: string, documents: readonly SavedDocument[]): string {
@@ -134,6 +144,8 @@ let removedListings = 0
 let openDocumentRemoved: string | null = null
 
 export interface DocumentStore {
+    /** The type of the document in hand, as its file's `kind`. */
+    kind: string
     content: Content
     /** The content as it was last saved. Compared by identity. */
     savedContent: Content
@@ -163,8 +175,11 @@ export interface DocumentStore {
     showHome(): void
     showDocuments(): void
     showEditor(): void
-    /** Starts a new, unsaved document: empty, or from the content given. Ask before calling this over unsaved work. */
-    startNew(content?: Content): void
+    /**
+     * Starts a new, unsaved document of a type, the default one when none is given: empty,
+     * or from the content given. Ask before calling this over unsaved work.
+     */
+    startNew(content?: Content, kind?: string): void
 
     announcement: string
     toast: Toast | null
@@ -239,7 +254,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
         })
 
     const textOf = (state: DocumentStore, name = state.name, extras = state.extras) =>
-        serializeDocument({name, content: state.content, extras}, documentType)
+        serializeDocument({name, content: state.content, extras}, typeInHand(state))
 
     /** The one write to the library, so every save records the same things. */
     const saveNow = async (name: string, asCopy: boolean) => {
@@ -255,7 +270,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
 
         try {
             // A picture that can't be made only costs the library its preview.
-            const picture = (await documentType.thumbnail?.(state.content).catch(() => null)) ?? null
+            const picture = (await typeInHand(state).thumbnail?.(state.content).catch(() => null)) ?? null
 
             await writeDocument(id, textOf(state, name, extras), picture)
 
@@ -267,13 +282,14 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
         }
     }
 
-    const initial = documentType.empty()
+    const initial = defaultType().empty()
 
     return {
+        kind: defaultType().kind,
         content: initial,
         savedContent: initial,
         history: EMPTY_HISTORY,
-        name: untitled(documentType),
+        name: untitled(defaultType()),
         currentId: null,
         filePath: null,
         extras: {},
@@ -321,7 +337,11 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
         showDocuments: () => set({page: 'documents'}),
         showEditor: () => set({page: 'editor'}),
 
-        startNew: (content) => take(content ?? documentType.empty(), {name: untitled(documentType), currentId: null, extras: {}}),
+        startNew: (content, kind = defaultType().kind) => {
+            const type = typeOfKind(kind) ?? defaultType()
+
+            take(content ?? type.empty(), {kind: type.kind, name: untitled(type), currentId: null, extras: {}})
+        },
 
         announcement: '',
         toast: null,
@@ -336,7 +356,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
             if (asCopy === true || state.currentId === null) {
                 set({
                     savePrompt: {
-                        title: asCopy === true ? 'Save a copy' : `Name your ${documentType.noun}`,
+                        title: asCopy === true ? 'Save a copy' : `Name your ${typeInHand(state).noun}`,
                         name: copyNameOf(state.name, state.documents),
                         asCopy: true,
                     },
@@ -364,7 +384,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
             const state = get()
 
             try {
-                const path = await saveDocumentFile(textOf(state), null, `${state.name}.json`, `Save ${documentType.noun}`)
+                const path = await saveDocumentFile(textOf(state), null, `${state.name}.json`, `Save ${typeInHand(state).noun}`)
 
                 if (path) {
                     markSaved(state.content)
@@ -377,7 +397,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
 
         openFromFile: async () => {
             try {
-                const opened = await openDocumentFile(`Open a ${documentType.noun}`)
+                const opened = await openDocumentFile(`Open a ${libraryWords().noun}`)
 
                 if (!opened) {
                     return
@@ -388,6 +408,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
 
                 if (adopted) {
                     take(adopted.content, {
+                        kind: adopted.kind,
                         name: adopted.name,
                         currentId: null,
                         filePath: null,
@@ -398,9 +419,10 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
                 }
 
                 // Parsing throws before anything is set, so a bad file leaves the session as it was.
-                const loaded = parseDocument(opened.text, documentType)
+                const loaded = parseAnyDocument(opened.text, DOCUMENT_TYPES)
 
                 take(loaded.content, {
+                    kind: loaded.type.kind,
                     name: loaded.name,
                     // A file chosen from disk isn't a library entry.
                     currentId: null,
@@ -440,9 +462,10 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
 
         open: async (id) => {
             try {
-                const loaded = parseDocument(await readDocument(id), documentType)
+                const loaded = parseAnyDocument(await readDocument(id), DOCUMENT_TYPES)
 
                 take(loaded.content, {
+                    kind: loaded.type.kind,
                     name: loaded.name,
                     currentId: id,
                     extras: loaded.extras,
@@ -462,10 +485,10 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
             }
 
             try {
-                const loaded = parseDocument(await readDocument(id), documentType)
+                const loaded = parseAnyDocument(await readDocument(id), DOCUMENT_TYPES)
 
                 // No picture: the library keeps the one it has.
-                await writeDocument(id, serializeDocument({...loaded, name: chosen}, documentType), null)
+                await writeDocument(id, serializeDocument({...loaded, name: chosen}, loaded.type), null)
 
                 set({
                     ...(get().currentId === id ? {name: chosen} : {}),
@@ -479,7 +502,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
 
         copy: async (id) => {
             try {
-                const loaded = parseDocument(await readDocument(id), documentType)
+                const loaded = parseAnyDocument(await readDocument(id), DOCUMENT_TYPES)
                 const name = copyNameOf(`${loaded.name} copy`, get().documents)
                 const copyId = newDocumentId()
                 // A copy is a new document, made now, so it doesn't keep the original's date.
@@ -487,7 +510,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
 
                 delete extras.createdAt
 
-                await writeDocument(copyId, serializeDocument({name, content: loaded.content, extras}, documentType), null)
+                await writeDocument(copyId, serializeDocument({name, content: loaded.content, extras}, loaded.type), null)
                 await copyDocumentPicture(id, copyId)
 
                 set({pickedId: copyId, toast: {message: `Copied as "${name}"`, undoable: false}})
@@ -507,7 +530,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
 
         remove: async (ids) => {
             const state = get()
-            const names = ids.map((id) => state.documents.find((document) => document.id === id)?.name ?? untitled(documentType))
+            const names = ids.map((id) => nameIn(state.documents, id))
             const removed: string[] = []
 
             try {
@@ -557,14 +580,14 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
                     }
                 }
 
-                const names = ids.map((id) => get().removed.find((document) => document.id === id)?.name ?? untitled(documentType))
+                const names = ids.map((id) => nameIn(get().removed, id))
 
                 // Picked again, so Undo leaves the page as it was before the removal.
                 set({pickedId: ids[0], toast: {message: `Put back ${namesLabel(names)}`, undoable: false}})
             } catch {
                 set({
                     toast: {
-                        message: `Couldn't put that ${documentType.noun} back. A saved one may already use its place, or its file was moved.`,
+                        message: `Couldn't put that ${libraryWords().noun} back. A saved one may already use its place, or its file was moved.`,
                         undoable: false,
                     },
                 })
@@ -590,7 +613,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
                     await forgetRemovedDocument(document.id)
                 }
 
-                set({toast: {message: count === 1 ? `Forgot 1 ${documentType.noun}` : `Forgot ${count} ${documentType.noun}s`, undoable: false}})
+                set({toast: {message: `Forgot ${libraryCount(count)}`, undoable: false}})
             } catch (error) {
                 fail(error, 'delete')
             }
@@ -653,11 +676,12 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
                     return
                 }
 
-                const loaded = parseDocument(stored.text, documentType)
+                const loaded = parseAnyDocument(stored.text, DOCUMENT_TYPES)
                 const id = typeof stored.documentId === 'string' ? stored.documentId : null
 
                 // Unsaved, so the saved content is left as it was: closing again still asks.
                 set({
+                    kind: loaded.type.kind,
                     content: loaded.content,
                     history: EMPTY_HISTORY,
                     name: loaded.name,
