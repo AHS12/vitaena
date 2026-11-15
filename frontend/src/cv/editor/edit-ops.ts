@@ -26,7 +26,7 @@ export const moveSection = (cv: Cv, from: number, to: number): Cv => ({...cv, se
 
 export const removeSection = (cv: Cv, id: string): Cv => ({...cv, sections: cv.sections.filter((section) => section.id !== id)})
 
-export const emptyGroup = (): CvTagGroup => ({id: newId('group'), visible: true, label: '', items: []})
+export const emptyGroup = (): CvTagGroup => ({id: newId('group'), visible: true, label: '', items: [], showLevels: false, levels: []})
 
 /** The sections a person can add, under headings ATS parsers recognise. */
 export const SECTION_CHOICES: readonly {readonly title: string; readonly kind: CvSection['kind']}[] = [

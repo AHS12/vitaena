@@ -9,6 +9,7 @@
 import {z} from 'zod'
 import type {DocumentType} from '../core/document/document-file'
 import {cvFromV1} from './import-v1'
+import {withWordLevels} from './levels'
 
 /** A month as "2023-01", or "" when not given. */
 const month = z.union([z.literal(''), z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/)])
@@ -54,6 +55,10 @@ const tagGroupSchema = z.object({
     visible: z.boolean(),
     label: z.string(),
     items: z.array(z.string()),
+    /** Draw a level beside each item, as for languages. */
+    showLevels: z.boolean(),
+    /** Each item's level, 0 to 5, in the items' order. 0 draws no level. */
+    levels: z.array(z.number().int().min(0).max(5)),
 })
 
 const sectionBase = {
@@ -134,7 +139,7 @@ export function emptyCv(): Cv {
 export const cvType: DocumentType<Cv> = {
     kind: 'cv',
     noun: 'CV',
-    version: 5,
+    version: 6,
     content: cvSchema,
     empty: emptyCv,
     migrations: {
@@ -165,6 +170,23 @@ export const cvType: DocumentType<Cv> = {
             const cv = content as {person?: Record<string, unknown>}
 
             return {...cv, person: {photo: '', ...cv.person}}
+        },
+        // Version 6 added levels to list items. Groups whose every item already named one,
+        // as "Bangla (Native)" did, show them, as the Professional template used to.
+        5: (content) => {
+            const cv = content as {sections?: {kind?: string; groups?: {items?: string[]}[]}[]}
+
+            return {
+                ...cv,
+                sections: (cv.sections ?? []).map((section) =>
+                    section.kind === 'tags'
+                        ? {
+                              ...section,
+                              groups: (section.groups ?? []).map((group) => ({...group, ...withWordLevels(group.items ?? [])})),
+                          }
+                        : section,
+                ),
+            }
         },
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.

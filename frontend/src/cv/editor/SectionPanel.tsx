@@ -9,7 +9,10 @@ import {FORMATTING_HINT} from '../../components/format-keys'
 import {MonthField, TextArea, TextField} from '../../components/fields'
 import {DragHandle, SortableList, type HandleProps} from '../../components/Sortable'
 import {moveItem} from '../../core/list'
+import {Switch} from '../../components/controls'
 import {TagInput} from '../../components/TagInput'
+import {levelsFor} from '../levels'
+import {LevelList} from './LevelList'
 import {emptyEntry, type CvEntry, type CvSection, type CvTagGroup} from '../cv'
 import {datesText} from '../render-model'
 import type {useCvEdit} from '../use-cv-edit'
@@ -85,7 +88,34 @@ function GroupRow({sectionId, group, handle, edit, single}: {sectionId: string; 
             <DragHandle handle={handle} />
             <div className="group-row__fields">
                 <TextField label="Group" value={group.label} placeholder={single ? 'Optional, such as Languages' : 'Languages'} onChange={(label) => edit.type((cv) => updateGroup(cv, sectionId, group.id, {label}))} />
-                <TagInput label="Items" values={group.items} placeholder="Type one, then Enter" onChange={(items) => edit.act('skills', (cv) => updateGroup(cv, sectionId, group.id, {items}))} />
+                {group.showLevels ? (
+                    <LevelList
+                        id={group.id}
+                        items={group.items}
+                        levels={group.levels}
+                        onAct={(what, change) => edit.act(what, (cv) => updateGroup(cv, sectionId, group.id, change))}
+                        onType={(change) => edit.type((cv) => updateGroup(cv, sectionId, group.id, change))}
+                        onCommit={edit.commit}
+                    />
+                ) : (
+                    <TagInput
+                        label="Items"
+                        values={group.items}
+                        placeholder="Type one, then Enter"
+                        onChange={(items) => edit.act('skills', (cv) => updateGroup(cv, sectionId, group.id, {items, levels: levelsFor(items, group)}))}
+                    />
+                )}
+                <div className="group-row__levels">
+                    <Switch
+                        label="Show levels"
+                        value={group.showLevels}
+                        onChange={(showLevels) => edit.act(showLevels ? 'show levels' : 'hide levels', (cv) => updateGroup(cv, sectionId, group.id, {showLevels, levels: levelsFor(group.items, group)}))}
+                    />
+                    <span className="group-row__levels-text">
+                        Show levels
+                        <span className="group-row__levels-hint">Dots or a bar beside each item, as for languages</span>
+                    </span>
+                </div>
             </div>
             <div className="group-row__actions">
                 <VisibilityButton visible={group.visible} what={group.label || 'this group'} onToggle={() => edit.act('show group', (cv) => updateGroup(cv, sectionId, group.id, {visible: !group.visible}))} />

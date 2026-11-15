@@ -823,3 +823,82 @@ input.panel__title:focus {
         animation: none;
     }
 }
+
+/* Lists with levels, such as languages: name, five dots, the word for the level. */
+.group-row__levels {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.group-row__levels-text {
+    display: flex;
+    flex-direction: column;
+    font: var(--text-label);
+    color: var(--text-primary);
+}
+
+.group-row__levels-hint {
+    font: var(--text-caption);
+    color: var(--text-tertiary);
+}
+
+.level-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.level-list__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.level-row {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1.3fr) auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+}
+
+.level-row .form-field__input {
+    min-width: 0;
+}
+
+.level-picker {
+    display: inline-flex;
+    gap: 3px;
+}
+
+.level-picker__dot {
+    width: 13px;
+    height: 13px;
+    padding: 0;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    transition: background var(--motion-fast), border-color var(--motion-fast), transform var(--motion-fast);
+}
+
+.level-picker__dot[data-on] {
+    border-color: var(--brand-teal);
+    background: var(--brand-teal);
+}
+
+.level-picker__dot:hover {
+    transform: scale(1.15);
+    border-color: var(--brand-teal);
+}
+
+.level-picker__dot:focus-visible {
+    outline: 2px solid var(--brand-teal);
+    outline-offset: 2px;
+}
+
+.level-list__add {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+}

@@ -6,6 +6,7 @@
  */
 
 import {DEFAULT_DESIGN, newId, type Cv, type CvEntry, type CvSection} from './cv'
+import {withWordLevels} from './levels'
 
 type Raw = Record<string, unknown>
 
@@ -48,7 +49,7 @@ function entry(fields: Partial<CvEntry>, hide: CvEntry['hide'] = []): CvEntry {
 const entries = (title: string, visible: unknown, items: CvEntry[]): CvSection | null => (items.length > 0 ? {id: newId('section'), kind: 'entries', title, visible: shown(visible), entries: items} : null)
 
 const tags = (title: string, visible: unknown, items: string[]): CvSection | null =>
-    items.length > 0 ? {id: newId('section'), kind: 'tags', title, visible: shown(visible), groups: [{id: newId('group'), visible: true, label: '', items}]} : null
+    items.length > 0 ? {id: newId('section'), kind: 'tags', title, visible: shown(visible), groups: [{id: newId('group'), visible: true, label: '', items, ...withWordLevels(items)}]} : null
 
 /** True for a file that looks like Vitaena 1's export. */
 export const isV1Resume = (raw: unknown): raw is Raw => isObject(raw) && isObject(raw.personalInfo) && Array.isArray(raw.workExperience)

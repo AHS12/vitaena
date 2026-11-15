@@ -23,6 +23,34 @@
   body
 }).join()
 
+// Items with a level, such as languages: the name, the word for how well when there is
+// one, and the level drawn as dots, squares or a bar. The words are real text; the
+// drawing adds nothing a parser reads, so it can't jumble the order.
+#let level-mark(level, style, on, off) = if style == "bar" {
+  box(width: 100%, height: 0.4em, radius: 0.2em, fill: off, clip: true,
+    box(width: level / 5 * 100%, height: 100%, radius: 0.2em, fill: on))
+} else {
+  for i in range(5) {
+    let fill = if i < level { on } else { off }
+    box(if style == "squares" { square(size: 0.55em, fill: fill) } else { circle(radius: 0.27em, fill: fill) })
+    h(0.17em)
+  }
+}
+#let levelled(g, across: 3, style: "dots", on: black, off: luma(225), soft: luma(95)) = grid(
+  columns: (1fr,) * across,
+  column-gutter: 1.6em,
+  row-gutter: 0.75em,
+  ..g.list.map(item => block(width: 100%, breakable: false, {
+    // Tight under its name: the CV's paragraph spacing would float the mark away.
+    set par(spacing: 0.45em)
+    par({
+      text(weight: "bold", item.name)
+      if item.note != "" { h(1fr); text(size: 0.85em, fill: soft, item.note) }
+    })
+    if item.level > 0 { block(above: 0.45em, below: 0pt, level-mark(item.level, style, on, off)) }
+  })),
+)
+
 // Sections whose entries are works to cite rather than places someone was.
 #let is-references(title) = lower(title).contains(regex("publication|paper|article|book|chapter|talk|presentation|conference|poster|patent"))
 
@@ -149,7 +177,7 @@
         columns: (margin-col, 1fr),
         column-gutter: 0.9em,
         text(size: 0.9em, fill: muted, g.label),
-        g.items,
+        if g.levels { levelled(g, on: accent) } else { g.items },
       ))
     }
   }

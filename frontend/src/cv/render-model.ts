@@ -10,6 +10,7 @@
 import type {Cv, CvEntry} from './cv'
 import {fontById} from './fonts'
 import {parseRich, type Span} from './rich'
+import {levelOfWords, splitItem} from './levels'
 
 export interface RenderEntry {
     readonly title: string
@@ -33,6 +34,8 @@ export interface RenderTagGroup {
     readonly label: string
     /** The items as one line, for templates that write them out. */
     readonly items: string
+    /** Draw each item's level, as dots or a bar. */
+    readonly levels: boolean
     readonly list: readonly RenderTagItem[]
 }
 
@@ -102,22 +105,11 @@ const asUrl = (url: string): string => (/^[a-z][a-z0-9+.-]*:/i.test(url.trim()) 
 
 const linkKind = (url: string): ContactKind => (/linkedin\./i.test(url) ? 'linkedin' : /github\./i.test(url) ? 'github' : 'web')
 
-/** Words for how well someone speaks or knows something, as a level out of five. */
-const LEVELS: readonly [RegExp, number][] = [
-    [/native|mother|fluent|bilingual|expert|c2/i, 5],
-    [/advanced|proficient|professional|c1/i, 4],
-    [/intermediate|upper|working|b2|b1/i, 3],
-    [/conversational|elementary|basic|limited|a2/i, 2],
-    [/beginner|starter|a1/i, 1],
-]
-
 /** "Bangla (Native)" as its name, its note and, when the note names one, a level. */
-export function tagItem(text: string): RenderTagItem {
-    const match = /^(.*?)\s*[(（]([^)）]*)[)）]\s*$/.exec(text)
-    const name = (match ? match[1] : text).trim()
-    const note = match ? match[2].trim() : ''
+export function tagItem(text: string, level?: number): RenderTagItem {
+    const {name, note} = splitItem(text)
 
-    return {name, note, level: LEVELS.find(([words]) => words.test(note))?.[1] ?? 0}
+    return {name, note, level: level ?? levelOfWords(note)}
 }
 
 /** Sections that belong beside the main story in a two-column template. */
@@ -174,9 +166,12 @@ export function renderModel(cv: Cv): RenderModel {
             const groups = section.groups
                 .filter((group) => group.visible)
                 .map((group) => {
-                    const items = group.items.map(trimmed).filter(Boolean)
+                    const kept = group.items.map((item, index) => ({text: trimmed(item), level: group.levels[index] ?? 0})).filter((item) => item.text)
+                    const items = kept.map((item) => item.text)
+                    // A level set by hand wins; else one the item's own words name.
+                    const list = kept.map((item) => tagItem(item.text, group.showLevels ? item.level || undefined : 0))
 
-                    return {label: group.label.trim(), items: items.join(', '), list: items.map(tagItem)}
+                    return {label: group.label.trim(), items: items.join(', '), levels: group.showLevels, list}
                 })
                 .filter((group) => group.items)
 

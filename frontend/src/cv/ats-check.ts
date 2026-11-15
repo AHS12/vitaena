@@ -8,6 +8,7 @@ import {LONG_BULLET} from '../components/BulletList'
 import type {Cv} from './cv'
 import {emailWarning} from './editor/edit-ops'
 import {CV_TEMPLATES} from './templates/templates'
+import {splitItem} from './levels'
 
 export type CheckLevel = 'good' | 'tip' | 'warning'
 
@@ -123,6 +124,22 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
 
     if (bullets.length >= 4 && measured / bullets.length < 0.3) {
         results.push({id: 'numbers', level: 'tip', title: 'Few achievements have a number in them', detail: 'Results with numbers, such as "cut costs by 20%", stand out to the people who read after the software.'})
+    }
+
+    // A level drawn as dots is lost on a parser; the word beside it is what's read.
+    const wordless = cv.sections
+        .filter((section) => section.visible && section.kind === 'tags')
+        .flatMap((section) => (section.kind === 'tags' ? section.groups : []))
+        .filter((group) => group.visible && group.showLevels)
+        .flatMap((group) => group.items.filter((item, index) => (group.levels[index] ?? 0) > 0 && !splitItem(item).note))
+
+    if (wordless.length > 0) {
+        results.push({
+            id: 'levels',
+            level: 'tip',
+            title: wordless.length === 1 ? `${splitItem(wordless[0]).name} has a level but no word for it` : `${wordless.length} items have a level but no word for it`,
+            detail: 'Screening systems read words, not dots. Add one beside the level, such as Fluent or B2.',
+        })
     }
 
     if (pages !== null && pages > 2 && !shown.some((section) => /publication|research|grant|teaching/i.test(section.title))) {

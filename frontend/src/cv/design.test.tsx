@@ -26,6 +26,21 @@ describe('CV files from version 1', () => {
     })
 })
 
+describe('CV files from version 5', () => {
+    it('show levels on lists whose every item names one, and leave other lists as they were', () => {
+        const old = sampleCv()
+        const group = (id: string, items: string[]) => ({id, visible: true, label: '', items})
+        const sections = [{id: 's', kind: 'tags', title: 'Languages', visible: true, groups: [group('a', ['Bangla (Native)', 'English (Advanced)']), group('b', ['Go', 'SQL'])]}]
+        const file = JSON.stringify({version: 5, generator: 'vitaena', kind: 'cv', createdAt: '2026-11-01T00:00:00Z', modifiedAt: '2026-11-01T00:00:00Z', name: 'Old', content: {...old, sections}})
+        const section = parseDocument(file, cvType).content.sections[0]
+
+        expect(section.kind === 'tags' && section.groups.map((item) => [item.showLevels, item.levels])).toEqual([
+            [true, [5, 4]],
+            [false, [0, 0]],
+        ])
+    })
+})
+
 describe('what a template is given about the design', () => {
     it('names the font family and turns margins and spacing into numbers', () => {
         const cv = sampleCv()

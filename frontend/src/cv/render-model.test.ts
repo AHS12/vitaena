@@ -39,7 +39,7 @@ describe('what a template is given', () => {
         })
         const model = renderModel({...cv, sections})
 
-        expect(model.sections.map((section) => section.title)).toEqual(['Summary', 'Experience', 'Education', 'Skills'])
+        expect(model.sections.map((section) => section.title)).toEqual(['Summary', 'Experience', 'Education', 'Skills', 'Languages'])
         expect(model.sections[1]).toMatchObject({kind: 'entries', entries: [{org: 'Harbourline Payments'}]})
         expect(renderModel(emptyCv()).sections).toEqual([])
     })
@@ -63,7 +63,7 @@ describe('what a template is given', () => {
 describe('lists with levels', () => {
     it('reads a level from the words in brackets', () => {
         const cv = sampleCv()
-        const model = renderModel({...cv, sections: [{id: 'l', kind: 'tags', title: 'Languages', visible: true, groups: [{id: 'g', visible: true, label: '', items: ['Bangla (Native/Fluent)', 'English (Advanced)', 'Go']}]}]})
+        const model = renderModel({...cv, sections: [{id: 'l', kind: 'tags', title: 'Languages', visible: true, groups: [{id: 'g', visible: true, label: '', items: ['Bangla (Native/Fluent)', 'English (Advanced)', 'Go'], showLevels: true, levels: []}]}]})
         const section = model.sections[0]
 
         expect(section.column).toBe('side')
@@ -74,10 +74,23 @@ describe('lists with levels', () => {
         ])
     })
 
+    it('uses a level picked by hand over the words, and draws none while levels are off', () => {
+        const cv = sampleCv()
+        const group = {id: 'g', visible: true, label: '', items: ['Bangla (Native)', 'English'], showLevels: true, levels: [3, 4]}
+        const levelsOf = (showLevels: boolean) => {
+            const section = renderModel({...cv, sections: [{id: 'l', kind: 'tags', title: 'Languages', visible: true, groups: [{...group, showLevels}]}]}).sections[0]
+
+            return section.kind === 'tags' ? [section.groups[0].levels, section.groups[0].list.map((item) => item.level)] : null
+        }
+
+        expect(levelsOf(true)).toEqual([true, [3, 4]])
+        expect(levelsOf(false)).toEqual([false, [0, 0]])
+    })
+
     it('puts the story in the main column and lists beside it', () => {
         const columns = renderModel(sampleCv()).sections.map((section) => `${section.title}:${section.column}`)
 
-        expect(columns).toEqual(['Summary:main', 'Experience:main', 'Education:main', 'Projects:side', 'Skills:side'])
+        expect(columns).toEqual(['Summary:main', 'Experience:main', 'Education:main', 'Projects:side', 'Skills:side', 'Languages:side'])
     })
 })
 

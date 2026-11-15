@@ -19,7 +19,7 @@ describe('changes to a CV', () => {
         const cv = sampleCv()
         const moved = moveSection(cv, 4, 0)
 
-        expect(moved.sections.map((section) => section.title)).toEqual(['Skills', 'Summary', 'Experience', 'Education', 'Projects'])
+        expect(moved.sections.map((section) => section.title)).toEqual(['Skills', 'Summary', 'Experience', 'Education', 'Projects', 'Languages'])
         expect(cv.sections[0].title).toBe('Summary')
     })
 
@@ -220,5 +220,27 @@ describe('formatting and showing parts', () => {
         expect(entry()).toMatchObject({start: '2022-03', hide: ['dates']})
         useDocumentStore.getState().undo()
         expect(entry()?.hide).toEqual([])
+    })
+})
+
+describe('levels on a list', () => {
+    it('turn on with a switch, and a dot sets an item\'s level', () => {
+        useDocumentStore.getState().previewEdit(sampleCv())
+        render(<CvEditor />)
+
+        const languages = screen.getByRole('region', {name: 'Languages'})
+        const bangla = within(languages).getByRole('radiogroup', {name: 'Level of Bangla'})
+
+        fireEvent.click(within(bangla).getByRole('radio', {name: /^3 of 5/}))
+
+        const section = useDocumentStore.getState().content.sections.find((item) => item.id === 'languages')
+
+        expect(section?.kind === 'tags' && section.groups[0].levels).toEqual([3, 4])
+
+        fireEvent.click(within(languages).getByRole('switch', {name: 'Show levels'}))
+        const after = useDocumentStore.getState().content.sections.find((item) => item.id === 'languages')
+
+        expect(after?.kind === 'tags' && after.groups[0].showLevels).toBe(false)
+        expect(within(languages).queryByRole('radiogroup')).toBeNull()
     })
 })

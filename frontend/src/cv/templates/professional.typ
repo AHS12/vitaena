@@ -24,6 +24,34 @@
   body
 }).join()
 
+// Items with a level, such as languages: the name, the word for how well when there is
+// one, and the level drawn as dots, squares or a bar. The words are real text; the
+// drawing adds nothing a parser reads, so it can't jumble the order.
+#let level-mark(level, style, on, off) = if style == "bar" {
+  box(width: 100%, height: 0.4em, radius: 0.2em, fill: off, clip: true,
+    box(width: level / 5 * 100%, height: 100%, radius: 0.2em, fill: on))
+} else {
+  for i in range(5) {
+    let fill = if i < level { on } else { off }
+    box(if style == "squares" { square(size: 0.55em, fill: fill) } else { circle(radius: 0.27em, fill: fill) })
+    h(0.17em)
+  }
+}
+#let levelled(g, across: 3, style: "dots", on: black, off: luma(225), soft: luma(95)) = grid(
+  columns: (1fr,) * across,
+  column-gutter: 1.6em,
+  row-gutter: 0.75em,
+  ..g.list.map(item => block(width: 100%, breakable: false, {
+    // Tight under its name: the CV's paragraph spacing would float the mark away.
+    set par(spacing: 0.45em)
+    par({
+      text(weight: "bold", item.name)
+      if item.note != "" { h(1fr); text(size: 0.85em, fill: soft, item.note) }
+    })
+    if item.level > 0 { block(above: 0.45em, below: 0pt, level-mark(item.level, style, on, off)) }
+  })),
+)
+
 // Small line icons, drawn for this template.
 #let icon-svg(body) = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#555b66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>" + body + "</svg>"
 #let ICONS = (
@@ -162,12 +190,11 @@
 }
 
 #let tags-side(s) = {
-  let levelled = s.groups.all(g => g.list.all(item => item.level > 0))
   for g in s.groups {
     if g.label != "" {
       block(above: gap(0.6), below: gap(0.35), text(weight: "bold", fill: ink, g.label))
     }
-    if levelled {
+    if g.levels {
       // Languages and the like: the name, how well, and five dots.
       for item in g.list {
         block(above: gap(0.45), below: gap(0.3), {
@@ -191,6 +218,13 @@
 
 #let tags-main(s) = {
   for g in s.groups {
+    if g.levels {
+      block(above: gap(0.6), below: gap(0.6), {
+        if g.label != "" { block(below: 0.6em, text(weight: "bold", fill: ink, g.label)) }
+        levelled(g, on: accent)
+      })
+      continue
+    }
     block(above: gap(0.45), below: gap(0.45))[
       #if g.label != "" { text(weight: "bold", fill: ink, g.label); [: ] }
       #g.items
