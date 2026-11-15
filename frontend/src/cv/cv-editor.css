@@ -764,3 +764,62 @@ input.panel__title:focus {
     align-self: flex-start;
     margin-top: var(--space-2);
 }
+
+/* Template pictures: the page fades in over a shimmering sketch of one. */
+.template-picture {
+    animation: template-picture-in 220ms ease-out;
+}
+
+@keyframes template-picture-in {
+    from {
+        opacity: 0;
+    }
+}
+
+.page-sketch {
+    display: flex;
+    flex-direction: column;
+    gap: 3.2%;
+    height: 100%;
+    padding: 11% 10%;
+}
+
+.page-sketch__line {
+    flex: none;
+    height: 1.9%;
+    min-height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #e9edf1 0%, #f6f8fa 40%, #e9edf1 80%) 0 0 / 300% 100%;
+    animation: page-sketch-shimmer 1.4s ease-in-out infinite;
+}
+
+.page-sketch__line[data-first='true'] {
+    height: 4.2%;
+    background-color: #dfe5ea;
+}
+
+.page-sketch__gap {
+    flex: none;
+    height: 2.5%;
+}
+
+@keyframes page-sketch-shimmer {
+    from {
+        background-position: 100% 0;
+    }
+    to {
+        background-position: 0 0;
+    }
+}
+
+[data-reduce-motion='true'] .page-sketch__line,
+[data-reduce-motion='true'] .template-picture {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-sketch__line,
+    .template-picture {
+        animation: none;
+    }
+}

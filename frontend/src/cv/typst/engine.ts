@@ -128,6 +128,22 @@ export function preview(model: RenderModel, template: string): Promise<Preview |
     })
 }
 
+/**
+ * Resolves once the engine has nothing queued and no preview waiting, so work that can
+ * wait, such as the template gallery, goes after what the person is looking at.
+ */
+export async function whenIdle(): Promise<void> {
+    for (;;) {
+        const last = running
+
+        await last
+
+        if (last === running && waiting === null) {
+            return
+        }
+    }
+}
+
 /** All pages as SVG, waiting its turn rather than giving way to newer previews. */
 export const svg = (model: RenderModel, template: string): Promise<string> => serial(async () => (await run({op: 'svg', model, template})).svg ?? '')
 

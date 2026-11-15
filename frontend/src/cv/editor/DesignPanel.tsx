@@ -13,6 +13,7 @@ import {fontUrl} from '../typst/font-urls'
 import type {useCvEdit} from '../use-cv-edit'
 import {renderModel} from '../render-model'
 import {sampleCv} from '../sample'
+import {TemplatePicture} from './TemplatePicture'
 import {useTemplatePreviews} from './use-template-previews'
 
 type Edit = ReturnType<typeof useCvEdit>
@@ -115,7 +116,7 @@ export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
 
         return {...example, person: {...person, photo: cv.person.photo || silhouettePhoto()}, design: cv.design}
     }, [blank, cv, model.name])
-    const previews = useTemplatePreviews(shown)
+    const previews = useTemplatePreviews(shown, 900)
 
     return (
         <div className="design-panel">
@@ -132,7 +133,7 @@ export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
                             onClick={() => set('template', template.id, 'template')}
                         >
                             <span className="template-choice__picture" aria-hidden="true">
-                                {previews[template.id] ? <img src={previews[template.id]} alt="" draggable={false} /> : null}
+                                <TemplatePicture src={previews[template.id]} />
                             </span>
                             <span className="template-choice__name">
                                 {template.name}
