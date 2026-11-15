@@ -8,36 +8,22 @@
  * their own, joins letters into a ligature or drops the email, this fails.
  */
 
-import {readFileSync} from 'node:fs'
-import {createRequire} from 'node:module'
-import {fileURLToPath, pathToFileURL} from 'node:url'
 import {beforeAll, describe, expect, it} from 'vitest'
-import {createTypstCompiler, initOptions, loadFonts, type TypstCompiler} from '@myriaddreamin/typst.ts'
-import {getDocument, GlobalWorkerOptions} from 'pdfjs-dist/legacy/build/pdf.mjs'
+import type {TypstCompiler} from '@myriaddreamin/typst.ts'
+import {getDocument} from 'pdfjs-dist/legacy/build/pdf.mjs'
 import type {Cv} from '../cv'
 import {CV_FONTS} from '../fonts'
 import {CV_TEMPLATES} from './templates'
 import {renderModel} from '../render-model'
-import {withImageFiles} from '../typst/images'
 import {sampleCv} from '../sample'
+import {templatePdf, typstCompiler} from '../../tests/typst'
 
-const require = createRequire(import.meta.url)
-const bytes = (path: string) => new Uint8Array(readFileSync(require.resolve(path)))
 const TEMPLATES = CV_TEMPLATES.map((template) => template.id)
-
-GlobalWorkerOptions.workerSrc = pathToFileURL(require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs')).href
 
 let compiler: TypstCompiler
 
 beforeAll(async () => {
-    compiler = createTypstCompiler()
-    await compiler.init({
-        beforeBuild: [
-            initOptions.disableDefaultFontAssets(),
-            loadFonts(CV_FONTS.flatMap((font) => font.files.map(bytes))),
-        ],
-        getModule: () => bytes('@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm'),
-    })
+    compiler = await typstCompiler()
 }, 60_000)
 
 /** The sample with earlier jobs added, so it's sure to run onto more than one page. */
@@ -54,20 +40,8 @@ function longCv(): Cv {
     }
 }
 
-async function pdfOf(template: string, cv: Cv = longCv()): Promise<Uint8Array> {
-    compiler.addSource('/main.typ', readFileSync(fileURLToPath(new URL(`./${template}.typ`, import.meta.url)), 'utf8'))
-    const {model, files} = withImageFiles(renderModel(cv))
-
-    compiler.mapShadow('/cv.json', new TextEncoder().encode(JSON.stringify(model)))
-
-    for (const file of files) {
-        compiler.mapShadow(file.path, file.bytes)
-    }
-
-    const result = await compiler.compile({mainFilePath: '/main.typ', format: 1, diagnostics: 'full'})
-
-    expect(result.diagnostics?.filter((item) => item.severity === 'error') ?? []).toEqual([])
-    return result.result!
+function pdfOf(template: string, cv: Cv = longCv()): Promise<Uint8Array> {
+    return templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel(cv))
 }
 
 /** Each page's text in reading order, one line per run of text, as a parser sees it. */

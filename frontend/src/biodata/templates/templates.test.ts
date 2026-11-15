@@ -6,52 +6,28 @@
  * hold every value shown.
  */
 
-import {readFileSync} from 'node:fs'
-import {createRequire} from 'node:module'
-import {fileURLToPath, pathToFileURL} from 'node:url'
 import {beforeAll, describe, expect, it} from 'vitest'
-import {createTypstCompiler, initOptions, loadFonts, type TypstCompiler} from '@myriaddreamin/typst.ts'
-import {getDocument, GlobalWorkerOptions} from 'pdfjs-dist/legacy/build/pdf.mjs'
-import {CV_FONTS} from '../../cv/fonts'
-import {withImageFiles} from '../../cv/typst/images'
+import type {TypstCompiler} from '@myriaddreamin/typst.ts'
+import {getDocument} from 'pdfjs-dist/legacy/build/pdf.mjs'
+import {templatePdf, typstCompiler} from '../../tests/typst'
 import {emptyBiodata, type Biodata} from '../biodata'
 import {biodataRenderModel} from '../render-model'
 import {sampleBiodata} from '../sample'
 import {BIODATA_TEMPLATES} from './templates'
 
-const require = createRequire(import.meta.url)
-const bytes = (path: string) => new Uint8Array(readFileSync(require.resolve(path)))
 const ON = new Date(2026, 10, 15)
 /** A one-pixel PNG, standing in for every picture. */
 const PICTURE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
 
-GlobalWorkerOptions.workerSrc = pathToFileURL(require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs')).href
-
 let compiler: TypstCompiler
 
 beforeAll(async () => {
-    compiler = createTypstCompiler()
-    await compiler.init({
-        beforeBuild: [initOptions.disableDefaultFontAssets(), loadFonts(CV_FONTS.flatMap((font) => font.files.map(bytes)))],
-        getModule: () => bytes('@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm'),
-    })
+    compiler = await typstCompiler()
 }, 60_000)
 
 async function read(template: string, biodata: Biodata): Promise<{pages: number; text: string}> {
-    compiler.addSource('/main.typ', readFileSync(fileURLToPath(new URL(`./${template}.typ`, import.meta.url)), 'utf8'))
-    const {model, files} = withImageFiles(biodataRenderModel(biodata, ON))
-
-    compiler.mapShadow('/biodata.json', new TextEncoder().encode(JSON.stringify(model)))
-
-    for (const file of files) {
-        compiler.mapShadow(file.path, file.bytes)
-    }
-
-    const result = await compiler.compile({mainFilePath: '/main.typ', format: 1, diagnostics: 'full'})
-
-    expect(result.diagnostics?.filter((item) => item.severity === 'error') ?? []).toEqual([])
-
-    const document = await getDocument({data: result.result!.slice(), useSystemFonts: false}).promise
+    const pdf = await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/biodata.json', biodataRenderModel(biodata, ON))
+    const document = await getDocument({data: pdf.slice(), useSystemFonts: false}).promise
     const lines: string[] = []
 
     for (let number = 1; number <= document.numPages; number += 1) {
