@@ -16,12 +16,13 @@ on:
       platform:
         description: "Platform(s) to build"
         required: true
-        default: both
+        default: all
         type: choice
         options:
-          - both
+          - all
           - windows
           - macos
+          - linux
 
 permissions:
   contents: write
@@ -102,7 +103,7 @@ jobs:
 
   windows:
     needs: resolve
-    if: ${{ github.event_name == 'release' || inputs.platform == 'both' || inputs.platform == 'windows' }}
+    if: ${{ github.event_name == 'release' || inputs.platform == 'all' || inputs.platform == 'windows' }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -162,7 +163,7 @@ jobs:
 
   macos:
     needs: resolve
-    if: ${{ github.event_name == 'release' || inputs.platform == 'both' || inputs.platform == 'macos' }}
+    if: ${{ github.event_name == 'release' || inputs.platform == 'all' || inputs.platform == 'macos' }}
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -216,3 +217,70 @@ jobs:
           TAG: ${{ needs.resolve.outputs.tag }}
           VERSION: ${{ needs.resolve.outputs.version }}
         run: gh release upload "$TAG" "build/dist/vitaena-$VERSION-mac-universal.dmg" "build/dist/vitaena-$VERSION-mac-universal.zip" --clobber --repo "$GITHUB_REPOSITORY"
+
+  linux:
+    needs: resolve
+    if: ${{ github.event_name == 'release' || inputs.platform == 'all' || inputs.platform == 'linux' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.tag }}
+
+      - uses: actions/setup-go@v5
+        with:
+          # Go 1.26.10 and later carry a security fix that Wails 3 asks for.
+          go-version: "1.26.11"
+          cache: true
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      # GTK 4 and WebKitGTK 6.0, which Wails 3.1 builds against.
+      - name: Install build libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential pkg-config libgtk-4-dev libwebkitgtk-6.0-dev file
+
+      - name: Install Wails CLI
+        run: |
+          go install github.com/wailsapp/wails/v3/cmd/wails3@v3.1.0
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the deb, rpm and Arch package
+        run: wails3 task linux:package
+
+      # The AppImage is also what an AppImage updates itself from; see backend/update_appimage.go.
+      - name: Build the AppImage
+        run: wails3 task linux:appimage
+
+      - name: Name the files
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p build/dist
+          cp bin/vitaena.deb "build/dist/vitaena-$VERSION-linux-amd64.deb"
+          cp bin/vitaena.rpm "build/dist/vitaena-$VERSION-linux-x86_64.rpm"
+          cp bin/vitaena.pkg.tar.zst "build/dist/vitaena-$VERSION-linux-x86_64.pkg.tar.zst"
+          cp bin/vitaena-x86_64.AppImage "build/dist/vitaena-$VERSION-linux-x86_64.AppImage"
+          chmod +x build/dist/*.AppImage
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          gh release upload "$TAG"             "build/dist/vitaena-$VERSION-linux-amd64.deb"             "build/dist/vitaena-$VERSION-linux-x86_64.rpm"             "build/dist/vitaena-$VERSION-linux-x86_64.pkg.tar.zst"             "build/dist/vitaena-$VERSION-linux-x86_64.AppImage"             --clobber --repo "$GITHUB_REPOSITORY"

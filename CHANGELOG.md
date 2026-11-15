@@ -4,6 +4,13 @@ What's new in each version.
 
 ## 0.1.5 (November 15, 2026)
 
+**Vitaena on Linux**
+
+- Install it on Ubuntu, Debian, Fedora, Arch and others from a .deb, .rpm or Arch
+  package, or run the AppImage on any distribution from 2024 or later.
+- The AppImage updates itself. With a package, Vitaena tells you a new version is out and
+  links to it.
+
 **Six new templates**
 
 - Professional: a bold name, contact icons and a round photo, with skills and projects
