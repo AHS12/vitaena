@@ -2,6 +2,36 @@
 
 What's new in each version.
 
+## 0.1.9 (November 15, 2026)
+
+**Biodata**
+
+- Make a marriage biodata as well as a CV: your details, your family and your photos, on
+  one or two pages to share.
+- Three templates: Heritage, traditional with a border; Clean, with no ornament; and
+  Portrait, led by your photos.
+- Write your own line above your name, and add a small picture of your choosing.
+- Show your date of birth as the date, your age or both, and your height in feet and
+  inches, centimetres or both.
+- Add ready sets of labels: Horoscope, Religious practice, Lifestyle and More about me.
+- Check asks for what families look for first, and says when the text would be too small
+  in a shared picture.
+- Share it as a PDF, a picture of each page, or a Word file.
+
+**CVs**
+
+- Add Personal details, or any rows of a label and a value, to a CV.
+- Home has a tab for CVs and resumes, and one for biodata.
+- Your documents shows CVs and biodata together, each marked with its type, or one type
+  at a time.
+
+**Fixes on the Mac**
+
+- Templates, fonts, sizes and margins in the design pane respond to clicks again.
+- Menus close when you click elsewhere.
+- The preview no longer shrinks and grows when a scrollbar appears.
+- Check works again.
+
 ## 0.1.5 (November 15, 2026)
 
 **Vitaena on Linux**
