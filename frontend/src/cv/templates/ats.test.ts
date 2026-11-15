@@ -105,10 +105,10 @@ describe.each(CASES)('the $template template (ATS mode $atsMode), as an ATS read
     })
 
     it('starts with the name, and keeps the contact details whole', () => {
-        expect(read.text.trimStart().startsWith('Nadia Rahman')).toBe(true)
-        expect(read.text).toContain('nadia.rahman@example.com')
-        expect(read.text).toContain('+880 1700 000000')
-        expect(read.text).toContain('example.com/nadia-rahman')
+        expect(read.text.trimStart().startsWith('Jane Doe')).toBe(true)
+        expect(read.text).toContain('jane.doe@example.com')
+        expect(read.text).toContain('+1 555 0100')
+        expect(read.text).toContain('example.com/jane-doe')
     })
 
     it('keeps the sections in order, under headings parsers know', () => {
@@ -152,8 +152,8 @@ describe.each(CASES)('the $template template (ATS mode $atsMode), as an ATS read
     })
 
     it('names the document after the person', () => {
-        expect(read.info.Title).toBe('Nadia Rahman – CV')
-        expect(read.info.Author).toBe('Nadia Rahman')
+        expect(read.info.Title).toBe('Jane Doe – CV')
+        expect(read.info.Author).toBe('Jane Doe')
     })
 })
 
@@ -165,7 +165,7 @@ describe.each(CV_FONTS.map((font) => font.id))('the %s font, as an ATS reads it'
         const family = CV_FONTS.find((font) => font.id === fontId)!.family.replace(/ /g, '')
 
         expect(new TextDecoder('latin1').decode(pdf)).toContain(family)
-        expect(read.text).toContain('nadia.rahman@example.com')
+        expect(read.text).toContain('jane.doe@example.com')
         expect(read.text).toContain('fraud-flagging')
         expect(read.text).toContain('Mar 2022 – Present')
         expect(read.text).not.toMatch(/[ﬀ-ﬆ]/)
@@ -191,7 +191,7 @@ describe.each(CV_TEMPLATES.map((template) => template.id))('formatting in the %s
 /** A one-pixel PNG, standing in for a photo. */
 const PHOTO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
 
-describe.each(['classic', 'modern', 'professional'])('a photo in the %s template', (template) => {
+describe.each(['classic', 'modern', 'professional', 'academic'])('a photo in the %s template', (template) => {
     it('is drawn, and leaves the words a parser reads exactly as they were', async () => {
         const cv = sampleCv()
         const without = await textOf(await pdfOf(template, cv))
@@ -199,11 +199,32 @@ describe.each(['classic', 'modern', 'professional'])('a photo in the %s template
         const read = await textOf(pdf)
 
         expect(new TextDecoder('latin1').decode(pdf)).toMatch(/\/Subtype\s*\/Image/)
-        expect(read.text.trimStart().startsWith('Nadia Rahman')).toBe(true)
-        // The photo narrows the header, so lines may break in other places; the words and
-        // their order must not change.
-        const words = (text: string) => text.replace(/\s+/g, ' ').trim()
+        expect(read.text.trimStart().startsWith('Jane Doe')).toBe(true)
+        // The photo moves things, so lines and pages may break in other places, carrying the
+        // page numbers and the running header with them. The CV's own words and their order
+        // must not change.
+        const words = (text: string) =>
+            text
+                .replace(/\d+\s*\/\s*\d+/g, ' ')
+                .replace(/Curriculum vitae/g, ' ')
+                .split('Jane Doe')
+                .map((part, index) => (index === 0 ? part + 'Jane Doe' : part))
+                .join(' ')
+                .replace(/\s+/g, ' ')
+                .trim()
 
         expect(words(read.text)).toBe(words(without.text))
+    })
+})
+
+describe('publications in the academic template', () => {
+    it('come out numbered, each with its title, venue and date in order', async () => {
+        const cv = sampleCv()
+        const work = (id: string, title: string, org: string, start: string) => ({id, visible: true, title, org, location: '', start, end: start, current: false, summary: '', bullets: ['Doe J.'], hide: []})
+        const sections = [...cv.sections, {id: 'pubs', kind: 'entries' as const, title: 'Publications', visible: true, entries: [work('a', 'First paper', 'Journal of Examples, 1', '2023-04'), work('b', 'Second paper', 'Example Proceedings', '2021-09')]}]
+        const text = (await textOf(await pdfOf('academic', {...cv, sections}))).text.replace(/\s+/g, ' ')
+
+        expect(text).toMatch(/1\. ?First paper\. ?Journal of Examples, 1\. ?Apr 2023\./)
+        expect(text).toMatch(/2\. ?Second paper\. ?Example Proceedings\. ?Sep 2021\./)
     })
 })

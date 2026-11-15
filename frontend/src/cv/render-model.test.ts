@@ -47,16 +47,16 @@ describe('what a template is given', () => {
     it('writes links out in full, so a parser that drops links still has the address', () => {
         const model = renderModel(sampleCv())
 
-        expect(model.contact.map((item) => item.text)).toEqual(['+880 1700 000000', 'nadia.rahman@example.com', 'Dhaka, Bangladesh', 'example.com/nadia-rahman'])
-        expect(model.contact[1]).toEqual({text: 'nadia.rahman@example.com', url: 'mailto:nadia.rahman@example.com', kind: 'email'})
+        expect(model.contact.map((item) => item.text)).toEqual(['+1 555 0100', 'jane.doe@example.com', 'Dhaka, Bangladesh', 'example.com/jane-doe'])
+        expect(model.contact[1]).toEqual({text: 'jane.doe@example.com', url: 'mailto:jane.doe@example.com', kind: 'email'})
         expect(model.contact[3].kind).toBe('web')
     })
 
     it('gives a link without a scheme one, so it opens', () => {
         const cv = sampleCv()
-        const model = renderModel({...cv, person: {...cv.person, links: [{id: 'l', label: '', url: 'nadia.dev'}]}})
+        const model = renderModel({...cv, person: {...cv.person, links: [{id: 'l', label: '', url: 'jane.example.com'}]}})
 
-        expect(model.contact.at(-1)).toEqual({text: 'nadia.dev', url: 'https://nadia.dev', kind: 'web'})
+        expect(model.contact.at(-1)).toEqual({text: 'jane.example.com', url: 'https://jane.example.com', kind: 'web'})
     })
 })
 
@@ -85,7 +85,7 @@ describe('the plain text export', () => {
     it('reads top to bottom, each job with its own dates', () => {
         const text = plainText(renderModel(sampleCv()))
 
-        expect(text.startsWith('Nadia Rahman\nSenior Software Engineer\n')).toBe(true)
+        expect(text.startsWith('Jane Doe\nSenior Software Engineer\n')).toBe(true)
         expect(text).toContain('Senior Software Engineer, Harbourline Payments\nDhaka, Bangladesh | Mar 2022 – Present\n• Led the rewrite')
         expect(text.indexOf('EXPERIENCE')).toBeLessThan(text.indexOf('EDUCATION'))
     })

@@ -20,8 +20,8 @@ describe('the Word export', () => {
         const xml = await zip.file('word/document.xml')!.async('string')
         const text = xmlText(xml)
 
-        expect(text.trimStart().startsWith('Nadia Rahman')).toBe(true)
-        expect(text).toContain('nadia.rahman@example.com')
+        expect(text.trimStart().startsWith('Jane Doe')).toBe(true)
+        expect(text).toContain('jane.doe@example.com')
         expect(text.indexOf('EXPERIENCE')).toBeLessThan(text.indexOf('EDUCATION'))
         expect(text).toContain('Dhaka, Bangladesh  |  Mar 2022 – Present')
         expect(xml).toContain('w:val="Heading1"')

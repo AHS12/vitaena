@@ -48,9 +48,9 @@ describe('changes to a CV', () => {
 
     it('warns gently about contact details that look wrong, and says nothing about empty ones', () => {
         expect(emailWarning('')).toBeNull()
-        expect(emailWarning('nadia@example.com')).toBeNull()
-        expect(emailWarning('nadia@')).not.toBeNull()
-        expect(linkWarning('linkedin.com/in/nadia')).toBeNull()
+        expect(emailWarning('jane@example.com')).toBeNull()
+        expect(emailWarning('jane@')).not.toBeNull()
+        expect(linkWarning('linkedin.com/in/jane')).toBeNull()
         expect(linkWarning('my profile')).not.toBeNull()
     })
 })

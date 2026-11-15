@@ -725,3 +725,26 @@ input.panel__title:focus {
 .cv-side--design .template-choices {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 }
+
+/* What a template is made for: a resume, an academic CV, or either. */
+.template-choice__name,
+.start-template__name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.template-use {
+    padding: 1px 7px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-active);
+    color: var(--text-secondary);
+    font: 500 10.5px/1.5 var(--font-sans);
+    letter-spacing: 0.01em;
+}
+
+.template-use[data-use='cv'] {
+    background: color-mix(in srgb, var(--brand-teal) 22%, transparent);
+    color: var(--text-primary);
+}

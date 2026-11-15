@@ -10,7 +10,7 @@ import {useDocumentStore} from '../store/document-store'
 import {DEFAULT_DESIGN, emptyCv} from './cv'
 import {useTemplatePreviews} from './editor/use-template-previews'
 import {sampleCv} from './sample'
-import {CV_TEMPLATES} from './templates/templates'
+import {CV_TEMPLATES, TEMPLATE_USE_LABELS} from './templates/templates'
 
 export function StartFromTemplate() {
     const example = useMemo(() => sampleCv(), [])
@@ -40,7 +40,12 @@ export function StartFromTemplate() {
                             <span className="start-template__picture" aria-hidden="true">
                                 {previews[template.id] ? <img src={previews[template.id]} alt="" draggable={false} /> : null}
                             </span>
-                            <span className="start-template__name">{template.name}</span>
+                            <span className="start-template__name">
+                                {template.name}
+                                <span className="template-use" data-use={template.use}>
+                                    {TEMPLATE_USE_LABELS[template.use]}
+                                </span>
+                            </span>
                             <span className="start-template__facts">{template.facts}</span>
                         </button>
                     </li>

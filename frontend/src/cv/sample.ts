@@ -26,12 +26,12 @@ const job = (id: string, title: string, org: string, start: string, end: string,
 export function sampleCv(): Cv {
     return {
         person: {
-            name: 'Nadia Rahman',
+            name: 'Jane Doe',
             headline: 'Senior Software Engineer',
-            email: 'nadia.rahman@example.com',
-            phone: '+880 1700 000000',
+            email: 'jane.doe@example.com',
+            phone: '+1 555 0100',
             location: 'Dhaka, Bangladesh',
-            links: [{id: 'link-1', label: '', url: 'https://www.example.com/nadia-rahman'}],
+            links: [{id: 'link-1', label: '', url: 'https://www.example.com/jane-doe'}],
             photo: '',
             hide: [],
         },

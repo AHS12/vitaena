@@ -42,11 +42,11 @@ function PersonPanel({person, edit}: {person: CvPerson; edit: Edit}) {
             </header>
             {closed ? null : (
                 <div className="panel__body" onBlur={edit.commit}>
-                    <TextField label="Full name" value={person.name} placeholder="Nadia Rahman" autoComplete="name" onChange={set('name')} />
+                    <TextField label="Full name" value={person.name} placeholder="Jane Doe" autoComplete="name" onChange={set('name')} />
                     <TextField label="Headline" value={person.headline} placeholder="Senior Software Engineer" hint="The role you want, in the words a job ad would use." onChange={set('headline')} />
                     <div className="form-row">
                         <TextField label="Email" type="email" value={person.email} placeholder="you@example.com" autoComplete="email" warning={emailWarning(person.email)} onChange={set('email')} />
-                        <TextField label="Phone" type="tel" value={person.phone} placeholder="+880 1700 000000" autoComplete="tel" onChange={set('phone')} />
+                        <TextField label="Phone" type="tel" value={person.phone} placeholder="+1 555 0100" autoComplete="tel" onChange={set('phone')} />
                     </div>
                     <TextField label="Location" value={person.location} placeholder="City, Country" onChange={set('location')} />
                     <PhotoField label="Photo" value={person.photo} onChange={(photo) => edit.act(photo ? 'photo' : 'remove photo', (cv) => updatePerson(cv, {photo}))} />

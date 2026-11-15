@@ -26,6 +26,6 @@ describe('formatting in CV text', () => {
     })
 
     it('keeps a link\'s address in plain text', () => {
-        expect(plainOf(parseRich('See [my site](https://nadia.dev) and [nadia.dev](nadia.dev)'))).toBe('See my site (nadia.dev) and nadia.dev')
+        expect(plainOf(parseRich('See [my site](https://jane.example.com) and [jane.example.com](jane.example.com)'))).toBe('See my site (jane.example.com) and jane.example.com')
     })
 })

@@ -9,7 +9,7 @@ import {Switch} from '../../components/controls'
 import {Segmented} from '../../components/Segmented'
 import type {Cv, CvDesign} from '../cv'
 import {CV_FONTS} from '../fonts'
-import {CV_TEMPLATES} from '../templates/templates'
+import {CV_TEMPLATES, TEMPLATE_USE_LABELS} from '../templates/templates'
 import {fontUrl} from '../typst/font-urls'
 import type {useCvEdit} from '../use-cv-edit'
 import {renderModel} from '../render-model'
@@ -136,7 +136,12 @@ export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
                             <span className="template-choice__picture" aria-hidden="true">
                                 {previews[template.id] ? <img src={previews[template.id]} alt="" draggable={false} /> : null}
                             </span>
-                            <span className="template-choice__name">{template.name}</span>
+                            <span className="template-choice__name">
+                                {template.name}
+                                <span className="template-use" data-use={template.use}>
+                                    {TEMPLATE_USE_LABELS[template.use]}
+                                </span>
+                            </span>
                             <span className="template-choice__about">{template.about}</span>
                             <span className="template-choice__facts">{template.facts}</span>
                         </button>

@@ -17,7 +17,7 @@ beforeEach(() => {
             written = {path, text: new TextDecoder().decode(new Uint8Array(contents))}
         }),
     })
-    useDocumentStore.setState({name: 'Nadia CV', toast: null})
+    useDocumentStore.setState({name: 'Jane CV', toast: null})
     useDocumentStore.getState().previewEdit(sampleCv())
 })
 
@@ -50,8 +50,8 @@ describe('the Export button', () => {
         fireEvent.click(screen.getByRole('button', {name: /^Export/}))
         await act(async () => fireEvent.click(await screen.findByRole('menuitem', {name: /^Vitaena file/})))
 
-        await waitFor(() => expect(written?.path).toBe('C:/CVs/Nadia CV.json'))
-        expect(JSON.parse(written!.text)).toMatchObject({generator: 'vitaena', kind: 'cv', name: 'Nadia CV'})
-        expect(useDocumentStore.getState().toast?.message).toBe('Exported Nadia CV.json')
+        await waitFor(() => expect(written?.path).toBe('C:/CVs/Jane CV.json'))
+        expect(JSON.parse(written!.text)).toMatchObject({generator: 'vitaena', kind: 'cv', name: 'Jane CV'})
+        expect(useDocumentStore.getState().toast?.message).toBe('Exported Jane CV.json')
     })
 })

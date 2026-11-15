@@ -113,7 +113,7 @@ describe('filling a new CV with the example', () => {
 
         fireEvent.click(screen.getByRole('button', {name: 'Fill with an example'}))
 
-        expect(useDocumentStore.getState().content.person.name).toBe('Nadia Rahman')
+        expect(useDocumentStore.getState().content.person.name).toBe('Jane Doe')
         expect(useDocumentStore.getState().content.design).toMatchObject({template: 'professional', accent: '#2563eb'})
     })
 })

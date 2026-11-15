@@ -23,7 +23,7 @@ const {CV_FONTS} = await jiti.import('../src/cv/fonts.ts')
 const {withPhotoFile} = await jiti.import('../src/cv/typst/photo.ts')
 
 /** Each template in a colour of its own, so the gallery doesn't look like one template four times. */
-const LOOKS = {professional: {accent: '#2563eb'}, classic: {accent: '#1f4e79'}, modern: {accent: '#22706d'}, minimal: {accent: '#7a1f4b', font: 'source-serif-4'}, compact: {accent: '#2e6b3e', font: 'ibm-plex-sans'}}
+const LOOKS = {academic: {accent: '#3b3b6d', font: 'source-serif-4'}, professional: {accent: '#2563eb'}, classic: {accent: '#1f4e79'}, modern: {accent: '#22706d'}, minimal: {accent: '#7a1f4b', font: 'source-serif-4'}, compact: {accent: '#2e6b3e', font: 'ibm-plex-sans'}}
 const WIDTH = 900
 
 /** A plain drawn silhouette, so templates with a photo show one without a real face. */
@@ -35,6 +35,11 @@ const AVATAR = `data:image/png;base64,${new Resvg(
     .asPng()
     .toString('base64')}`
 const WITH_PHOTO = new Set(['professional', 'modern', 'classic'])
+// Academic is shown with publications, as a CV of that kind would have.
+const EXTRA = {academic: [{id: 'pubs', kind: 'entries', title: 'Publications', visible: true, entries: [
+    {id: 'pub1', visible: true, title: 'Finding the slow part in production services', org: 'Journal of Example Systems, 12(3)', location: '', start: '2023-04', end: '2023-04', current: false, summary: '', bullets: ['Doe J., Roe R.'], hide: []},
+    {id: 'pub2', visible: true, title: 'Queues that never lose a payment', org: 'Proceedings of the Example Conference', location: '', start: '2021-09', end: '2021-09', current: false, summary: '', bullets: ['Doe J.'], hide: []},
+]}]}
 const out = here('../../docs/assets/templates/')
 
 const compiler = createTypstCompiler()
@@ -51,7 +56,7 @@ mkdirSync(out, {recursive: true})
 for (const template of CV_TEMPLATES) {
     const cv = sampleCv()
     const person = WITH_PHOTO.has(template.id) ? {...cv.person, photo: AVATAR} : cv.person
-    const full = renderModel({...cv, person, design: {...cv.design, ...LOOKS[template.id], template: template.id}})
+    const full = renderModel({...cv, person, sections: [...cv.sections, ...(EXTRA[template.id] ?? [])], design: {...cv.design, ...LOOKS[template.id], template: template.id}})
     const {model, file} = withPhotoFile(full)
 
     if (file) {
