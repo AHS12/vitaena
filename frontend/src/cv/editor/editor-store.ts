@@ -7,10 +7,10 @@
 
 import {create} from 'zustand'
 
-export type EditorTab = 'content' | 'design' | 'check'
+export type EditorTab = 'content' | 'check'
 
 interface EditorStore {
-    /** What the side pane shows: what the CV says, or how it looks. */
+    /** What the left pane shows: what the CV says, or how it reads to a screening system. */
     tab: EditorTab
     setTab(tab: EditorTab): void
     /** Sections someone folded away. */

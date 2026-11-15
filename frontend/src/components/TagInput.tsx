@@ -49,11 +49,11 @@ export function TagInput({label, values, onChange, placeholder}: {label: string;
                     }}
                 >
                     {(value, index, handle) => (
-                        <span className="chip" {...handle} ref={handle.ref}>
+                        <span className="tag-chip" {...handle} ref={handle.ref}>
                             {value}
                             <button
                                 type="button"
-                                className="chip__remove"
+                                className="tag-chip__remove"
                                 aria-label={`Remove ${value}`}
                                 onPointerDown={(event) => event.stopPropagation()}
                                 onClick={() => onChange(values.filter((_, at) => at !== index))}

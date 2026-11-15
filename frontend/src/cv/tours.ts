@@ -57,9 +57,15 @@ export const TOURS: Tours = {
             },
             {
                 target: 'editor-tabs',
-                title: 'Change how it looks, then check it',
-                text: 'Design picks the template, colour and font. Check shows what a screening system reads from your PDF, and what might trip it up.',
+                title: 'Check it before you send it',
+                text: 'Check shows what a screening system reads from your PDF, and what might trip it up.',
                 side: 'below',
+            },
+            {
+                target: 'design',
+                title: 'Make it look right',
+                text: 'On the right, pick a template, colour, font and spacing. Your CV is shown in every template, so you can compare.',
+                side: 'left',
             },
             {
                 target: 'export',

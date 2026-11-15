@@ -23,7 +23,7 @@ const PERSON_PARTS = [
     {id: 'location', label: 'Location'},
 ] as const
 
-const TAB_LABELS = {content: 'Content', design: 'Design', check: 'Check'} as const
+const TAB_LABELS = {content: 'Content', check: 'Check'} as const
 
 function PersonPanel({person, edit}: {person: CvPerson; edit: Edit}) {
     const closed = useEditorStore((state) => state.closedSections.has(PERSON))
@@ -149,14 +149,14 @@ export function CvSidebar({cv, edit}: {cv: Cv; edit: Edit}) {
     return (
         <div className="cv-side">
             <div className="cv-tabs" role="tablist" aria-label="Edit" data-coach="editor-tabs">
-                {(['content', 'design', 'check'] as const).map((id) => (
+                {(['content', 'check'] as const).map((id) => (
                     <button key={id} type="button" role="tab" id={`cv-tab-${id}`} aria-selected={tab === id} aria-controls="cv-tab-panel" className="cv-tabs__tab" onClick={() => setTab(id)}>
                         {TAB_LABELS[id]}
                     </button>
                 ))}
             </div>
             <div className="cv-sidebar" id="cv-tab-panel" role="tabpanel" aria-labelledby={`cv-tab-${tab}`} data-coach="editor">
-                {tab === 'content' ? <ContentPanel cv={cv} edit={edit} /> : tab === 'design' ? <DesignPanel cv={cv} edit={edit} /> : <CheckPanel cv={cv} />}
+                {tab === 'content' ? <ContentPanel cv={cv} edit={edit} /> : <CheckPanel cv={cv} />}
             </div>
         </div>
     )
@@ -178,5 +178,19 @@ function ContentPanel({cv, edit}: {cv: Cv; edit: Edit}) {
             <AddSection cv={cv} edit={edit} />
             <p className="cv-sidebar__tip">Drag the grips, or press Alt+↑/↓, to change the order. Undo with Ctrl+Z.</p>
         </>
+    )
+}
+
+/** The right pane: how the CV looks. */
+export function DesignSidebar({cv, edit}: {cv: Cv; edit: Edit}) {
+    return (
+        <div className="cv-side cv-side--design" data-coach="design">
+            <div className="cv-tabs">
+                <span className="cv-tabs__title">Design</span>
+            </div>
+            <div className="cv-sidebar">
+                <DesignPanel cv={cv} edit={edit} />
+            </div>
+        </div>
     )
 }

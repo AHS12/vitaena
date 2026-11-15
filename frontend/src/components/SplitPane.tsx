@@ -16,16 +16,16 @@ interface Layout {
     readonly collapsed: boolean
 }
 
-function load(key: string, fallback: number): Layout {
+function load(key: string, fallback: number, collapsedFallback: boolean): Layout {
     try {
         const stored = JSON.parse(window.localStorage.getItem(key) ?? 'null') as Partial<Layout> | null
 
         return {
             width: typeof stored?.width === 'number' && stored.width > 0 ? stored.width : fallback,
-            collapsed: stored?.collapsed === true,
+            collapsed: typeof stored?.collapsed === 'boolean' ? stored.collapsed : collapsedFallback,
         }
     } catch {
-        return {width: fallback, collapsed: false}
+        return {width: fallback, collapsed: collapsedFallback}
     }
 }
 
@@ -48,6 +48,8 @@ export function SplitPane({
     defaultWidth,
     minWidth,
     maxShare = 0.6,
+    position = 'start',
+    defaultCollapsed = false,
     side,
     children,
 }: {
@@ -58,10 +60,16 @@ export function SplitPane({
     minWidth: number
     /** The most of the window the side pane may take. */
     maxShare?: number
+    /** Which edge the side pane sits on. */
+    position?: 'start' | 'end'
+    /** Folded the first time, before anyone chose. */
+    defaultCollapsed?: boolean
     side: (pane: SplitPaneHandle) => ReactNode
     children: (pane: SplitPaneHandle) => ReactNode
 }) {
-    const [layout, setLayout] = useState(() => load(storageKey, defaultWidth))
+    const [layout, setLayout] = useState(() => load(storageKey, defaultWidth, defaultCollapsed))
+    // Dragging towards the main pane widens a side pane on the left, and narrows one on the right.
+    const direction = position === 'start' ? 1 : -1
     const root = useRef<HTMLDivElement>(null)
     const drag = useRef<{startX: number; startWidth: number} | null>(null)
 
@@ -76,13 +84,16 @@ export function SplitPane({
     const toggle = () => setLayout((current) => ({...current, collapsed: !current.collapsed}))
     const pane: SplitPaneHandle = {collapsed: layout.collapsed, toggle}
 
+    const sidePane = layout.collapsed ? null : (
+        <div className="split-pane__side" style={{width: layout.width}}>
+            {side(pane)}
+        </div>
+    )
+    const mainPane = <div className="split-pane__main">{children(pane)}</div>
+
     return (
-        <div className="split-pane" ref={root}>
-            {layout.collapsed ? null : (
-                <div className="split-pane__side" style={{width: layout.width}}>
-                    {side(pane)}
-                </div>
-            )}
+        <div className="split-pane" ref={root} data-position={position}>
+            {position === 'start' ? sidePane : mainPane}
             <div
                 className="split-pane__divider"
                 role="separator"
@@ -105,7 +116,7 @@ export function SplitPane({
                 }}
                 onPointerMove={(event) => {
                     if (drag.current) {
-                        const width = clamp(drag.current.startWidth + event.clientX - drag.current.startX)
+                        const width = clamp(drag.current.startWidth + direction * (event.clientX - drag.current.startX))
 
                         setLayout((current) => (current.width === width ? current : {...current, width}))
                     }
@@ -120,11 +131,11 @@ export function SplitPane({
                         toggle()
                     } else if (!layout.collapsed && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
                         event.preventDefault()
-                        setLayout((current) => ({...current, width: clamp(current.width + (event.key === 'ArrowRight' ? STEP : -STEP))}))
+                        setLayout((current) => ({...current, width: clamp(current.width + direction * (event.key === 'ArrowRight' ? STEP : -STEP))}))
                     }
                 }}
             />
-            <div className="split-pane__main">{children(pane)}</div>
+            {position === 'start' ? mainPane : sidePane}
         </div>
     )
 }

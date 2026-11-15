@@ -8,7 +8,7 @@
  * buttons switch to a fixed size.
  */
 
-import {Minus, PanelLeftClose, PanelLeftOpen, Plus} from 'lucide-react'
+import {Minus, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Plus} from 'lucide-react'
 import {useEffect, useMemo, useRef, useState} from 'react'
 import type {SplitPaneHandle} from '../components/SplitPane'
 import {useDocumentStore} from '../store/document-store'
@@ -29,7 +29,7 @@ type State =
     | {readonly kind: 'ready'; readonly pages: number}
     | {readonly kind: 'failed'; readonly message: string}
 
-export function CvPreview({pane, onExample}: {pane: SplitPaneHandle; onExample(cv: Cv): void}) {
+export function CvPreview({left, right, onExample}: {left: SplitPaneHandle; right: SplitPaneHandle; onExample(cv: Cv): void}) {
     const content = useDocumentStore((state) => state.content)
     const model = useMemo(() => renderModel(content), [content])
     const template = content.design.template
@@ -97,11 +97,11 @@ export function CvPreview({pane, onExample}: {pane: SplitPaneHandle; onExample(c
                 <button
                     type="button"
                     className="icon-button"
-                    aria-label={pane.collapsed ? 'Show the editor' : 'Hide the editor'}
-                    title={pane.collapsed ? 'Show the editor' : 'Hide the editor, to see the pages larger'}
-                    onClick={pane.toggle}
+                    aria-label={left.collapsed ? 'Show the editor' : 'Hide the editor'}
+                    title={left.collapsed ? 'Show the editor' : 'Hide the editor, to see the pages larger'}
+                    onClick={left.toggle}
                 >
-                    {pane.collapsed ? <PanelLeftOpen size={15} aria-hidden="true" /> : <PanelLeftClose size={15} aria-hidden="true" />}
+                    {left.collapsed ? <PanelLeftOpen size={15} aria-hidden="true" /> : <PanelLeftClose size={15} aria-hidden="true" />}
                 </button>
                 <span className="cv-preview__facts" role="status">
                     {state.kind === 'starting' ? 'Laying out…' : state.kind === 'failed' ? "Couldn't lay out the pages" : `${state.pages} ${state.pages === 1 ? 'page' : 'pages'}`}
@@ -118,6 +118,15 @@ export function CvPreview({pane, onExample}: {pane: SplitPaneHandle; onExample(c
                         <Plus size={13} aria-hidden="true" />
                     </button>
                 </span>
+                <button
+                    type="button"
+                    className="icon-button"
+                    aria-label={right.collapsed ? 'Show the design' : 'Hide the design'}
+                    title={right.collapsed ? 'Show the design: template, colour, font' : 'Hide the design, to see the pages larger'}
+                    onClick={right.toggle}
+                >
+                    {right.collapsed ? <PanelRightOpen size={15} aria-hidden="true" /> : <PanelRightClose size={15} aria-hidden="true" />}
+                </button>
             </div>
             {state.kind === 'failed' ? <p className="cv-preview__problem">{state.message}</p> : null}
             <div className="cv-preview__scroll" ref={scrollRef}>

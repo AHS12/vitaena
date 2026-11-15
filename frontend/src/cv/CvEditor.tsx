@@ -1,6 +1,7 @@
 /**
- * The CV editor: the details in a side pane, the pages beside them. The side pane is
- * resized by dragging the divider, and folded away by double-clicking it.
+ * The CV editor: what the CV says on the left (and the Check), the pages in the middle,
+ * and how it looks on the right. Each side pane resizes by dragging its divider and
+ * folds away by double-clicking it.
  */
 
 import './cv-editor.css'
@@ -9,7 +10,7 @@ import {SplitPane} from '../components/SplitPane'
 import {APP} from '../core/app'
 import {useDocumentStore} from '../store/document-store'
 import {CvPreview} from './CvPreview'
-import {CvSidebar} from './editor/CvSidebar'
+import {CvSidebar, DesignSidebar} from './editor/CvSidebar'
 import {useCvEdit} from './use-cv-edit'
 
 export function CvEditor() {
@@ -39,8 +40,22 @@ export function CvEditor() {
 
     return (
         <main className="cv-editor" onKeyDown={onKeyDown}>
-            <SplitPane storageKey={`${APP.id}.editor.layout`} label="Editor" defaultWidth={460} minWidth={340} side={() => <CvSidebar cv={cv} edit={edit} />}>
-                {(pane) => <CvPreview pane={pane} onExample={(example) => edit.act('example', () => example)} />}
+            <SplitPane storageKey={`${APP.id}.editor.layout`} label="Editor" defaultWidth={440} minWidth={340} side={() => <CvSidebar cv={cv} edit={edit} />}>
+                {(left) => (
+                    <SplitPane
+                        storageKey={`${APP.id}.design.layout`}
+                        label="Design"
+                        position="end"
+                        defaultWidth={360}
+                        minWidth={300}
+                        maxShare={0.5}
+                        // On a small screen the pages need the room more than the design does.
+                        defaultCollapsed={window.innerWidth < 1200}
+                        side={() => <DesignSidebar cv={cv} edit={edit} />}
+                    >
+                        {(right) => <CvPreview left={left} right={right} onExample={(example) => edit.act('example', () => example)} />}
+                    </SplitPane>
+                )}
             </SplitPane>
         </main>
     )

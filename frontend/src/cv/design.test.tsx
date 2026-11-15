@@ -4,7 +4,6 @@ import {parseDocument} from '../core/document/document-file'
 import {useDocumentStore} from '../store/document-store'
 import {cvType, DEFAULT_DESIGN} from './cv'
 import {CvEditor} from './CvEditor'
-import {useEditorStore} from './editor/editor-store'
 import {renderModel} from './render-model'
 import {sampleCv} from './sample'
 
@@ -46,11 +45,19 @@ describe('the design panel', () => {
         window.localStorage.clear()
         useDocumentStore.getState().startNew()
         useDocumentStore.getState().previewEdit(sampleCv())
-        useEditorStore.getState().setTab('design')
+    })
+
+    it('starts folded in a narrow window, and opens from the preview bar', () => {
+        render(<CvEditor />)
+
+        expect(screen.queryByRole('radio', {name: /EB Garamond/})).toBeNull()
+        fireEvent.click(screen.getByRole('button', {name: 'Show the design'}))
+        expect(screen.getByRole('radio', {name: /EB Garamond/})).toBeInTheDocument()
     })
 
     it('changes the font, as one step to undo', () => {
         render(<CvEditor />)
+        fireEvent.click(screen.getByRole('button', {name: 'Show the design'}))
 
         fireEvent.click(screen.getByRole('radio', {name: /EB Garamond/}))
         expect(useDocumentStore.getState().content.design.font).toBe('eb-garamond')
@@ -61,10 +68,27 @@ describe('the design panel', () => {
 
     it('sets margins and spacing from their choices', () => {
         render(<CvEditor />)
+        fireEvent.click(screen.getByRole('button', {name: 'Show the design'}))
 
         fireEvent.click(screen.getByRole('radio', {name: 'Narrow'}))
         fireEvent.click(screen.getByRole('radio', {name: 'Compact'}))
 
         expect(useDocumentStore.getState().content.design).toMatchObject({margins: 'narrow', spacing: 'compact'})
+    })
+})
+
+describe('starting from a template on Home', () => {
+    it('starts a new CV in the template picked', async () => {
+        const {StartFromTemplate} = await import('./StartFromTemplate')
+
+        useDocumentStore.getState().startNew()
+        render(<StartFromTemplate />)
+        fireEvent.click(screen.getByRole('button', {name: /^Modern/}))
+
+        const state = useDocumentStore.getState()
+
+        expect(state.content.design.template).toBe('modern')
+        expect(state.content.person.name).toBe('')
+        expect(state.page).toBe('editor')
     })
 })

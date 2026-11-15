@@ -470,6 +470,12 @@
     flex: none;
 }
 
+.home__start {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
 .home__empty {
     display: flex;
     flex-wrap: wrap;

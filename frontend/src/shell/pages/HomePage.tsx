@@ -4,7 +4,7 @@
  */
 
 import {ChevronRight, FilePlus, FolderOpen, Pencil, RotateCcw, Trash2} from 'lucide-react'
-import {useEffect, useLayoutEffect, useRef, useState} from 'react'
+import {useEffect, useLayoutEffect, useRef, useState, type ReactNode} from 'react'
 import {APP} from '../../core/app'
 import {guardUnsaved} from '../commands'
 import {canUndo} from '../../core/history/history'
@@ -111,7 +111,8 @@ function DocumentCard({document, current, onOpen, onRemove, onRename}: CardProps
     )
 }
 
-export function HomePage() {
+/** Home. `start` is the app's own way in, shown under New and Open, such as its templates. */
+export function HomePage({start}: {start?: ReactNode}) {
     const documents = useDocumentStore((state) => state.documents)
     const loading = useDocumentStore((state) => state.documentsLoading)
     const refreshDocuments = useDocumentStore((state) => state.refreshDocuments)
@@ -220,6 +221,8 @@ export function HomePage() {
                         </button>
                     </div>
                 </section>
+
+                {start}
 
                 <section className="home__section" aria-label={`Recent ${plural}`} data-coach="home-recent">
                     <div className="home__section-head">

@@ -163,8 +163,8 @@ export interface DocumentStore {
     showHome(): void
     showDocuments(): void
     showEditor(): void
-    /** Starts a new, empty document. Ask before calling this over unsaved work. */
-    startNew(): void
+    /** Starts a new, unsaved document: empty, or from the content given. Ask before calling this over unsaved work. */
+    startNew(content?: Content): void
 
     announcement: string
     toast: Toast | null
@@ -321,7 +321,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
         showDocuments: () => set({page: 'documents'}),
         showEditor: () => set({page: 'editor'}),
 
-        startNew: () => take(documentType.empty(), {name: untitled(documentType), currentId: null, extras: {}}),
+        startNew: (content) => take(content ?? documentType.empty(), {name: untitled(documentType), currentId: null, extras: {}}),
 
         announcement: '',
         toast: null,

@@ -2,6 +2,7 @@ import {useEffect, useState} from 'react'
 import {commandForKeys, runCommand, shortcutOf} from '../shell/commands'
 import {applyTheme, resolveTheme, watchSystemTheme, type ThemeChoice} from '../core/settings/theme'
 import {CvEditor} from '../cv/CvEditor'
+import {StartFromTemplate} from '../cv/StartFromTemplate'
 import {CloseDialog} from '../shell/CloseDialog'
 import {CommandPalette} from '../shell/CommandPalette'
 import {ConfirmDialog} from '../shell/ConfirmDialog'
@@ -248,7 +249,7 @@ export function App() {
     return (
         <div className="app-shell">
             <MenuBar home={isHomePage(page)} />
-            {page === 'home' ? <HomePage /> : page === 'documents' ? <DocumentsPage /> : <Editor />}
+            {page === 'home' ? <HomePage start={<StartFromTemplate />} /> : page === 'documents' ? <DocumentsPage /> : <Editor />}
             {features().flatMap(({id, dialogs = []}) => dialogs.map((Dialog, index) => <Dialog key={`${id}-${index}`} />))}
             <Toast />
             <SaveDialog />
