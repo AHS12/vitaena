@@ -634,14 +634,15 @@ input.panel__title:focus {
 
 /* Home: start from a template */
 
-/* Home's starters, one group for each type */
-.start-group + .start-group {
-    margin-top: var(--space-6);
+/* Home's starters, a tab for each type */
+.start-tabs {
+    padding: 0;
+    margin-bottom: var(--space-4);
 }
 
-.start-group__title {
-    margin: 0 0 var(--space-2);
-    font: var(--text-label);
+.start-panel__note {
+    margin: 0 0 var(--space-3);
+    font: var(--text-body);
     color: var(--text-secondary);
 }
 

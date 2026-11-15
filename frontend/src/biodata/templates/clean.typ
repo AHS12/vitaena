@@ -118,8 +118,3 @@
     }
   }
 }
-
-#if b.fullPhoto != "" {
-  v(gap(1.2))
-  align(center, box(height: 9cm, image(b.fullPhoto, height: 9cm, fit: "contain")))
-}

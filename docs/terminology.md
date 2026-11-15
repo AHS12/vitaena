@@ -11,8 +11,9 @@ by what a person does with them, not by how they work.
 | Technical term | People see | Notes |
 |---|---|---|
 | Document, file, record | **CV** | The type's `noun` in code, so the word lives in one place. **Resume** only where a template suits one |
+| Marriage profile, matrimonial CV | **Biodata** | The same in the singular and the plural: "a biodata", "3 biodata" |
 | Documents of several types | **Documents** | Only once the app makes more than one type; `libraryWords()` says which. Each is then marked with its type |
-| Library, data folder | **Your CVs** | The page; **Where your work is saved** in Settings. **Your documents** once there are several types |
+| Library, data folder | **Your documents** | The page; **Where your work is saved** in Settings. **Your CVs** while the app makes only CVs |
 | ATS, applicant tracking system, parser | **Screening system** | **ATS** only in **One column (ATS)** and **ATS mode**, where job ads have taught people the word |
 | Render, compile, Typst | *(never shown)* | The **page**, the **preview** |
 | Proficiency, rating | **Level** | Five dots, with a word such as **Native** beside them |

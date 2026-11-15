@@ -1,6 +1,6 @@
-/** What a biodata can be exported as. Pictures and Word come next. */
+/** What a biodata can be exported as: a PDF, a picture of each page, Word, and the Vitaena file. */
 
-import {FileCode2, FileText} from 'lucide-react'
+import {FileCode2, FileImage, FileText, FileType2, Image} from 'lucide-react'
 import {serializeDocument} from '../core/document/document-file'
 import type {ExportFormat} from '../features/export/formats'
 import {biodataType, type Biodata} from './biodata'
@@ -20,6 +20,33 @@ export const BIODATA_FORMATS: readonly ExportFormat<Biodata>[] = [
 
             return pdf(biodataRenderModel(biodata), biodata.design.template)
         },
+    },
+    {
+        id: 'png',
+        label: 'Picture (PNG)',
+        extension: 'png',
+        mimeType: 'image/png',
+        icon: FileImage,
+        help: 'A picture of each page, to share in a chat. The sharpest choice.',
+        make: async (biodata) => (await import('./pictures')).pagePictures(biodataRenderModel(biodata), biodata.design.template, 'png'),
+    },
+    {
+        id: 'jpg',
+        label: 'Picture (JPG)',
+        extension: 'jpg',
+        mimeType: 'image/jpeg',
+        icon: Image,
+        help: 'A picture of each page, for chats and forms that ask for JPG.',
+        make: async (biodata) => (await import('./pictures')).pagePictures(biodataRenderModel(biodata), biodata.design.template, 'jpeg'),
+    },
+    {
+        id: 'docx',
+        label: 'Word',
+        extension: 'docx',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        icon: FileType2,
+        help: 'To change a word yourself, in Word or a similar app.',
+        make: async (biodata) => (await import('./docx-export')).biodataDocx(biodataRenderModel(biodata)),
     },
     {
         id: 'vitaena',

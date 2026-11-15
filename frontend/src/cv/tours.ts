@@ -58,10 +58,8 @@ export const TOURS: Tours = {
             {
                 target: 'editor-tabs',
                 title: 'Check it before you send it',
-                text: 'Check shows what a screening system reads from your PDF, and what might trip it up.',
+                text: 'Check looks it over for you: what is missing, how long it runs, and what might trip it up.',
                 side: 'below',
-                // Only a CV has it for now.
-                optional: true,
             },
             {
                 target: 'design',

@@ -25,6 +25,7 @@ import {PagePreview} from '../cv/PagePreview'
 import type {Sectioned} from '../cv/sections'
 import {useDocumentEdit, type DocumentEdit} from '../cv/use-cv-edit'
 import type {Biodata} from './biodata'
+import {BiodataCheck} from './BiodataCheck'
 import {BIODATA_SECTION_CHOICES, updateHeading, updatePerson} from './edit-ops'
 import {biodataRenderModel, isBlank} from './render-model'
 import {sampleBiodata} from './sample'
@@ -90,13 +91,36 @@ function ContentPanel({biodata, edit}: {biodata: Biodata; edit: Edit}) {
                     label="Full-length photo"
                     value={person.fullPhoto}
                     shape={{kind: 'whole', longest: 900, format: 'jpeg'}}
-                    hint="Optional. Kept in its own shape, and shown below everything else."
+                    hint="Optional. Kept in its own shape. Portrait shows it under the main photo."
                     onChange={(fullPhoto) => edit.act(fullPhoto ? 'full-length photo' : 'remove full-length photo', (current) => updatePerson(current, {fullPhoto}))}
                 />
                 <ShowParts parts={PICTURE_PARTS} hidden={person.hide} onToggle={(part) => edit.act('show part', (current) => updatePerson(current, {hide: toggled(current.person.hide, part)}))} />
             </FixedPanel>
             <SectionList doc={biodata} edit={edit as unknown as DocumentEdit<Sectioned>} choices={BIODATA_SECTION_CHOICES} />
         </>
+    )
+}
+
+const EDIT_TABS = {content: 'Content', check: 'Check'} as const
+
+/** The left pane: what the biodata says, and the Check. */
+function EditSidebar({biodata, edit}: {biodata: Biodata; edit: Edit}) {
+    const tab = useEditorStore((state) => state.tab)
+    const setTab = useEditorStore((state) => state.setTab)
+
+    return (
+        <div className="cv-side">
+            <div className="cv-tabs" role="tablist" aria-label="Edit" data-coach="editor-tabs">
+                {(['content', 'check'] as const).map((id) => (
+                    <button key={id} type="button" role="tab" id={`cv-tab-${id}`} aria-selected={tab === id} aria-controls="cv-tab-panel" className="cv-tabs__tab" onClick={() => setTab(id)}>
+                        {EDIT_TABS[id]}
+                    </button>
+                ))}
+            </div>
+            <div className="cv-sidebar" id="cv-tab-panel" role="tabpanel" aria-labelledby={`cv-tab-${tab}`} data-coach="editor">
+                {tab === 'content' ? <ContentPanel biodata={biodata} edit={edit} /> : <BiodataCheck biodata={biodata} />}
+            </div>
+        </div>
     )
 }
 
@@ -168,13 +192,7 @@ export function BiodataEditor() {
                 label="Editor"
                 defaultWidth={440}
                 minWidth={340}
-                side={() => (
-                    <div className="cv-side">
-                        <div className="cv-sidebar" data-coach="editor">
-                            <ContentPanel biodata={biodata} edit={edit} />
-                        </div>
-                    </div>
-                )}
+                side={() => <EditSidebar biodata={biodata} edit={edit} />}
             >
                 {(left) => (
                     <SplitPane

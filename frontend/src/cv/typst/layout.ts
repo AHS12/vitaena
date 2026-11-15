@@ -21,6 +21,8 @@ import professional from '../templates/professional.typ?raw'
 import sidebar from '../templates/sidebar.typ?raw'
 import timeline from '../templates/timeline.typ?raw'
 import clean from '../../biodata/templates/clean.typ?raw'
+import heritage from '../../biodata/templates/heritage.typ?raw'
+import portrait from '../../biodata/templates/portrait.typ?raw'
 import {CV_FONTS} from '../fonts'
 import {fontUrl} from './font-urls'
 import {withImageFiles, type PageModel} from './images'
@@ -33,7 +35,7 @@ const BIODATA_DATA = '/biodata.json'
 
 const TEMPLATES: Readonly<Record<string, {readonly source: string; readonly data: string}>> = {
     ...Object.fromEntries(Object.entries({classic, modern, minimal, compact, professional, academic, executive, bold, timeline, sidebar}).map(([id, source]) => [id, {source, data: CV_DATA}])),
-    clean: {source: clean, data: BIODATA_DATA},
+    ...Object.fromEntries(Object.entries({heritage, clean, portrait}).map(([id, source]) => [id, {source, data: BIODATA_DATA}])),
 }
 
 const MAIN = '/main.typ'

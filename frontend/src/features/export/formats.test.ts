@@ -34,3 +34,20 @@ describe('naming many documents at once', () => {
         expect(uniqueNames(['Shopping', 'shopping', 'Ideas', 'Shopping'])).toEqual(['Shopping', 'shopping 2', 'Ideas', 'Shopping 3'])
     })
 })
+
+describe('a format that makes several files', () => {
+    const pages = (count: number): ExportFormat<{text: string}> => ({id: 'png', label: 'Picture', extension: 'png', make: () => Array.from({length: count}, (_, index) => new Uint8Array([index]))})
+
+    it('numbers them, one for each page', async () => {
+        const files = await exportFiles([pages(2)], 'Jane', {text: ''})
+
+        expect(files.map((file) => [file.name, file.bytes[0]])).toEqual([
+            ['Jane-1.png', 0],
+            ['Jane-2.png', 1],
+        ])
+    })
+
+    it('leaves the number off when there is only one', async () => {
+        expect((await exportFiles([pages(1)], 'Jane', {text: ''})).map((file) => file.name)).toEqual(['Jane.png'])
+    })
+})

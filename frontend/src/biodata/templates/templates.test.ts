@@ -85,3 +85,11 @@ describe.each(BIODATA_TEMPLATES.map((template) => template.id))('the %s biodata 
         expect(text.trimStart().startsWith('A line of my own')).toBe(true)
     })
 })
+
+describe('the portrait biodata template', () => {
+    it('keeps both photos and the whole example on one page', async () => {
+        const biodata = sampleBiodata()
+
+        expect((await read('portrait', {...biodata, person: {...biodata.person, photo: PICTURE, fullPhoto: PICTURE}})).pages).toBe(1)
+    })
+})
