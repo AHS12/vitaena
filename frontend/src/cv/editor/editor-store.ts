@@ -13,6 +13,9 @@ interface EditorStore {
     /** What the left pane shows: what the CV says, or how it reads to a screening system. */
     tab: EditorTab
     setTab(tab: EditorTab): void
+    /** What the right pane shows: the templates, or the style on top of one. */
+    designTab: 'templates' | 'style'
+    setDesignTab(tab: 'templates' | 'style'): void
     /** Sections someone folded away. */
     closedSections: ReadonlySet<string>
     /** Entries someone opened. */
@@ -35,6 +38,8 @@ const toggled = (set: ReadonlySet<string>, id: string): Set<string> => {
 export const useEditorStore = create<EditorStore>((set) => ({
     tab: 'content',
     setTab: (tab) => set({tab}),
+    designTab: 'templates',
+    setDesignTab: (designTab) => set({designTab}),
     closedSections: new Set(),
     openEntries: new Set(),
     toggleSection: (id) => set((state) => ({closedSections: toggled(state.closedSections, id)})),

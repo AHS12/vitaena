@@ -54,14 +54,18 @@ function Group({title, children}: {title: string; children: React.ReactNode}) {
     )
 }
 
-export function DesignPanel({cv, edit}: {cv: Cv; edit: Edit}) {
+/** A change to the design, as one step to undo. */
+const setter =
+    (edit: Edit) =>
+    <K extends keyof CvDesign>(key: K, value: CvDesign[K], label: string) =>
+        edit.act(label, (current) => ({...current, design: {...current.design, [key]: value}}))
+
+/** The template gallery: the CV in every template, and ATS mode for two-column ones. */
+export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
     const design = cv.design
-    const set = <K extends keyof CvDesign>(key: K, value: CvDesign[K], label: string) => edit.act(label, (current) => ({...current, design: {...current.design, [key]: value}}))
-
+    const set = setter(edit)
     const previews = useTemplatePreviews(cv)
-    const twoColumns = design.template === 'modern'
-
-    useEffect(loadFaces, [])
+    const twoColumns = CV_TEMPLATES.find((template) => template.id === design.template)?.twoColumns === true
 
     return (
         <div className="design-panel">
@@ -95,7 +99,19 @@ export function DesignPanel({cv, edit}: {cv: Cv; edit: Edit}) {
                     </div>
                 ) : null}
             </Group>
+        </div>
+    )
+}
 
+/** Everything else about the look: colour, font, size and the page. */
+export function StylePanel({cv, edit}: {cv: Cv; edit: Edit}) {
+    const design = cv.design
+    const set = setter(edit)
+
+    useEffect(loadFaces, [])
+
+    return (
+        <div className="design-panel">
             <Group title="Colour">
                 <ColourRow label="Accent" value={design.accent} presets={ACCENTS} onChange={(accent) => set('accent', accent, 'colour')} />
             </Group>

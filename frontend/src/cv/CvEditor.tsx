@@ -53,7 +53,7 @@ export function CvEditor() {
                         defaultCollapsed={window.innerWidth < 1200}
                         side={() => <DesignSidebar cv={cv} edit={edit} />}
                     >
-                        {(right) => <CvPreview left={left} right={right} onExample={(example) => edit.act('example', () => example)} />}
+                        {(right) => <CvPreview left={left} right={right} onExample={(example) => edit.act('example', (current) => ({...example, design: current.design}))} />}
                     </SplitPane>
                 )}
             </SplitPane>

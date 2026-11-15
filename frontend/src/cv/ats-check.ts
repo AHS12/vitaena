@@ -7,6 +7,7 @@
 import {LONG_BULLET} from '../components/BulletList'
 import type {Cv} from './cv'
 import {emailWarning} from './editor/edit-ops'
+import {CV_TEMPLATES} from './templates/templates'
 
 export type CheckLevel = 'good' | 'tip' | 'warning'
 
@@ -29,7 +30,7 @@ const KNOWN_HEADINGS = [
     'academic positions', 'supervision', 'memberships', 'affiliations',
 ]
 
-const TWO_COLUMN_TEMPLATES = new Set(['modern', 'professional'])
+const TWO_COLUMN_TEMPLATES = new Set(CV_TEMPLATES.filter((template) => template.twoColumns).map((template) => template.id))
 
 const isKnown = (title: string): boolean => KNOWN_HEADINGS.includes(title.trim().toLowerCase())
 

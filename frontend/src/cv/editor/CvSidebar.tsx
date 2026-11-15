@@ -10,7 +10,7 @@ import type {useCvEdit} from '../use-cv-edit'
 import {emailWarning, linkWarning, moveSection, newSection, SECTION_CHOICES, toggled, updatePerson} from './edit-ops'
 import {useEditorStore} from './editor-store'
 import {CheckPanel} from './CheckPanel'
-import {DesignPanel} from './DesignPanel'
+import {StylePanel, TemplatesPanel} from './DesignPanel'
 import {SectionPanel} from './SectionPanel'
 import {ShowParts} from './ShowParts'
 
@@ -184,15 +184,24 @@ function ContentPanel({cv, edit}: {cv: Cv; edit: Edit}) {
     )
 }
 
-/** The right pane: how the CV looks. */
+const DESIGN_TABS = {templates: 'Templates', style: 'Style'} as const
+
+/** The right pane: how the CV looks, as its template and the tweaks on top of it. */
 export function DesignSidebar({cv, edit}: {cv: Cv; edit: Edit}) {
+    const tab = useEditorStore((state) => state.designTab)
+    const setTab = useEditorStore((state) => state.setDesignTab)
+
     return (
         <div className="cv-side cv-side--design" data-coach="design">
-            <div className="cv-tabs">
-                <span className="cv-tabs__title">Design</span>
+            <div className="cv-tabs" role="tablist" aria-label="Design">
+                {(['templates', 'style'] as const).map((id) => (
+                    <button key={id} type="button" role="tab" id={`design-tab-${id}`} aria-selected={tab === id} aria-controls="design-tab-panel" className="cv-tabs__tab" onClick={() => setTab(id)}>
+                        {DESIGN_TABS[id]}
+                    </button>
+                ))}
             </div>
-            <div className="cv-sidebar">
-                <DesignPanel cv={cv} edit={edit} />
+            <div className="cv-sidebar" id="design-tab-panel" role="tabpanel" aria-labelledby={`design-tab-${tab}`}>
+                {tab === 'templates' ? <TemplatesPanel cv={cv} edit={edit} /> : <StylePanel cv={cv} edit={edit} />}
             </div>
         </div>
     )

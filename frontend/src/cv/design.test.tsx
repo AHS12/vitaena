@@ -2,8 +2,9 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
 import {parseDocument} from '../core/document/document-file'
 import {useDocumentStore} from '../store/document-store'
-import {cvType, DEFAULT_DESIGN} from './cv'
+import {cvType, DEFAULT_DESIGN, emptyCv} from './cv'
 import {CvEditor} from './CvEditor'
+import {useEditorStore} from './editor/editor-store'
 import {renderModel} from './render-model'
 import {sampleCv} from './sample'
 
@@ -45,19 +46,21 @@ describe('the design panel', () => {
         window.localStorage.clear()
         useDocumentStore.getState().startNew()
         useDocumentStore.getState().previewEdit(sampleCv())
+        useEditorStore.setState({designTab: 'templates'})
     })
 
     it('starts folded in a narrow window, and opens from the preview bar', () => {
         render(<CvEditor />)
 
-        expect(screen.queryByRole('radio', {name: /EB Garamond/})).toBeNull()
+        expect(screen.queryByRole('tab', {name: 'Templates'})).toBeNull()
         fireEvent.click(screen.getByRole('button', {name: 'Show the design'}))
-        expect(screen.getByRole('radio', {name: /EB Garamond/})).toBeInTheDocument()
+        expect(screen.getByRole('tab', {name: 'Templates', selected: true})).toBeInTheDocument()
     })
 
     it('changes the font, as one step to undo', () => {
         render(<CvEditor />)
         fireEvent.click(screen.getByRole('button', {name: 'Show the design'}))
+        fireEvent.click(screen.getByRole('tab', {name: 'Style'}))
 
         fireEvent.click(screen.getByRole('radio', {name: /EB Garamond/}))
         expect(useDocumentStore.getState().content.design.font).toBe('eb-garamond')
@@ -66,14 +69,37 @@ describe('the design panel', () => {
         expect(useDocumentStore.getState().content.design.font).toBe('inter')
     })
 
+    it('offers ATS mode for every two-column template, and only those', () => {
+        render(<CvEditor />)
+        fireEvent.click(screen.getByRole('button', {name: 'Show the design'}))
+        fireEvent.click(screen.getByRole('tab', {name: 'Templates'}))
+
+        expect(screen.queryByRole('switch', {name: 'ATS mode'})).toBeNull()
+        fireEvent.click(screen.getByRole('radio', {name: /^Professional/}))
+        expect(screen.getByRole('switch', {name: 'ATS mode'})).toBeInTheDocument()
+    })
+
     it('sets margins and spacing from their choices', () => {
         render(<CvEditor />)
         fireEvent.click(screen.getByRole('button', {name: 'Show the design'}))
+        fireEvent.click(screen.getByRole('tab', {name: 'Style'}))
 
         fireEvent.click(screen.getByRole('radio', {name: 'Narrow'}))
         fireEvent.click(screen.getByRole('radio', {name: 'Compact'}))
 
         expect(useDocumentStore.getState().content.design).toMatchObject({margins: 'narrow', spacing: 'compact'})
+    })
+})
+
+describe('filling a new CV with the example', () => {
+    it('keeps the template and style already chosen', () => {
+        useDocumentStore.getState().startNew({...emptyCv(), design: {...DEFAULT_DESIGN, template: 'professional', accent: '#2563eb'}})
+        render(<CvEditor />)
+
+        fireEvent.click(screen.getByRole('button', {name: 'Fill with an example'}))
+
+        expect(useDocumentStore.getState().content.person.name).toBe('Nadia Rahman')
+        expect(useDocumentStore.getState().content.design).toMatchObject({template: 'professional', accent: '#2563eb'})
     })
 })
 

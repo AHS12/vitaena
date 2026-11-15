@@ -64,7 +64,7 @@ export const TOURS: Tours = {
             {
                 target: 'design',
                 title: 'Make it look right',
-                text: 'On the right, pick a template, colour, font and spacing. Your CV is shown in every template, so you can compare.',
+                text: 'On the right, Templates shows your CV in every template to compare, and Style sets the colour, font and spacing.',
                 side: 'left',
             },
             {

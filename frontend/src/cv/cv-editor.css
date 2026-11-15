@@ -720,7 +720,8 @@ input.panel__title:focus {
     color: var(--text-primary);
 }
 
-/* The design pane on the right: its pictures of templates sit two to a row. */
+/* The design pane on the right: its pictures of templates sit two to a row, or one
+   when the pane is narrow. */
 .cv-side--design .template-choices {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 }
