@@ -13,9 +13,10 @@ import {bytesFromBinding, textFromBinding} from './bytes'
 import {desktopApp} from './shell'
 
 const DOCUMENT_FILTERS = ['*.json']
-/** Opening offers documents and PDFs together; a PDF is imported rather than opened. */
-const OPEN_FILTERS = ['*.json;*.pdf', '*.json', '*.pdf']
-const PDF_FILTERS = ['*.pdf']
+/** Opening offers documents and CVs to import together; a PDF or Word file is imported rather than opened. */
+const OPEN_FILTERS = ['*.json;*.pdf;*.docx', '*.json', '*.pdf;*.docx']
+const IMPORT_FILTERS = ['*.pdf;*.docx', '*.pdf', '*.docx']
+const IMPORT_TYPES = '.pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 const BROWSER_DOWNLOADS = 'Downloads'
 
 interface WailsApp {
@@ -57,12 +58,12 @@ export interface OpenedFile {
 
 /** Asks for a document file, or a PDF to import, and returns its path and contents, or null. */
 export async function openDocumentFile(title: string): Promise<OpenedFile | null> {
-    return openFile(title, OPEN_FILTERS, '.json,application/json,.pdf,application/pdf')
+    return openFile(title, OPEN_FILTERS, `.json,application/json,${IMPORT_TYPES}`)
 }
 
-/** Asks for a PDF and returns its path and contents, or null. */
-export async function openPdfFile(title: string): Promise<OpenedFile | null> {
-    return openFile(title, PDF_FILTERS, '.pdf,application/pdf')
+/** Asks for a CV to import, a PDF or a Word file, and returns its path and contents, or null. */
+export async function openImportFile(title: string): Promise<OpenedFile | null> {
+    return openFile(title, IMPORT_FILTERS, IMPORT_TYPES)
 }
 
 async function openFile(title: string, filters: string[], accept: string): Promise<OpenedFile | null> {

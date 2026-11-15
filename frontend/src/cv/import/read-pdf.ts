@@ -12,6 +12,8 @@ export interface PdfLayout {
     readonly lines: readonly PdfLine[]
     /** The photo on the first page, or null when there's none. */
     readonly photo?: PdfPhoto | null
+    /** Where the document's links go, such as https://… or mailto:…, which may say more than their text. */
+    readonly links?: readonly string[]
 }
 
 export interface ReadOptions {
@@ -98,9 +100,25 @@ async function photoOf(page: PdfPageProxy, drawing: {fnArray: number[]; argsArra
     return photo?.bitmap ? {...photo, bitmap: await createImageBitmap(photo.bitmap)} : photo
 }
 
+/** Where a page's links go. */
+async function linksOf(page: PdfPageProxy): Promise<string[]> {
+    try {
+        const annotations = (await page.getAnnotations()) as {url?: unknown; unsafeUrl?: unknown}[]
+
+        return annotations.flatMap((annotation) => {
+            const url = typeof annotation.url === 'string' ? annotation.url : typeof annotation.unsafeUrl === 'string' ? annotation.unsafeUrl : ''
+
+            return /^(?:https?|mailto):/i.test(url) ? [url] : []
+        })
+    } catch {
+        return []
+    }
+}
+
 export function readPdfLayout(pdf: Uint8Array, {onPage, signal}: ReadOptions = {}): Promise<PdfLayout> {
     return withPdf(pdf, async (document) => {
         const lines: PdfLine[] = []
+        const links: string[] = []
         let photo: PdfPhoto | null = null
 
         for (let number = 1; number <= document.numPages; number += 1) {
@@ -118,11 +136,13 @@ export function readPdfLayout(pdf: Uint8Array, {onPage, signal}: ReadOptions = {
                 photo = await photoOf(page, drawing, right - left).catch(() => null)
             }
 
+            links.push(...(await linksOf(page)))
+
             page.cleanup()
             onPage?.(number, document.numPages)
         }
 
         signal?.throwIfAborted()
-        return {pages: document.numPages, lines, photo}
+        return {pages: document.numPages, lines, photo, links: [...new Set(links)]}
     })
 }

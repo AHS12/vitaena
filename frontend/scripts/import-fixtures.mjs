@@ -2,8 +2,11 @@
  * Makes the PDFs the import is tested on that the app's own templates don't make: CVs
  * laid out the way other apps lay them out, made the way those apps make PDFs.
  *
- * - office-word.pdf: a Word document (.docx, written here) exported by LibreOffice, as
- *   someone's CV from Word or LibreOffice is.
+ * - office-word.docx: a Word document written here, and office-word.pdf, the same
+ *   exported by LibreOffice, as someone's CV from Word or LibreOffice is.
+ * - word-table.docx: a Word document laid out as Word templates often are: the name and
+ *   contact details in the page header, a table as the page's two columns, and each
+ *   job's title and dates in a row of their own.
  * - Each .html beside it: printed by Chrome, as Google Docs and many online makers do.
  *
  * Every CV is invented, and every font is one the app ships under the SIL Open Font
@@ -14,15 +17,15 @@
  */
 
 import {execFileSync} from 'node:child_process'
-import {readdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs'
+import {readdirSync, readFileSync, writeFileSync} from 'node:fs'
 import {createRequire} from 'node:module'
 import {dirname, join, resolve} from 'node:path'
 import {fileURLToPath, pathToFileURL} from 'node:url'
-import {AlignmentType, BorderStyle, Document, LevelFormat, Packer, Paragraph, TabStopType, TextRun} from 'docx'
+import {AlignmentType, BorderStyle, Document, ExternalHyperlink, Header, HeadingLevel, LevelFormat, Packer, Paragraph, Table, TableCell, TableRow, TabStopType, TextRun, WidthType} from 'docx'
 
 const require = createRequire(import.meta.url)
 const here = dirname(fileURLToPath(import.meta.url))
-const folder = resolve(here, '../src/cv/pdf-import/fixtures')
+const folder = resolve(here, '../src/cv/import/fixtures')
 const CHROME = process.env.CHROME ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 const SOFFICE = process.env.SOFFICE ?? 'C:\\Program Files\\LibreOffice\\program\\soffice.exe'
 const lato = (face) => readFileSync(require.resolve(`@expo-google-fonts/lato/${face}/Lato_${face}.ttf`))
@@ -44,8 +47,8 @@ const under = (value) => new Paragraph({children: [text(value, {italics: true})]
 const bullet = (value) => new Paragraph({numbering: {reference: 'bullets', level: 0}, children: [text(value)]})
 const plain = (value) => new Paragraph({children: [text(value)]})
 
-const word = new Document({
-    // Lato everywhere, bullets and blank lines included, so no font of this computer's is embedded.
+// Lato everywhere, bullets and blank lines included, so no font of this computer's is embedded.
+const LATO_ONLY = {
     styles: {default: {document: {run: {font: FONT}}}},
     numbering: {
         config: [
@@ -55,6 +58,10 @@ const word = new Document({
             },
         ],
     },
+}
+
+const word = new Document({
+    ...LATO_ONLY,
     fonts: [{name: FONT, data: lato('400Regular'), bold: lato('700Bold'), italic: lato('400Regular_Italic'), boldItalic: lato('700Bold_Italic')}],
     sections: [
         {
@@ -94,7 +101,74 @@ const docx = join(folder, 'office-word.docx')
 
 writeFileSync(docx, await Packer.toBuffer(word))
 execFileSync(SOFFICE, ['--headless', '--convert-to', 'pdf', '--outdir', folder, docx], {stdio: 'inherit'})
-rmSync(docx)
+
+// ---------------------------------------------------------------- Word, as templates lay it out
+
+const NONE = {style: BorderStyle.NONE, size: 0, color: 'FFFFFF'}
+const NO_BORDERS = {top: NONE, bottom: NONE, left: NONE, right: NONE, insideHorizontal: NONE, insideVertical: NONE}
+const section = (value) => new Paragraph({heading: HeadingLevel.HEADING_2, children: [new TextRun({text: value, font: FONT, allCaps: true})]})
+const cell = (children, width) => new TableCell({width: {size: width, type: WidthType.PERCENTAGE}, borders: NO_BORDERS, children})
+/** A job's title and its dates, each in a cell of a borderless row. */
+const dated = (title, dates) =>
+    new Table({
+        width: {size: 100, type: WidthType.PERCENTAGE},
+        borders: NO_BORDERS,
+        rows: [new TableRow({children: [cell([new Paragraph({children: [text(title, {bold: true})]})], 70), cell([new Paragraph({alignment: AlignmentType.RIGHT, children: [text(dates)]})], 30)]})],
+    })
+
+const template = new Document({
+    ...LATO_ONLY,
+    sections: [
+        {
+            headers: {
+                default: new Header({
+                    children: [
+                        new Paragraph({children: [text('Sam Doe', {bold: true, size: 44})]}),
+                        new Paragraph({children: [text('Retail Manager', {size: 24})]}),
+                        new Paragraph({
+                            children: [
+                                new ExternalHyperlink({link: 'mailto:sam.doe@example.com', children: [text('Email me')]}),
+                                text('  ·  07700 900123  ·  York, United Kingdom  ·  '),
+                                new ExternalHyperlink({link: 'https://www.linkedin.com/in/sam-doe', children: [text('LinkedIn')]}),
+                            ],
+                        }),
+                    ],
+                }),
+            },
+            children: [
+                new Table({
+                    width: {size: 100, type: WidthType.PERCENTAGE},
+                    borders: NO_BORDERS,
+                    rows: [
+                        new TableRow({
+                            children: [
+                                cell([section('Skills'), plain('Customer service'), plain('Stock control'), plain('Cash handling'), section('Languages'), plain('Polish — Native'), plain('English — Fluent')], 30),
+                                cell(
+                                    [
+                                        section('Experience'),
+                                        dated('Store Manager', 'May 2021 – Present'),
+                                        under('Greenway Grocers, York'),
+                                        bullet('Run a store of 18 staff open seven days a week.'),
+                                        bullet('Grew weekly sales by 12% in the first year.'),
+                                        dated('Assistant Manager', 'June 2016 – April 2021'),
+                                        under('Greenway Grocers, Leeds'),
+                                        bullet('Planned rotas and trained new starters.'),
+                                        section('Education'),
+                                        dated('BTEC Retail Management', '2014 – 2016'),
+                                        under('York College'),
+                                    ],
+                                    70,
+                                ),
+                            ],
+                        }),
+                    ],
+                }),
+            ],
+        },
+    ],
+})
+
+writeFileSync(join(folder, 'word-table.docx'), await Packer.toBuffer(template))
 
 // ---------------------------------------------------------------- HTML, through Chrome
 

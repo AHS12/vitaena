@@ -205,9 +205,14 @@ export function HomePage({start}: {start?: ReactNode}) {
                             <FolderOpen size={15} aria-hidden="true" />
                             Open a file…
                         </button>
-                        <button type="button" className="button button--large" onClick={() => guardUnsaved(store(), 'Import a PDF', () => void store().importFromPdf())}>
+                        <button
+                            type="button"
+                            className="button button--large"
+                            title="Make a CV from one you have, as a PDF or Word file"
+                            onClick={() => guardUnsaved(store(), 'Import a CV', () => void store().importCv())}
+                        >
                             <FileInput size={15} aria-hidden="true" />
-                            Import a PDF…
+                            Import a CV…
                         </button>
                         <button
                             type="button"

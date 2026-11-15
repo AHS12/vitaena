@@ -1,22 +1,22 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {afterEach, describe, expect, it, vi} from 'vitest'
-import {ImportPdfDialog} from './ImportPdfDialog'
-import {usePdfImport, type ImportStep} from './import-pdf'
+import {ImportDialog} from './ImportDialog'
+import {useCvImport, type ImportStep} from './import-cv'
 
-const show = (step: ImportStep) => usePdfImport.setState({file: 'jane-cv.pdf', step})
+const show = (step: ImportStep) => useCvImport.setState({file: 'jane-cv.pdf', step})
 
 afterEach(() => {
     cleanup()
-    usePdfImport.setState({file: null})
+    useCvImport.setState({file: null})
 })
 
 describe('the import dialog', () => {
     it('shows how many pages it has read, and can be cancelled', () => {
         const cancel = vi.fn()
 
-        usePdfImport.setState({cancel})
+        useCvImport.setState({cancel})
         show({kind: 'reading', page: 2, pages: 3})
-        render(<ImportPdfDialog />)
+        render(<ImportDialog />)
 
         expect(screen.getByRole('dialog', {name: 'Importing jane-cv.pdf'})).toBeInTheDocument()
         expect(screen.getByText('Reading page 2 of 3')).toBeInTheDocument()
@@ -32,17 +32,17 @@ describe('the import dialog', () => {
         [{kind: 'failed', reason: "It doesn't look like a PDF, or it's damaged."} as const, /Couldn't read this PDF\. It doesn't look like a PDF/],
     ])('says what went wrong and offers only Close: %o', (step, words) => {
         show(step)
-        render(<ImportPdfDialog />)
+        render(<ImportDialog />)
 
         expect(screen.getByText(words)).toBeInTheDocument()
         expect(screen.queryByRole('button', {name: 'Cancel'})).toBeNull()
 
         fireEvent.click(screen.getByRole('button', {name: 'Close'}))
-        expect(usePdfImport.getState().file).toBeNull()
+        expect(useCvImport.getState().file).toBeNull()
     })
 
     it('stays closed when nothing is being imported', () => {
-        render(<ImportPdfDialog />)
+        render(<ImportDialog />)
 
         expect(screen.queryByRole('dialog')).toBeNull()
     })

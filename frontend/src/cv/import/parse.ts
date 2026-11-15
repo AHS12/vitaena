@@ -35,8 +35,8 @@ const PAGE_NUMBER = /^(?:page\s+)?\d+\s*(?:\/|of)\s*\d+$|^page\s+\d+$/i
 const LABEL_WORDS = 'e-?mail|phone|mobile|tel(?:ephone)?|cell|address|location|web(?:site)?|linkedin|github|portfolio'
 /** Labels in front of contact details, as in "Email: jane@example.com". */
 const CONTACT_LABEL = new RegExp(String.raw`^(?:${LABEL_WORDS})\s*:\s*`, 'i')
-/** A label on a line of its own above its detail, as sidebars set them. */
-const LABEL_ALONE = new RegExp(String.raw`^(?:${LABEL_WORDS}|contact)\s*:?$`, 'i')
+/** A label on a line of its own above its detail, as sidebars set them, or a link's words, as "Email me". */
+const LABEL_ALONE = new RegExp(String.raw`^(?:${LABEL_WORDS}|contact|my website)(?:\s+me)?\s*:?$`, 'i')
 /** A label that says the detail is where someone lives, whatever its shape. */
 const PLACE_LABEL = /^(?:address|location)\s*:\s*/i
 /** Words in a job title. */
@@ -167,6 +167,25 @@ function placeDetail(text: string, contact: Contact): boolean {
     }
 
     return false
+}
+
+/** A web address as compared: no scheme, no www, no slash at the end. */
+const bareAddress = (url: string) => url.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/$/, '').toLowerCase()
+
+/**
+ * Where the document's links go: an email address when none was written out, and web
+ * addresses not already among the links, as a link reading "LinkedIn" has.
+ */
+function addLinks(targets: readonly string[], contact: Contact): void {
+    for (const target of targets) {
+        const email = /^mailto:([^?]+)/i.exec(target)
+
+        if (email) {
+            contact.email ||= decodeURIComponent(email[1])
+        } else if (/^https?:\/\//i.test(target) && !contact.links.some((link) => bareAddress(link) === bareAddress(target))) {
+            contact.links.push(target)
+        }
+    }
 }
 
 // ---------------------------------------------------------------- sections
@@ -584,6 +603,9 @@ export function cvFromLayout(layout: PdfLayout): ImportedCv {
             cvSections.push({...base, kind: 'text', text: textOf(section.lines)})
         }
     }
+
+    // Last, so a link written out in a Contact section isn't added twice.
+    addLinks(layout.links ?? [], contact)
 
     if (unsorted.length > 0) {
         cvSections.push({id: newId('section'), kind: 'text', title: NOT_SORTED, visible: false, text: unsorted.join('\n')})

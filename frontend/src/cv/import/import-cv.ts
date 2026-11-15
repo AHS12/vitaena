@@ -1,6 +1,7 @@
 /**
- * Importing a PDF: reading it with a dialog that shows how far it has got, then opening
- * the CV made from it as a new, unsaved document. The dialog reads its state from here.
+ * Importing a CV from a PDF or a Word file: reading it with a dialog that shows how far it
+ * has got, then opening the CV made from it as a new, unsaved document. The dialog reads
+ * its state from here.
  */
 
 import {create} from 'zustand'
@@ -16,10 +17,12 @@ export type ImportStep =
     | {readonly kind: 'making'}
     | {readonly kind: 'no-text'}
     | {readonly kind: 'locked'}
+    /** A Word file from before 2007, which only Word itself reads. */
+    | {readonly kind: 'old-word'}
     | {readonly kind: 'failed'; readonly reason: string}
 
 interface ImportState {
-    /** The PDF's file name while its dialog is open, or null. */
+    /** The file's name while its dialog is open, or null. */
     readonly file: string | null
     readonly step: ImportStep
     cancel(): void
@@ -28,7 +31,7 @@ interface ImportState {
 
 let running: AbortController | null = null
 
-export const usePdfImport = create<ImportState>()((set) => ({
+export const useCvImport = create<ImportState>()((set) => ({
     file: null,
     step: {kind: 'reading', page: 0, pages: 0},
     cancel: () => {
@@ -89,27 +92,33 @@ function stepFor(error: unknown): ImportStep {
 }
 
 /**
- * Makes a CV from a PDF and opens it. Asking about unsaved changes first is the
- * caller's job, as it is for opening a file.
+ * Makes a CV from a PDF or Word file and opens it. Asking about unsaved changes first is
+ * the caller's job, as it is for opening a file.
  */
-export async function importPdf(bytes: Uint8Array, path: string): Promise<void> {
+export async function importCv(bytes: Uint8Array, path: string): Promise<void> {
     const file = fileNameOf(path)
     const controller = new AbortController()
     const set = (step: ImportStep) => {
         if (running === controller) {
-            usePdfImport.setState({step})
+            useCvImport.setState({step})
         }
     }
 
     running?.abort()
     running = controller
-    usePdfImport.setState({file, step: {kind: 'reading', page: 0, pages: 0}})
+    useCvImport.setState({file, step: {kind: 'reading', page: 0, pages: 0}})
+
+    if (/\.doc$/i.test(file)) {
+        set({kind: 'old-word'})
+        return
+    }
 
     try {
         await afterPaint()
 
-        const [{readPdfLayout}, {cvFromLayout}] = await Promise.all([import('./read-pdf'), import('./parse')])
-        const layout = await readPdfLayout(bytes, {signal: controller.signal, onPage: (page, pages) => set({kind: 'reading', page, pages})})
+        const word = /\.docx$/i.test(file)
+        const [{readPdfLayout}, {readDocxLayout}, {cvFromLayout}] = await Promise.all([import('./read-pdf'), import('./read-docx'), import('./parse')])
+        const layout = word ? await readDocxLayout(bytes) : await readPdfLayout(bytes, {signal: controller.signal, onPage: (page, pages) => set({kind: 'reading', page, pages})})
 
         if (layout.lines.length === 0) {
             set({kind: 'no-text'})
@@ -132,9 +141,9 @@ export async function importPdf(bytes: Uint8Array, path: string): Promise<void> 
         const sorted = unsorted === 0 ? '' : ` ${unsorted === 1 ? 'One line is' : `${unsorted} lines are`} in Not sorted.`
 
         store.startNew(cvType.content.parse(cv), cvType.kind)
-        store.setName(cv.person.name || file.replace(/\.pdf$/i, ''))
-        store.notify(`Made a CV from ${file}. Check it against your PDF, the dates especially.${sorted}`)
-        usePdfImport.setState({file: null})
+        store.setName(cv.person.name || file.replace(/\.(?:pdf|docx)$/i, ''))
+        store.notify(`Made a CV from ${file}. Check it against your ${word ? 'Word file' : 'PDF'}, the dates especially.${sorted}`)
+        useCvImport.setState({file: null})
     } catch (error) {
         if (!controller.signal.aborted) {
             set(stepFor(error))

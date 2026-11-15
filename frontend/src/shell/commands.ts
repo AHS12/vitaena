@@ -127,13 +127,13 @@ const SHELL_COMMANDS: readonly Command[] = [
         run: (state) => guardUnsaved(state, 'Open a file', () => void state.openFromFile()),
     },
     {
-        id: 'import-pdf',
-        label: 'Import a CV from a PDF…',
+        id: 'import-cv',
+        label: 'Import a CV from a PDF or Word file…',
         group: 'File',
         icon: FileInput,
         global: true,
-        keywords: 'pdf import existing resume convert read upload bring in',
-        run: (state) => guardUnsaved(state, 'Import a PDF', () => void state.importFromPdf()),
+        keywords: 'pdf word docx import existing resume convert read upload bring in',
+        run: (state) => guardUnsaved(state, 'Import a CV', () => void state.importCv()),
     },
     {
         id: 'save',

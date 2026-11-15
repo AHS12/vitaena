@@ -92,6 +92,6 @@ describe('reading a PDF', () => {
 
         const result = await compiler.compile({mainFilePath: '/main.typ', format: 1})
 
-        expect(await readPdfLayout(result.result!)).toEqual({pages: 1, lines: [], photo: null})
+        expect(await readPdfLayout(result.result!)).toEqual({pages: 1, lines: [], photo: null, links: []})
     })
 })

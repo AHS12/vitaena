@@ -9,7 +9,7 @@ import type {Cv} from './cv'
 import {emailWarning} from './editor/edit-ops'
 import {CV_TEMPLATES} from './templates/templates'
 import {splitItem} from './levels'
-import {notSortedLines} from './pdf-import/not-sorted'
+import {notSortedLines} from './import/not-sorted'
 
 export type CheckLevel = 'good' | 'tip' | 'warning'
 

@@ -13,7 +13,7 @@
 import {create} from 'zustand'
 import {DocumentFileError, parseAnyDocument, serializeDocument, untitled, type DocumentType} from '../core/document/document-file'
 import {EMPTY_HISTORY, pushHistory, redo as redoHistory, undo as undoHistory, type History} from '../core/history/history'
-import {openDocumentFile, openPdfFile, saveDocumentFile} from '../platform/desktop'
+import {openDocumentFile, openImportFile, saveDocumentFile} from '../platform/desktop'
 import {clearDraftText, readDraftText, writeDraftText} from '../platform/draft'
 import {
     copyDocumentPicture,
@@ -136,9 +136,9 @@ function copyNameOf(base: string, documents: readonly SavedDocument[]): string {
     return `${base} ${count}`
 }
 
-/** The import is loaded only when someone imports, as it brings in the PDF reader. */
-async function importPdfBytes(bytes: Uint8Array, path: string): Promise<void> {
-    await (await import('../cv/pdf-import/import-pdf')).importPdf(bytes, path)
+/** The import is loaded only when someone imports, as it brings in the PDF and Word readers. */
+async function importBytes(bytes: Uint8Array, path: string): Promise<void> {
+    await (await import('../cv/import/import-cv')).importCv(bytes, path)
 }
 
 /** Count listings, so one that finishes late can't replace a newer one. */
@@ -202,8 +202,8 @@ export interface DocumentStore {
     saveToFile(): Promise<void>
     /** Opens a document file the user picks. */
     openFromFile(): Promise<void>
-    /** Asks for a PDF and makes a new CV from it. */
-    importFromPdf(): Promise<void>
+    /** Asks for a PDF or Word file and makes a new CV from it. */
+    importCv(): Promise<void>
 
     /** Every saved document, newest first. */
     documents: readonly SavedDocument[]
@@ -410,9 +410,9 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
                     return
                 }
 
-                // A PDF can't be opened as it is, but a CV can be made from it.
-                if (/\.pdf$/i.test(opened.path)) {
-                    await importPdfBytes(opened.bytes, opened.path)
+                // A PDF or Word file can't be opened as it is, but a CV can be made from it.
+                if (/\.(?:pdf|docx?)$/i.test(opened.path)) {
+                    await importBytes(opened.bytes, opened.path)
                     return
                 }
 
@@ -448,12 +448,12 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
             }
         },
 
-        importFromPdf: async () => {
+        importCv: async () => {
             try {
-                const opened = await openPdfFile('Import a CV from a PDF')
+                const opened = await openImportFile('Import a CV from a PDF or Word file')
 
                 if (opened) {
-                    await importPdfBytes(opened.bytes, opened.path)
+                    await importBytes(opened.bytes, opened.path)
                 }
             } catch (error) {
                 fail(error, 'open')

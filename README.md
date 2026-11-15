@@ -10,10 +10,10 @@ storage of your own. Vitaena runs on Windows, macOS and Linux.
 
 - **Real pages as you type.** The preview is the PDF: page breaks, page numbers and the
   name repeated on every page, however long the CV runs.
-- **Start from the CV you have.** Import a PDF of it and Vitaena makes it into a CV you
-  can edit: your details, each job with its dates and bullets, your skills. It's read on
-  your computer, with no AI and nothing sent anywhere; what it can't place waits in a
-  hidden section for you to sort.
+- **Start from the CV you have.** Import it as a PDF or a Word file and Vitaena makes it
+  into a CV you can edit: your details and photo, each job with its dates and bullets,
+  your skills. It's read on your computer, with no AI and nothing sent anywhere; what it
+  can't place waits in a hidden section for you to sort.
 - **Ten templates,** each shown with your own CV, for a resume, an academic CV, or both.
 - **Made to get through screening.** Every template is tested the way an applicant
   tracking system reads a PDF. The Check tab shows the text a parser gets from yours,
