@@ -1,8 +1,7 @@
 # Words on screen
 
 Everything the app shows follows these rules: labels, buttons, tooltips, messages,
-settings and the changelog. They're the template's defaults. An app made from it adds its
-own words to the table.
+settings and the changelog.
 
 ## Plain words
 
@@ -11,8 +10,11 @@ by what a person does with them, not by how they work.
 
 | Technical term | People see | Notes |
 |---|---|---|
-| Document, file, record | **Note** in the example; the app's own word | `documentType.noun` in code, so the word lives in one place |
-| Library, data folder | **Your notes** | The page; **Where your work is saved** in Settings |
+| Document, file, record | **CV** | `documentType.noun` in code, so the word lives in one place. **Resume** only where a template suits one |
+| Library, data folder | **Your CVs** | The page; **Where your work is saved** in Settings |
+| ATS, applicant tracking system, parser | **Screening system** | **ATS** only in **One column (ATS)** and **ATS mode**, where job ads have taught people the word |
+| Render, compile, Typst | *(never shown)* | The **page**, the **preview** |
+| Proficiency, rating | **Level** | Five dots, with a word such as **Native** beside them |
 | Trash, bin, soft delete | **Recently removed** | Kept 30 days. **Remove** moves something there; **Remove for good** is the only thing that can't be undone |
 | Delete | **Remove** | |
 | Duplicate | **Copy** | |
@@ -34,7 +36,7 @@ One verb per button. The verb names the outcome.
 | Don't write | Write |
 |---|---|
 | OK | Name the outcome: **Save**, **Export**, **Got it** |
-| Apply | What it does: **Rename**, **Restore 2 notes** |
+| Apply | What it does: **Rename**, **Restore 2 CVs** |
 | Confirm | **Remove for good**, **Replace** |
 | Submit | **Save**, **Open GitHub** |
 | Reset | **Restore default**, **Reset this page** |
@@ -55,4 +57,4 @@ never blamed, and nothing technical is shown unless it helps them act.
 - Short sentences, in the second person: "Your work is saved", not "The work has been saved".
 - Sentence case everywhere: **Recently removed**, not **Recently Removed**.
 - No exclamation marks, no "simply" or "just", no "please" in labels.
-- Numbers as digits: "3 notes", "Removed 2 notes".
+- Numbers as digits: "3 CVs", "Removed 2 CVs".

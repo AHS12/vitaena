@@ -6,6 +6,8 @@
  * without a word. A test reads the templates and checks this list against them.
  */
 
+import {documentType} from '../../store/document-store'
+
 export type ReportKind = 'bug' | 'feature'
 
 export interface ReportField {
@@ -32,12 +34,18 @@ export interface ReportForm {
     readonly fields: readonly ReportField[]
 }
 
+// The issue forms name the app's own document, so these do too, through its noun.
+const noun = documentType.noun
+
 export const BUG_ACTIONS = [
-    'Installing or opening the app',
-    'Browsing the home page or my saved documents',
-    'Editing a document',
-    'Saving or opening a document',
-    'Exporting',
+    'Installing, opening or updating the app',
+    `Browsing Home or my saved ${noun}s`,
+    `Editing a ${noun}`,
+    'Choosing a template or changing the style',
+    'The page preview looks wrong',
+    `Saving or opening a ${noun}`,
+    'Exporting a PDF, Word file or text',
+    'The Check tab or a screening system',
     'Backing up or restoring',
     'Changing settings or the interface scale',
     'Something else',
@@ -48,6 +56,8 @@ export const SYSTEMS = [
     'Windows 10',
     'Mac with Apple silicon',
     'Mac with Intel',
+    'Linux, from the .deb, .rpm or Arch package',
+    'Linux, from the AppImage',
     'Built from source on another system',
 ] as const
 
@@ -83,7 +93,7 @@ export const REPORT_FORMS: readonly ReportForm[] = [
                 label: 'Which part of the app is it about?',
                 type: 'dropdown',
                 required: true,
-                options: ['Home page and saved documents', 'Editing', 'Export', 'Backup', 'Settings and shortcuts', 'Something else'],
+                options: [`Home and saved ${noun}s`, `Editing a ${noun}`, 'Templates and style', 'The Check tab and screening systems', 'Export', 'Backup', 'Settings and shortcuts', 'Something else'],
             },
             {
                 id: 'problem',

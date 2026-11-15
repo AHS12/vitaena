@@ -1,8 +1,9 @@
 # Vitaena
 
-A desktop CV and resume builder: Wails 3 (Go) for the window, files, tray, backups and
-updates; React and TypeScript for everything else; Typst (compiled to WebAssembly) lays out
-the pages for both the preview and the PDF. Built from wails-desktop-template.
+A desktop CV and resume builder for Windows, macOS and Linux: Wails 3 (Go) for the window,
+files, tray, backups and updates; React and TypeScript for everything else; Typst (compiled
+to WebAssembly) lays out the pages for both the preview and the PDF. Built from
+wails-desktop-template.
 Plans live in `specs/` (such as `specs/REWORK_PLAN.md` and `specs/LINUX_PLAN.md`). Git
 ignores that folder, so it exists only on the owner's machine; never link to it from
 published files.
@@ -55,6 +56,10 @@ Commit or push only when asked. Work on `dev`, and don't touch `main`.
   is given (`render-model.ts`), the Typst engine (`typst/engine.ts`), templates
   (`templates/*.typ`), export formats and tours. Every template must pass
   `templates/ats.test.ts`, which reads the PDF back the way an ATS does. `documentType` in `store/document-store.ts` picks the document type.
+- `build/` holds each system's build files; [build/README.md](build/README.md) says which
+  are written from `app.config.json`. Linux packages (deb, rpm, Arch, AppImage) come from
+  `build/linux`, and the **Linux Test Build** workflow installs and starts each one, since
+  nobody on the project runs Linux day to day.
 - The document store is the source of truth for the document in hand. Documents are
   immutable values: an unchanged document keeps the same object, so "unsaved" is an
   identity check.
@@ -72,6 +77,13 @@ Commit or push only when asked. Work on `dev`, and don't touch `main`.
 - **Long work:** use `afterPaint()` or `yieldIfBusy()` from `core/yield.ts`, so progress
   can draw before slow work blocks the page.
 - **Licensing:** add no downloaded assets or copied code.
+- **Systems:** Go files ending in `_windows.go`, `_darwin.go` or `_linux.go` build only on
+  that system, so code every system calls goes in a file without one. On Linux the window
+  keeps the system's title bar and there is no tray (GNOME shows none); `isLinux()` and
+  `hasTray()` in `platform/window.ts`, and `hasTray()` in `backend/tray.go`, decide it.
+- **Updates:** the app finds updates by the release file names in `backend/update.go`,
+  `update_mac.go` and `update_appimage.go`. Change them only with
+  `.github/workflows/release.yml`; a test compares the two.
 
 ## Style
 

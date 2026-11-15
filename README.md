@@ -71,7 +71,7 @@ Vitaena checks GitHub for a new version and, on Windows, macOS and the AppImage,
 it when you close the app. Your CVs are kept in your own folder and aren't touched by an
 update.
 
-## Building from source
+## Build from source
 
 Needs Go 1.26, Node 22, pnpm and the [Wails 3](https://v3.wails.io) CLI. On Linux, also the
 GTK 4 and WebKitGTK 6 development packages (`libgtk-4-dev libwebkitgtk-6.0-dev` on
