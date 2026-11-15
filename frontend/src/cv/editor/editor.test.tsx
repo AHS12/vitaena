@@ -235,7 +235,7 @@ describe('levels on a list', () => {
 
         const section = useDocumentStore.getState().content.sections.find((item) => item.id === 'languages')
 
-        expect(section?.kind === 'tags' && section.groups[0].levels).toEqual([3, 4])
+        expect(section?.kind === 'tags' && section.groups[0].levels).toEqual([3, 4.5])
         // The word the app filled in follows the level; one typed by hand would stay.
         expect(section?.kind === 'tags' && section.groups[0].items[0]).toBe('Bangla (Intermediate)')
 
