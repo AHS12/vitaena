@@ -26,7 +26,7 @@ export interface RenderTagItem {
     readonly name: string
     /** What was written in brackets after the name, such as "Native", or "". */
     readonly note: string
-    /** 1 to 5 when the note names a level, else 0. */
+    /** 0.5 to 5 when set or named by the note, else 0. */
     readonly level: number
 }
 
@@ -69,6 +69,8 @@ export interface RenderModel {
         /** How much room between blocks, around 1. */
         readonly spacing: number
         readonly atsMode: boolean
+        /** "template" for the template's own way, else "dots", "bar" or "squares". */
+        readonly levelStyle: string
     }
 }
 
@@ -195,6 +197,7 @@ export function renderModel(cv: Cv): RenderModel {
             margin: MARGINS[cv.design.margins],
             spacing: SPACING[cv.design.spacing],
             atsMode: cv.design.atsMode,
+            levelStyle: cv.design.levelStyle,
         },
     }
 }

@@ -228,3 +228,14 @@ describe('publications in the academic template', () => {
         expect(text).toMatch(/2\. ?Second paper\. ?Example Proceedings\. ?Sep 2021\./)
     })
 })
+
+describe.each(CV_TEMPLATES.map((template) => template.id))('levels in the %s template', (template) => {
+    it.each(['dots', 'bar', 'squares'] as const)('draw as %s, half steps too, and keep each word with its name', async (levelStyle) => {
+        const cv = sampleCv()
+        const sections = cv.sections.map((section) => (section.id === 'languages' && section.kind === 'tags' ? {...section, groups: section.groups.map((group) => ({...group, levels: [4.5, 2]}))} : section))
+        const text = (await textOf(await pdfOf(template, {...cv, sections, design: {...cv.design, levelStyle}}))).text.replace(/\s+/g, ' ')
+
+        expect(text).toMatch(/Bangla ?Native/)
+        expect(text).toMatch(/English ?Advanced/)
+    })
+})

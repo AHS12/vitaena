@@ -57,8 +57,8 @@ const tagGroupSchema = z.object({
     items: z.array(z.string()),
     /** Draw a level beside each item, as for languages. */
     showLevels: z.boolean(),
-    /** Each item's level, 0 to 5, in the items' order. 0 draws no level. */
-    levels: z.array(z.number().int().min(0).max(5)),
+    /** Each item's level, 0 to 5 in half steps, in the items' order. 0 draws no level. */
+    levels: z.array(z.number().min(0).max(5).multipleOf(0.5)),
 })
 
 const sectionBase = {
@@ -84,6 +84,8 @@ const designSchema = z.object({
     spacing: z.enum(['compact', 'normal', 'relaxed']),
     /** One column whatever the template, for screening systems that read columns badly. */
     atsMode: z.boolean(),
+    /** How levels on lists are drawn: the template's own way, or one picked here. */
+    levelStyle: z.enum(['template', 'dots', 'bar', 'squares']),
 })
 
 const cvSchema = z.object({
@@ -120,7 +122,7 @@ export const emptyEntry = (): CvEntry => ({
     hide: [],
 })
 
-export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', font: 'inter', fontSize: 10, paper: 'a4', margins: 'normal', spacing: 'normal', atsMode: false}
+export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', font: 'inter', fontSize: 10, paper: 'a4', margins: 'normal', spacing: 'normal', atsMode: false, levelStyle: 'template'}
 
 /** A new CV: the sections most people need, empty, under the headings ATS parsers look for. */
 export function emptyCv(): Cv {
@@ -139,7 +141,7 @@ export function emptyCv(): Cv {
 export const cvType: DocumentType<Cv> = {
     kind: 'cv',
     noun: 'CV',
-    version: 6,
+    version: 7,
     content: cvSchema,
     empty: emptyCv,
     migrations: {
@@ -187,6 +189,12 @@ export const cvType: DocumentType<Cv> = {
                         : section,
                 ),
             }
+        },
+        // Version 7 let the design pick how levels are drawn.
+        6: (content) => {
+            const cv = content as {design?: Record<string, unknown>}
+
+            return {...cv, design: {levelStyle: 'template', ...cv.design}}
         },
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.

@@ -155,6 +155,8 @@ export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
 export function StylePanel({cv, edit}: {cv: Cv; edit: Edit}) {
     const design = cv.design
     const set = setter(edit)
+    // Only worth asking about once some list shows levels.
+    const hasLevels = cv.sections.some((section) => section.kind === 'tags' && section.groups.some((group) => group.showLevels))
 
     useEffect(loadFaces, [])
 
@@ -222,6 +224,25 @@ export function StylePanel({cv, edit}: {cv: Cv; edit: Edit}) {
                 </div>
                 <p className="design-panel__tip">Narrow margins and compact spacing fit more on a page. Most readers prefer one or two pages.</p>
             </Group>
+            {hasLevels ? (
+                <Group title="Levels">
+                    <div className="design-row">
+                        <span className="design-row__label">Draw as</span>
+                        <Segmented
+                            label="Draw levels as"
+                            value={design.levelStyle}
+                            options={[
+                                {value: 'template', label: 'Template'},
+                                {value: 'dots', label: 'Dots'},
+                                {value: 'bar', label: 'Bar'},
+                                {value: 'squares', label: 'Squares'},
+                            ]}
+                            onChange={(levelStyle) => set('levelStyle', levelStyle, 'level style')}
+                        />
+                    </div>
+                    <p className="design-panel__tip">Template leaves it to each template: dots in most, a bar in Modern, Sidebar and Timeline, squares in Bold.</p>
+                </Group>
+            ) : null}
         </div>
     )
 }

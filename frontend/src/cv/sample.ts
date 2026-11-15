@@ -102,7 +102,7 @@ export function sampleCv(): Cv {
                 kind: 'tags',
                 title: 'Languages',
                 visible: true,
-                groups: [{id: 'g4', visible: true, showLevels: true, levels: [5, 4], label: '', items: ['Bangla (Native)', 'English (Advanced)']}],
+                groups: [{id: 'g4', visible: true, showLevels: true, levels: [5, 4.5], label: '', items: ['Bangla (Native)', 'English (Advanced)']}],
             },
         ],
         design: {...DEFAULT_DESIGN},

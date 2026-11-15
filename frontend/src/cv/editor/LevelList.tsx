@@ -15,25 +15,62 @@ export interface LevelListChange {
     readonly levels: number[]
 }
 
+const shown = (level: number) => (Number.isInteger(level) ? String(level) : level.toFixed(1))
+
+/**
+ * Five dots. A click on a dot's left half picks half a step, so 4.5 is the fifth dot's
+ * left half; clicking the level it already has clears it. Arrow keys move by half steps.
+ */
 function LevelPicker({name, value, onChange}: {name: string; value: number; onChange(level: number): void}) {
+    const step = (by: number) => onChange(Math.min(5, Math.max(0, value + by)))
+
     return (
-        <span className="level-picker" role="radiogroup" aria-label={`Level of ${name || 'this item'}`}>
+        <span
+            className="level-picker"
+            role="radiogroup"
+            aria-label={`Level of ${name || 'this item'}: ${value ? `${shown(value)} of 5` : 'none'}`}
+            onKeyDown={(event) => {
+                if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+                    event.preventDefault()
+                    step(0.5)
+                } else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+                    event.preventDefault()
+                    step(-0.5)
+                }
+            }}
+        >
             {[1, 2, 3, 4, 5].map((level) => (
                 <button
                     key={level}
                     type="button"
                     role="radio"
-                    aria-checked={value === level}
+                    aria-checked={Math.ceil(value) === level}
                     aria-label={`${level} of 5, ${LEVEL_NAMES[level]}`}
-                    title={`${level} of 5 · ${LEVEL_NAMES[level]}`}
+                    title={`${level} of 5 · ${LEVEL_NAMES[level]}. Click the left half for ${level - 0.5}.`}
                     className="level-picker__dot"
-                    data-on={level <= value || undefined}
-                    // Picking the level it has already clears it.
-                    onClick={() => onChange(value === level ? 0 : level)}
+                    data-fill={value >= level ? 'full' : value >= level - 0.5 ? 'half' : undefined}
+                    onClick={(event) => {
+                        const box = event.currentTarget.getBoundingClientRect()
+                        // A keyboard press has no position, and picks the whole dot.
+                        const half = event.detail > 0 && box.width > 0 && event.clientX < box.left + box.width / 2
+                        const picked = half ? level - 0.5 : level
+
+                        onChange(value === picked ? 0 : picked)
+                    }}
                 />
             ))}
         </span>
     )
+}
+
+/**
+ * The item with a new level. A word the app filled in, or none, follows the level, so
+ * there's always a word a screening system can read; a word typed by hand stays.
+ */
+function withLevel(item: string, level: number): string {
+    const {name, note} = splitItem(item)
+
+    return note === '' || LEVEL_NAMES.includes(note) ? joinItem(name, LEVEL_NAMES[Math.floor(level)] ?? '') : item
 }
 
 export function LevelList({
@@ -106,15 +143,6 @@ export function LevelList({
                                 placeholder="Name"
                                 onChange={(event) => onType(setRow(index, joinItem(event.target.value, note), level))}
                             />
-                            <LevelPicker name={name} value={level} onChange={(next) => onAct('level', setRow(index, item, next))} />
-                            <input
-                                className="form-field__input level-row__note"
-                                aria-label={`Word for ${name || 'the'} level`}
-                                value={note}
-                                placeholder={LEVEL_NAMES[level] || 'Fluent, B2…'}
-                                title="Printed beside the level. Screening systems read this word, not the dots."
-                                onChange={(event) => onType(setRow(index, joinItem(name, event.target.value), level))}
-                            />
                             <button
                                 type="button"
                                 className="icon-button"
@@ -127,6 +155,17 @@ export function LevelList({
                             >
                                 <Trash2 size={13} aria-hidden="true" />
                             </button>
+                            <div className="level-row__level">
+                                <LevelPicker name={name} value={level} onChange={(next) => onAct('level', setRow(index, withLevel(item, next), next))} />
+                                <input
+                                    className="form-field__input level-row__note"
+                                    aria-label={`Word for ${name || 'the'} level`}
+                                    value={note}
+                                    placeholder="Fluent, B2…"
+                                    title="Printed beside the level. Screening systems read this word, not the dots."
+                                    onChange={(event) => onType(setRow(index, joinItem(name, event.target.value), level))}
+                                />
+                            </div>
                         </div>
                     )
                 }}

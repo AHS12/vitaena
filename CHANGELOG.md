@@ -17,7 +17,7 @@ What's new in each version.
 - Pick months from a calendar, type skills as chips, and press Enter for the next bullet.
 - Make words bold or italic with Ctrl+B and Ctrl+I, and add links.
 - Keep a detail but leave it off the page with Show on the CV.
-- Show a level beside languages or skills, as dots or a bar: turn on Show levels in a group and click the dots.
+- Show a level beside languages or skills: turn on Show levels in a group and click the dots, in half steps if you like. Draw them as dots, a bar or squares from Style.
 
 **Make it look right**
 

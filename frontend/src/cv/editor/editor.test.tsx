@@ -229,13 +229,15 @@ describe('levels on a list', () => {
         render(<CvEditor />)
 
         const languages = screen.getByRole('region', {name: 'Languages'})
-        const bangla = within(languages).getByRole('radiogroup', {name: 'Level of Bangla'})
+        const bangla = within(languages).getByRole('radiogroup', {name: /^Level of Bangla/})
 
         fireEvent.click(within(bangla).getByRole('radio', {name: /^3 of 5/}))
 
         const section = useDocumentStore.getState().content.sections.find((item) => item.id === 'languages')
 
         expect(section?.kind === 'tags' && section.groups[0].levels).toEqual([3, 4])
+        // The word the app filled in follows the level; one typed by hand would stay.
+        expect(section?.kind === 'tags' && section.groups[0].items[0]).toBe('Bangla (Intermediate)')
 
         fireEvent.click(within(languages).getByRole('switch', {name: 'Show levels'}))
         const after = useDocumentStore.getState().content.sections.find((item) => item.id === 'languages')

@@ -29,12 +29,20 @@
   box(width: 100%, height: 0.4em, radius: 0.2em, fill: off, clip: true,
     box(width: level / 5 * 100%, height: 100%, radius: 0.2em, fill: on))
 } else {
+  // Each of the five is drawn empty, then filled across as far as the level reaches, so
+  // 4.5 fills four and half of the fifth.
+  let shape(fill) = if style == "squares" { square(size: 0.55em, fill: fill) } else { circle(radius: 0.275em, fill: fill) }
   for i in range(5) {
-    let fill = if i < level { on } else { off }
-    box(if style == "squares" { square(size: 0.55em, fill: fill) } else { circle(radius: 0.27em, fill: fill) })
+    let part = calc.clamp(level - i, 0, 1)
+    box(width: 0.55em, height: 0.55em, {
+      place(shape(off))
+      if part > 0 { place(box(width: part * 0.55em, height: 0.55em, clip: true, shape(on))) }
+    })
     h(0.17em)
   }
 }
+// The style picked in Design, or the template's own when it's left to the template.
+#let level-style(own) = if cv.design.levelStyle == "template" { own } else { cv.design.levelStyle }
 #let levelled(g, across: 3, style: "dots", on: black, off: luma(225), soft: luma(95)) = grid(
   columns: (1fr,) * across,
   column-gutter: 1.6em,
@@ -138,7 +146,7 @@
       if g.levels {
         block(above: gap(0.6), below: gap(0.6), {
           if g.label != "" { block(below: 0.6em, text(weight: "bold", g.label)) }
-          levelled(g, style: "squares", on: accent)
+          levelled(g, style: level-style("squares"), on: accent)
         })
       } else {
         block(above: gap(0.5), below: gap(0.5))[
