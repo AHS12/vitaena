@@ -5,6 +5,7 @@
  * the files an export would write can be tested without writing any.
  */
 
+import type {LucideIcon} from 'lucide-react'
 import {safeFileName} from '../../core/files'
 
 /** One kind of file a document can be exported as. */
@@ -16,6 +17,8 @@ export interface ExportFormat<T> {
     readonly extension: string
     /** What the file is, for a browser download. */
     readonly mimeType?: string
+    /** Drawn beside the format in the Export menu. */
+    readonly icon?: LucideIcon
     /** One line on what it's good for. */
     readonly help?: string
     /** The file's contents. Text is written as UTF-8. A format that has to lay pages out may take its time. */

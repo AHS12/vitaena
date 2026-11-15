@@ -40,7 +40,7 @@ describe('what a template is given', () => {
         const model = renderModel({...cv, sections})
 
         expect(model.sections.map((section) => section.title)).toEqual(['Summary', 'Experience', 'Education', 'Skills'])
-        expect(model.sections[1]).toMatchObject({kind: 'entries', entries: [{org: 'Bkash Labs'}]})
+        expect(model.sections[1]).toMatchObject({kind: 'entries', entries: [{org: 'Harbourline Payments'}]})
         expect(renderModel(emptyCv()).sections).toEqual([])
     })
 
@@ -86,7 +86,7 @@ describe('the plain text export', () => {
         const text = plainText(renderModel(sampleCv()))
 
         expect(text.startsWith('Nadia Rahman\nSenior Software Engineer\n')).toBe(true)
-        expect(text).toContain('Senior Software Engineer, Bkash Labs\nDhaka, Bangladesh | Mar 2022 – Present\n• Led the rewrite')
+        expect(text).toContain('Senior Software Engineer, Harbourline Payments\nDhaka, Bangladesh | Mar 2022 – Present\n• Led the rewrite')
         expect(text.indexOf('EXPERIENCE')).toBeLessThan(text.indexOf('EDUCATION'))
     })
 })

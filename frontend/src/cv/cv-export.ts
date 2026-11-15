@@ -1,7 +1,9 @@
 /** What a CV can be exported as. */
 
+import {FileCode2, FileText, FileType2, TextQuote} from 'lucide-react'
+import {serializeDocument} from '../core/document/document-file'
 import type {ExportFormat} from '../features/export/formats'
-import type {Cv} from './cv'
+import {cvType, type Cv} from './cv'
 import {renderModel, type RenderModel} from './render-model'
 import {plainOf} from './rich'
 
@@ -56,6 +58,7 @@ export const CV_FORMATS: readonly ExportFormat<Cv>[] = [
         label: 'PDF',
         extension: 'pdf',
         mimeType: 'application/pdf',
+        icon: FileText,
         help: 'What to send. It looks the same everywhere and reads well in applicant tracking systems.',
         make: async (cv) => {
             // Loaded here, so nothing that only lists formats pulls in the compiler.
@@ -68,6 +71,7 @@ export const CV_FORMATS: readonly ExportFormat<Cv>[] = [
         id: 'docx',
         label: 'Word',
         extension: 'docx',
+        icon: FileType2,
         mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         help: 'For job portals that ask for a Word file. Always one column, with real headings and bullets.',
         make: async (cv) => (await import('./docx-export')).cvDocx(renderModel(cv)),
@@ -77,7 +81,17 @@ export const CV_FORMATS: readonly ExportFormat<Cv>[] = [
         label: 'Plain text',
         extension: 'txt',
         mimeType: 'text/plain',
+        icon: TextQuote,
         help: 'Just the words, for pasting into application forms.',
         make: (cv) => plainText(renderModel(cv)),
+    },
+    {
+        id: 'vitaena',
+        label: 'Vitaena file',
+        extension: 'json',
+        mimeType: 'application/json',
+        icon: FileCode2,
+        help: 'A backup of this CV, to open again in Vitaena on any computer.',
+        make: (cv, name) => serializeDocument({name, content: cv, extras: {}}, cvType),
     },
 ]

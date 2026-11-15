@@ -137,8 +137,8 @@ describe.each(CASES)('the $template template (ATS mode $atsMode), as an ATS read
 
     it('puts each job\'s dates with that job, not in a column of their own', () => {
         // Inside that job's block: after the job before it, before the job after it.
-        const before = read.text.indexOf('Bkash Labs')
-        const after = read.text.indexOf('Kaz Software')
+        const before = read.text.indexOf('Harbourline Payments')
+        const after = read.text.indexOf('Brightleaf Software')
         const dates = read.text.indexOf('Jan 2019 – Feb 2022')
 
         expect(dates).toBeGreaterThan(before)

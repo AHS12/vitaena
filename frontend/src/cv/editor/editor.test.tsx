@@ -184,7 +184,7 @@ describe('the CV editor', () => {
     it('shows each entry folded, with its name and dates', () => {
         render(<CvEditor />)
 
-        expect(screen.getByRole('button', {name: /Senior Software Engineer, Bkash Labs.*Mar 2022 – Present/})).toHaveAttribute('aria-expanded', 'false')
+        expect(screen.getByRole('button', {name: /Senior Software Engineer, Harbourline Payments.*Mar 2022 – Present/})).toHaveAttribute('aria-expanded', 'false')
     })
 })
 
@@ -208,7 +208,7 @@ describe('formatting and showing parts', () => {
     it('leaves an entry\'s dates off the page, keeping them, as one step to undo', () => {
         render(<CvEditor />)
 
-        fireEvent.click(screen.getByRole('button', {name: /^Senior Software Engineer, Bkash Labs/, expanded: false}))
+        fireEvent.click(screen.getByRole('button', {name: /^Senior Software Engineer, Harbourline Payments/, expanded: false}))
         fireEvent.click(screen.getByRole('button', {name: 'Dates', pressed: true}))
 
         const entry = () => {

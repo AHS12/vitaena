@@ -3,7 +3,7 @@
  * change is one step to undo, and the pages follow at once.
  */
 
-import {useEffect} from 'react'
+import {useEffect, useMemo} from 'react'
 import {ColourRow} from '../../components/ColourRow'
 import {Switch} from '../../components/controls'
 import {Segmented} from '../../components/Segmented'
@@ -12,6 +12,8 @@ import {CV_FONTS} from '../fonts'
 import {CV_TEMPLATES} from '../templates/templates'
 import {fontUrl} from '../typst/font-urls'
 import type {useCvEdit} from '../use-cv-edit'
+import {renderModel} from '../render-model'
+import {sampleCv} from '../sample'
 import {useTemplatePreviews} from './use-template-previews'
 
 type Edit = ReturnType<typeof useCvEdit>
@@ -64,12 +66,20 @@ const setter =
 export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
     const design = cv.design
     const set = setter(edit)
-    const previews = useTemplatePreviews(cv)
+    // An empty CV looks the same in every template, so the example stands in, in this CV's style.
+    const blank = useMemo(() => {
+        const model = renderModel(cv)
+
+        return !model.name && model.sections.length === 0
+    }, [cv])
+    const shown = useMemo(() => (blank ? {...sampleCv(), design: cv.design} : cv), [blank, cv])
+    const previews = useTemplatePreviews(shown)
     const twoColumns = CV_TEMPLATES.find((template) => template.id === design.template)?.twoColumns === true
 
     return (
         <div className="design-panel">
             <Group title="Template">
+                {blank ? <p className="design-panel__tip">Shown with the example CV until yours has something in it.</p> : null}
                 <div className="template-choices" role="radiogroup" aria-label="Template">
                     {CV_TEMPLATES.map((template) => (
                         <button

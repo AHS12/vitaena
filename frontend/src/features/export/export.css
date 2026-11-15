@@ -88,3 +88,65 @@
 .export__failed {
     color: var(--danger);
 }
+
+/* The Export button in the title bar, and its menu of formats. */
+
+.button.export-button {
+    gap: 6px;
+    padding-right: 8px;
+}
+
+.export-button__chevron {
+    margin-left: 2px;
+    opacity: 0.85;
+    transition: transform var(--motion-fast);
+}
+
+.export-button[data-open='true'] .export-button__chevron {
+    transform: rotate(180deg);
+}
+
+.menu-popover.export-menu {
+    width: 340px;
+}
+
+.export-menu .menu-item.export-menu__item {
+    height: auto;
+    padding: 8px 10px;
+}
+
+.export-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+}
+
+.export-choice__icon {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-md);
+    background: var(--accent-moss-soft);
+    color: var(--accent-moss-text);
+}
+
+.export-choice__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.export-choice__title {
+    font: var(--text-title);
+    color: var(--text-primary);
+}
+
+.export-choice__help {
+    font: var(--text-caption);
+    color: var(--text-secondary);
+    white-space: normal;
+}
