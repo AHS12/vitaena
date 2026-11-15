@@ -179,6 +179,15 @@
     } else {
       for e in s.entries { entry(e) }
     }
+  } else if s.kind == "details" {
+    for r in s.rows {
+      block(above: gap(0.45), below: gap(0.45), grid(
+        columns: (margin-col, 1fr),
+        column-gutter: 0.9em,
+        text(size: 0.9em, fill: muted, r.label),
+        r.value,
+      ))
+    }
   } else if s.kind == "tags" {
     for g in s.groups {
       block(above: gap(0.45), below: gap(0.45), grid(

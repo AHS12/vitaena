@@ -45,6 +45,8 @@ export function plainText(model: RenderModel): string {
 
                 lines.push(...entry.bullets.map((bullet) => `• ${plainOf(bullet)}`))
             }
+        } else if (section.kind === 'details') {
+            lines.push(...section.rows.map((row) => (row.label ? `${row.label}: ${row.value}` : row.value)))
         } else {
             lines.push(...section.groups.map((group) => (group.label ? `${group.label}: ${group.items}` : group.items)))
         }

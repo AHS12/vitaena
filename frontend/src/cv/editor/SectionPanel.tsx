@@ -1,9 +1,10 @@
 /**
  * One section of the CV in the editor: a card that folds, with its heading, a switch to
- * leave it off the page, and what it holds: text, entries or groups of skills.
+ * leave it off the page, and what it holds: text, entries, groups of skills or rows of
+ * details.
  */
 
-import {ChevronRight, Eye, EyeOff, Plus, Trash2} from 'lucide-react'
+import {ChevronRight, Plus, Trash2} from 'lucide-react'
 import {BulletList} from '../../components/BulletList'
 import {FORMATTING_HINT} from '../../components/format-keys'
 import {MonthField, TextArea, TextField} from '../../components/fields'
@@ -19,6 +20,8 @@ import type {useCvEdit} from '../use-cv-edit'
 import {emptyGroup, entryWords, removeSection, toggled, updateEntries, updateEntry, updateGroup, updateGroups, updateSection} from './edit-ops'
 import {useEditorStore} from './editor-store'
 import {ShowParts} from './ShowParts'
+import {DetailRows} from './DetailRows'
+import {VisibilityButton} from './VisibilityButton'
 
 type Edit = ReturnType<typeof useCvEdit>
 
@@ -27,14 +30,6 @@ const ENTRY_PARTS = [
     {id: 'dates', label: 'Dates'},
     {id: 'summary', label: 'Summary'},
 ] as const
-
-function VisibilityButton({visible, what, onToggle}: {visible: boolean; what: string; onToggle(): void}) {
-    return (
-        <button type="button" className="icon-button" aria-pressed={!visible} aria-label={visible ? `Hide ${what} from the CV` : `Show ${what} on the CV`} title={visible ? 'Shown on the CV. Click to hide.' : 'Hidden from the CV. Click to show.'} onClick={onToggle}>
-            {visible ? <Eye size={14} aria-hidden="true" /> : <EyeOff size={14} aria-hidden="true" />}
-        </button>
-    )
-}
 
 function EntryCard({sectionId, sectionTitle, entry, handle, edit}: {sectionId: string; sectionTitle: string; entry: CvEntry; handle: HandleProps; edit: Edit}) {
     const open = useEditorStore((state) => state.openEntries.has(entry.id))
@@ -131,7 +126,7 @@ export function SectionPanel({section, handle, edit}: {section: CvSection; handl
     const closed = useEditorStore((state) => state.closedSections.has(section.id))
     const toggle = useEditorStore((state) => state.toggleSection)
     const openEntry = useEditorStore((state) => state.openEntry)
-    const count = section.kind === 'entries' ? section.entries.length : section.kind === 'tags' ? section.groups.length : 0
+    const count = section.kind === 'entries' ? section.entries.length : section.kind === 'tags' ? section.groups.length : section.kind === 'details' ? section.rows.length : 0
 
     return (
         <section className="panel" data-open={!closed || undefined} data-hidden={!section.visible || undefined} aria-label={section.title || 'Untitled section'}>
@@ -192,6 +187,8 @@ export function SectionPanel({section, handle, edit}: {section: CvSection; handl
                                 Add {entryWords(section.title).title.toLowerCase()}
                             </button>
                         </>
+                    ) : section.kind === 'details' ? (
+                        <DetailRows sectionId={section.id} rows={section.rows} edit={edit} />
                     ) : (
                         <>
                             <SortableList

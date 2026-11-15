@@ -928,3 +928,73 @@ input.panel__title:focus {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px;
 }
+
+/* Details: rows of a label and its value */
+
+.detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-row {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 0.8fr) minmax(0, 1.2fr) auto;
+    align-items: center;
+    gap: 4px 6px;
+    padding: 6px 4px 6px 0;
+    border-radius: var(--radius-sm);
+    background: var(--surface-sunken);
+}
+
+.detail-row[data-hidden] {
+    opacity: 0.55;
+}
+
+.detail-row .form-field__input {
+    min-width: 0;
+    width: 100%;
+}
+
+.detail-row__label {
+    font-weight: 600;
+}
+
+.detail-row__value {
+    min-width: 0;
+}
+
+.detail-row__height {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.detail-row__unit {
+    flex: none;
+    font: var(--text-caption);
+    color: var(--text-tertiary);
+}
+
+.detail-row__actions {
+    display: flex;
+}
+
+.detail-row__show {
+    grid-column: 2 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.detail-row__preview {
+    font: var(--text-caption);
+    color: var(--text-secondary);
+}
+
+.detail-list__add {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}

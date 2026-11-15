@@ -123,6 +123,13 @@
     for p in s.paragraphs { par(rich(p)) }
   } else if s.kind == "entries" {
     for e in s.entries { entry(e) }
+  } else if s.kind == "details" {
+    for r in s.rows {
+      block(above: gap(0.3), below: gap(0.3))[
+        #if r.label != "" [#text(fill: muted)[#r.label:] ]
+        #r.value
+      ]
+    }
   } else if s.kind == "tags" {
     for g in s.groups {
       if g.levels {

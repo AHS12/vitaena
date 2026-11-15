@@ -131,6 +131,13 @@
     for p in s.paragraphs { par(rich(p)) }
   } else if s.kind == "entries" {
     for e in s.entries { entry(e, side) }
+  } else if s.kind == "details" {
+    for r in s.rows {
+      block(above: gap(0.55), below: gap(0.55))[
+        #if r.label != "" { text(weight: "bold", r.label); if side { linebreak() } else [: ] }
+        #r.value
+      ]
+    }
   } else if s.kind == "tags" {
     for g in s.groups {
       if g.levels {

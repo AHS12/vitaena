@@ -61,6 +61,26 @@ const tagGroupSchema = z.object({
     levels: z.array(z.number().min(0).max(5).multipleOf(0.5)),
 })
 
+/** A day as "1996-03-12", or "" when not given. */
+const day = z.union([z.literal(''), z.string().regex(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/)])
+
+const rowBase = {
+    id: z.string().min(1),
+    visible: z.boolean(),
+    label: z.string(),
+}
+
+/**
+ * One line of a details section, such as "Nationality: British". Most hold words; a date
+ * or a height holds a value the app understands, so it can show an age or both units.
+ */
+const detailRowSchema = z.discriminatedUnion('kind', [
+    z.object({...rowBase, kind: z.literal('text'), value: z.string()}),
+    z.object({...rowBase, kind: z.literal('date'), date: day, show: z.enum(['date', 'age', 'both'])}),
+    /** In centimetres, 0 when not given. */
+    z.object({...rowBase, kind: z.literal('height'), cm: z.number().min(0).max(300), show: z.enum(['ft-in', 'cm', 'both'])}),
+])
+
 const sectionBase = {
     id: z.string().min(1),
     title: z.string(),
@@ -71,6 +91,7 @@ const sectionSchema = z.discriminatedUnion('kind', [
     z.object({...sectionBase, kind: z.literal('text'), text: z.string()}),
     z.object({...sectionBase, kind: z.literal('entries'), entries: z.array(entrySchema)}),
     z.object({...sectionBase, kind: z.literal('tags'), groups: z.array(tagGroupSchema)}),
+    z.object({...sectionBase, kind: z.literal('details'), rows: z.array(detailRowSchema)}),
 ])
 
 const designSchema = z.object({
@@ -99,6 +120,7 @@ export type CvPerson = Cv['person']
 export type CvSection = Cv['sections'][number]
 export type CvEntry = z.infer<typeof entrySchema>
 export type CvTagGroup = z.infer<typeof tagGroupSchema>
+export type CvDetailRow = z.infer<typeof detailRowSchema>
 export type CvDesign = Cv['design']
 export type EntryPart = CvEntry['hide'][number]
 export type PersonPart = CvPerson['hide'][number]
@@ -141,7 +163,7 @@ export function emptyCv(): Cv {
 export const cvType: DocumentType<Cv> = {
     kind: 'cv',
     noun: 'CV',
-    version: 7,
+    version: 8,
     content: cvSchema,
     empty: emptyCv,
     migrations: {
@@ -196,6 +218,8 @@ export const cvType: DocumentType<Cv> = {
 
             return {...cv, design: {levelStyle: 'template', ...cv.design}}
         },
+        // Version 8 added details sections. Older files have none, so nothing changes.
+        7: (content) => content,
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.
     thumbnail: async (cv) => (await import('./thumbnail')).cvThumbnail(cv),

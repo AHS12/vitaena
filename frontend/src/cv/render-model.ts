@@ -11,6 +11,7 @@ import type {Cv, CvEntry} from './cv'
 import {fontById} from './fonts'
 import {parseRich, type Span} from './rich'
 import {levelOfWords, splitItem} from './levels'
+import {detailValue} from './details'
 
 export interface RenderEntry {
     readonly title: string
@@ -39,6 +40,13 @@ export interface RenderTagGroup {
     readonly list: readonly RenderTagItem[]
 }
 
+/** One line of a details section, its value already written out: "12 March 1996 (30 years)". */
+export interface RenderDetail {
+    /** "" when the row has no label, and only its value is shown. */
+    readonly label: string
+    readonly value: string
+}
+
 /** Where a section sits in a two-column template; one-column templates ignore it. */
 export type Column = 'main' | 'side'
 
@@ -46,6 +54,7 @@ export type RenderSection = {readonly column: Column} & (
     | {readonly kind: 'text'; readonly title: string; readonly paragraphs: readonly (readonly Span[])[]}
     | {readonly kind: 'entries'; readonly title: string; readonly entries: readonly RenderEntry[]}
     | {readonly kind: 'tags'; readonly title: string; readonly groups: readonly RenderTagGroup[]}
+    | {readonly kind: 'details'; readonly title: string; readonly rows: readonly RenderDetail[]}
 )
 
 export type ContactKind = 'email' | 'phone' | 'location' | 'linkedin' | 'github' | 'web'
@@ -117,9 +126,10 @@ export function tagItem(text: string, level?: number): RenderTagItem {
 /** Sections that belong beside the main story in a two-column template. */
 const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training/i
 
-const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education/i.test(title)) ? 'side' : 'main')
+const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education/i.test(title)) ? 'side' : 'main')
 
-export function renderModel(cv: Cv): RenderModel {
+/** `today` is the day ages are worked out on. */
+export function renderModel(cv: Cv, today: Date = new Date()): RenderModel {
     const {person} = cv
     const contact = [
         person.phone.trim() && !person.hide.includes('phone') ? {text: person.phone.trim(), url: `tel:${person.phone.replace(/[^\d+]/g, '')}`, kind: 'phone' as const} : null,
@@ -163,6 +173,12 @@ export function renderModel(cv: Cv): RenderModel {
 
             if (entries.length > 0) {
                 sections.push({kind: 'entries', title, column, entries})
+            }
+        } else if (section.kind === 'details') {
+            const rows = section.rows.filter((row) => row.visible).map((row) => ({label: row.label.trim(), value: detailValue(row, today)})).filter((row) => row.value)
+
+            if (rows.length > 0) {
+                sections.push({kind: 'details', title, column, rows})
             }
         } else {
             const groups = section.groups

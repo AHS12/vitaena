@@ -115,6 +115,8 @@ function AddSection({cv, edit}: {cv: Cv; edit: Edit}) {
                             add('Custom section', 'text')
                         } else if (id === 'custom-list') {
                             add('Custom section', 'entries')
+                        } else if (id === 'custom-details') {
+                            add('Custom section', 'details')
                         } else {
                             const choice = SECTION_CHOICES.find((item) => item.title === id)
 
@@ -137,6 +139,9 @@ function AddSection({cv, edit}: {cv: Cv; edit: Edit}) {
                         </Dropdown.Item>,
                         <Dropdown.Item key="custom-list" id="custom-list" textValue="Custom list" className="menu-item">
                             <span className="menu-item__label">Custom: a list of entries</span>
+                        </Dropdown.Item>,
+                        <Dropdown.Item key="custom-details" id="custom-details" textValue="Custom details" className="menu-item">
+                            <span className="menu-item__label">Custom: labels and values</span>
                         </Dropdown.Item>,
                     ]}
                 </Dropdown.Menu>

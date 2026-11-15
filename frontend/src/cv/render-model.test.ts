@@ -103,3 +103,29 @@ describe('the plain text export', () => {
         expect(text.indexOf('EXPERIENCE')).toBeLessThan(text.indexOf('EDUCATION'))
     })
 })
+
+describe('a details section, as a template is given it', () => {
+    it('writes each row out, drops hidden and empty rows, and sits in the side column', () => {
+        const rows = [
+            {id: 'a', visible: true, label: ' Nationality ', kind: 'text' as const, value: 'British'},
+            {id: 'b', visible: true, label: 'Date of birth', kind: 'date' as const, date: '1996-03-12', show: 'both' as const},
+            {id: 'c', visible: false, label: 'Height', kind: 'height' as const, cm: 168, show: 'both' as const},
+            {id: 'd', visible: true, label: 'Blood group', kind: 'text' as const, value: ' '},
+        ]
+        const cv = emptyCv()
+        const model = renderModel({...cv, sections: [{id: 'p', kind: 'details', title: 'Personal details', visible: true, rows}]}, new Date(2026, 5, 1))
+
+        expect(model.sections).toEqual([
+            {
+                kind: 'details',
+                title: 'Personal details',
+                column: 'side',
+                rows: [
+                    {label: 'Nationality', value: 'British'},
+                    {label: 'Date of birth', value: '12 March 1996 (30 years)'},
+                ],
+            },
+        ])
+        expect(plainText(model)).toContain('Nationality: British\nDate of birth: 12 March 1996 (30 years)')
+    })
+})

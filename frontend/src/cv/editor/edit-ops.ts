@@ -1,7 +1,8 @@
 /** Changes to a CV, as pure functions: each takes a CV and gives back a new one. */
 
 import {moveItem} from '../../core/list'
-import {emptyEntry, newId, type Cv, type CvEntry, type CvPerson, type CvSection, type CvTagGroup} from '../cv'
+import {emptyEntry, newId, type Cv, type CvDetailRow, type CvEntry, type CvPerson, type CvSection, type CvTagGroup} from '../cv'
+import {emptyDetailRow} from '../details'
 
 export const updatePerson = (cv: Cv, change: Partial<CvPerson>): Cv => ({...cv, person: {...cv.person, ...change}})
 
@@ -22,6 +23,13 @@ export const updateGroups = (cv: Cv, sectionId: string, update: (groups: CvTagGr
 export const updateGroup = (cv: Cv, sectionId: string, groupId: string, change: Partial<CvTagGroup>): Cv =>
     updateGroups(cv, sectionId, (groups) => groups.map((group) => (group.id === groupId ? {...group, ...change} : group)))
 
+export const updateRows = (cv: Cv, sectionId: string, update: (rows: CvDetailRow[]) => CvDetailRow[]): Cv =>
+    updateSection(cv, sectionId, (section) => (section.kind === 'details' ? {...section, rows: update(section.rows)} : section))
+
+/** Changes one row. The change names fields of the row's own kind; a date row has no `cm`. */
+export const updateRow = (cv: Cv, sectionId: string, rowId: string, change: Partial<CvDetailRow>): Cv =>
+    updateRows(cv, sectionId, (rows) => rows.map((row) => (row.id === rowId ? ({...row, ...change} as CvDetailRow) : row)))
+
 export const moveSection = (cv: Cv, from: number, to: number): Cv => ({...cv, sections: moveItem(cv.sections, from, to)})
 
 export const removeSection = (cv: Cv, id: string): Cv => ({...cv, sections: cv.sections.filter((section) => section.id !== id)})
@@ -41,6 +49,7 @@ export const SECTION_CHOICES: readonly {readonly title: string; readonly kind: C
     {title: 'Awards', kind: 'entries'},
     {title: 'Publications', kind: 'entries'},
     {title: 'Interests', kind: 'tags'},
+    {title: 'Personal details', kind: 'details'},
 ]
 
 export function newSection(title: string, kind: CvSection['kind']): CvSection {
@@ -52,6 +61,10 @@ export function newSection(title: string, kind: CvSection['kind']): CvSection {
 
     if (kind === 'entries') {
         return {...base, kind, entries: [emptyEntry()]}
+    }
+
+    if (kind === 'details') {
+        return {...base, kind, rows: [emptyDetailRow()]}
     }
 
     return {...base, kind, groups: [emptyGroup()]}

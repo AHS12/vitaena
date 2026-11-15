@@ -72,6 +72,8 @@ export async function cvDocx(model: RenderModel): Promise<Uint8Array> {
             body.push(...section.paragraphs.map((paragraph) => new Paragraph({children: runs(paragraph)})))
         } else if (section.kind === 'entries') {
             body.push(...section.entries.flatMap(entry))
+        } else if (section.kind === 'details') {
+            body.push(...section.rows.map((row) => new Paragraph({children: [...(row.label ? [new TextRun({text: `${row.label}: `, bold: true})] : []), new TextRun(row.value)]})))
         } else {
             body.push(...section.groups.map((group) => new Paragraph({children: [...(group.label ? [new TextRun({text: `${group.label}: `, bold: true})] : []), new TextRun(group.items)]})))
         }

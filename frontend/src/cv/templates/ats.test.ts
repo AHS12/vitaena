@@ -239,3 +239,19 @@ describe.each(CV_TEMPLATES.map((template) => template.id))('levels in the %s tem
         expect(text).toMatch(/English ?Advanced/)
     })
 })
+
+describe.each(CASES)('details in the $template template (ATS mode $atsMode)', ({template, atsMode}) => {
+    it('keeps each label with its value, in order', async () => {
+        const cv = sampleCv()
+        const rows = [
+            {id: 'a', visible: true, label: 'Nationality', kind: 'text' as const, value: 'British'},
+            {id: 'b', visible: true, label: 'Date of birth', kind: 'date' as const, date: '1996-03-12', show: 'date' as const},
+            {id: 'c', visible: true, label: 'Height', kind: 'height' as const, cm: 168, show: 'both' as const},
+        ]
+        const sections = [...cv.sections, {id: 'details', kind: 'details' as const, title: 'Personal details', visible: true, rows}]
+        const text = (await textOf(await pdfOf(template, {...cv, sections, design: {...cv.design, atsMode}}))).text.replace(/\s+/g, ' ')
+
+        expect(text).toContain('PERSONAL DETAILS')
+        expect(text).toMatch(/Nationality:? ?British.*Date of birth:? ?12 March 1996.*Height:? ?5′ 6″ \(168 cm\)/)
+    })
+})

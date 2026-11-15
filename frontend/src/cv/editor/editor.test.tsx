@@ -246,3 +246,51 @@ describe('levels on a list', () => {
         expect(within(languages).queryByRole('radiogroup')).toBeNull()
     })
 })
+
+describe('a details section', () => {
+    beforeEach(() => {
+        useDocumentStore.getState().startNew()
+        useDocumentStore.getState().previewEdit({...sampleCv(), sections: [newSection('Personal details', 'details')]})
+    })
+
+    const rows = () => {
+        const section = useDocumentStore.getState().content.sections[0]
+
+        return section.kind === 'details' ? section.rows : []
+    }
+
+    it('takes a label and a value, and adds a date and a height that pick how they show', () => {
+        render(<CvEditor />)
+
+        const details = screen.getByRole('region', {name: 'Personal details'})
+
+        fireEvent.change(within(details).getByRole('textbox', {name: 'Label'}), {target: {value: 'Nationality'}})
+        fireEvent.change(within(details).getByRole('textbox', {name: 'Nationality value'}), {target: {value: 'British'}})
+        fireEvent.click(within(details).getByRole('button', {name: 'Add a height'}))
+        fireEvent.change(within(details).getByRole('spinbutton', {name: 'Height, feet'}), {target: {value: '5'}})
+        fireEvent.change(within(details).getByRole('spinbutton', {name: 'Height, inches'}), {target: {value: '6'}})
+        fireEvent.click(within(details).getByRole('radio', {name: 'cm'}))
+
+        expect(rows()).toMatchObject([
+            {label: 'Nationality', kind: 'text', value: 'British'},
+            {label: 'Height', kind: 'height', cm: 168, show: 'cm'},
+        ])
+        expect(within(details).getByRole('spinbutton', {name: 'Height in centimetres'})).toHaveValue(168)
+    })
+
+    it('hides a row and removes one, each as a step to undo', () => {
+        render(<CvEditor />)
+
+        const details = screen.getByRole('region', {name: 'Personal details'})
+
+        fireEvent.click(within(details).getByRole('button', {name: 'Add a date'}))
+        fireEvent.click(within(details).getAllByRole('button', {name: 'Hide this row from the CV'})[0])
+        expect(rows().map((row) => row.visible)).toEqual([false, true])
+
+        fireEvent.click(within(details).getByRole('button', {name: 'Remove Date of birth'}))
+        expect(rows().map((row) => row.kind)).toEqual(['text'])
+
+        useDocumentStore.getState().undo()
+        expect(rows().map((row) => row.kind)).toEqual(['text', 'date'])
+    })
+})
