@@ -26,7 +26,10 @@ storage of your own. Vitaena runs on Windows, macOS and Linux.
 - **Export** a PDF, a one-column PDF for online forms, a Word file, plain text, or a
   Vitaena file to move a CV to another computer.
 
-![Home: recent documents, then templates to start from in two tabs, CVs and resumes, and Biodata](docs/assets/screens/home.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screens/home-dark.png">
+  <img alt="Home: recent documents, Open a file, Import a CV and New CV, then templates to start from in two tabs, CVs and resumes, and Biodata" src="docs/assets/screens/home-light.png">
+</picture>
 
 ## Biodata
 
