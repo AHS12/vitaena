@@ -13,13 +13,15 @@ import classic from '../templates/classic.typ?raw'
 import compact from '../templates/compact.typ?raw'
 import minimal from '../templates/minimal.typ?raw'
 import modern from '../templates/modern.typ?raw'
+import professional from '../templates/professional.typ?raw'
 import {CV_FONTS} from '../fonts'
 import {fontUrl} from './font-urls'
+import {withPhotoFile} from './photo'
 import type {RenderModel} from '../render-model'
 
 const FONTS = CV_FONTS.flatMap((font) => font.files.map(fontUrl))
 
-const TEMPLATES: Readonly<Record<string, string>> = {classic, modern, minimal, compact}
+const TEMPLATES: Readonly<Record<string, string>> = {classic, modern, minimal, compact, professional}
 
 const MAIN = '/main.typ'
 const DATA = '/cv.json'
@@ -83,8 +85,14 @@ export function warmUp(): Promise<Engine> {
 async function compile(model: RenderModel, template: string, format: 0 | 1): Promise<Uint8Array> {
     const {compiler} = await warmUp()
 
+    const {model: readable, file} = withPhotoFile(model)
+
     compiler.addSource(MAIN, TEMPLATES[template] ?? TEMPLATES.classic)
-    compiler.mapShadow(DATA, new TextEncoder().encode(JSON.stringify(model)))
+    compiler.mapShadow(DATA, new TextEncoder().encode(JSON.stringify(readable)))
+
+    if (file) {
+        compiler.mapShadow(file.path, file.bytes)
+    }
 
     const result = await compiler.compile({mainFilePath: MAIN, format, diagnostics: 'full'})
     const errors = (result.diagnostics ?? []).filter((item) => item.severity === 'error')

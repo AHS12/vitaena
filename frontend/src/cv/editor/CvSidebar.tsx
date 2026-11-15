@@ -3,6 +3,7 @@
 import {Dropdown} from '@heroui/react'
 import {ChevronRight, Plus, Trash2} from 'lucide-react'
 import {TextField} from '../../components/fields'
+import {PhotoField} from '../../components/PhotoField'
 import {SortableList} from '../../components/Sortable'
 import {newId, type Cv, type CvPerson} from '../cv'
 import type {useCvEdit} from '../use-cv-edit'
@@ -21,6 +22,7 @@ const PERSON_PARTS = [
     {id: 'email', label: 'Email'},
     {id: 'phone', label: 'Phone'},
     {id: 'location', label: 'Location'},
+    {id: 'photo', label: 'Photo'},
 ] as const
 
 const TAB_LABELS = {content: 'Content', check: 'Check'} as const
@@ -47,6 +49,7 @@ function PersonPanel({person, edit}: {person: CvPerson; edit: Edit}) {
                         <TextField label="Phone" type="tel" value={person.phone} placeholder="+880 1700 000000" autoComplete="tel" onChange={set('phone')} />
                     </div>
                     <TextField label="Location" value={person.location} placeholder="City, Country" onChange={set('location')} />
+                    <PhotoField label="Photo" value={person.photo} onChange={(photo) => edit.act(photo ? 'photo' : 'remove photo', (cv) => updatePerson(cv, {photo}))} />
                     <ShowParts
                         parts={PERSON_PARTS}
                         hidden={person.hide}

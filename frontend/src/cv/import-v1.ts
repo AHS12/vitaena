@@ -9,6 +9,9 @@ import {DEFAULT_DESIGN, newId, type Cv, type CvEntry, type CvSection} from './cv
 
 type Raw = Record<string, unknown>
 
+/** v1 kept the photo as a data URL; only a JPEG or PNG one comes across. */
+const v1Photo = (value: unknown): string => (typeof value === 'string' && /^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(value) ? value : '')
+
 const isObject = (value: unknown): value is Raw => typeof value === 'object' && value !== null && !Array.isArray(value)
 const text = (value: unknown): string => (typeof value === 'string' ? value : typeof value === 'number' ? String(value) : '')
 const list = (value: unknown): Raw[] => (Array.isArray(value) ? value.filter(isObject) : [])
@@ -62,6 +65,7 @@ export function cvFromV1(raw: unknown): {name: string; content: Cv} | null {
     if (info.showEmail === false) hidePerson.push('email')
     if (info.showPhone === false) hidePerson.push('phone')
     if (info.showLocation === false) hidePerson.push('location')
+    if (info.showPhoto === false) hidePerson.push('photo')
 
     const links = [
         info.showLinkedIn !== false ? text(info.linkedIn) : '',
@@ -159,7 +163,7 @@ export function cvFromV1(raw: unknown): {name: string; content: Cv} | null {
     return {
         name: name ? `${name} (from Vitaena 1)` : 'CV from Vitaena 1',
         content: {
-            person: {name: text(info.name), headline: text(info.title), email: text(info.email), phone: text(info.phone), location: text(info.location), links, hide: hidePerson},
+            person: {name: text(info.name), headline: text(info.title), email: text(info.email), phone: text(info.phone), location: text(info.location), links, photo: v1Photo(info.photo), hide: hidePerson},
             sections: sections.filter((section) => section !== null),
             design: {...DEFAULT_DESIGN},
         },

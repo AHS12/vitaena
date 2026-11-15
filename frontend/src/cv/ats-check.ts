@@ -29,7 +29,7 @@ const KNOWN_HEADINGS = [
     'academic positions', 'supervision', 'memberships', 'affiliations',
 ]
 
-const TWO_COLUMN_TEMPLATES = new Set(['modern'])
+const TWO_COLUMN_TEMPLATES = new Set(['modern', 'professional'])
 
 const isKnown = (title: string): boolean => KNOWN_HEADINGS.includes(title.trim().toLowerCase())
 
@@ -91,6 +91,10 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
         )
     } else {
         results.push({id: 'columns', level: 'good', title: 'One column, read top to bottom'})
+    }
+
+    if (person.photo && !person.hide.includes('photo')) {
+        results.push({id: 'photo', level: 'tip', title: 'Your CV has a photo', detail: 'Expected in much of Europe and Asia, but often left out for jobs in the US and UK. Show on the CV turns it off without removing it.'})
     }
 
     const entries = shown.flatMap((section) => (section.kind === 'entries' ? section.entries.filter((entry) => entry.visible).map((entry) => ({section: section.title, entry})) : []))

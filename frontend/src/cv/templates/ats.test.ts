@@ -18,6 +18,7 @@ import type {Cv} from '../cv'
 import {CV_FONTS} from '../fonts'
 import {CV_TEMPLATES} from './templates'
 import {renderModel} from '../render-model'
+import {withPhotoFile} from '../typst/photo'
 import {sampleCv} from '../sample'
 
 const require = createRequire(import.meta.url)
@@ -55,7 +56,13 @@ function longCv(): Cv {
 
 async function pdfOf(template: string, cv: Cv = longCv()): Promise<Uint8Array> {
     compiler.addSource('/main.typ', readFileSync(fileURLToPath(new URL(`./${template}.typ`, import.meta.url)), 'utf8'))
-    compiler.mapShadow('/cv.json', new TextEncoder().encode(JSON.stringify(renderModel(cv))))
+    const {model, file} = withPhotoFile(renderModel(cv))
+
+    compiler.mapShadow('/cv.json', new TextEncoder().encode(JSON.stringify(model)))
+
+    if (file) {
+        compiler.mapShadow(file.path, file.bytes)
+    }
 
     const result = await compiler.compile({mainFilePath: '/main.typ', format: 1, diagnostics: 'full'})
 
@@ -79,7 +86,8 @@ async function textOf(pdf: Uint8Array): Promise<{pages: number; text: string; in
     return {pages: document.numPages, text: lines.join('\n'), info: info as Record<string, unknown>}
 }
 
-const CASES = [...TEMPLATES.map((template) => ({template, atsMode: false})), {template: 'modern', atsMode: true}]
+const TWO_COLUMNS = new Set(['modern', 'professional'])
+const CASES = [...TEMPLATES.map((template) => ({template, atsMode: false})), ...[...TWO_COLUMNS].map((template) => ({template, atsMode: true}))]
 
 describe.each(CASES)('the $template template (ATS mode $atsMode), as an ATS reads it', ({template, atsMode}) => {
     let read: Awaited<ReturnType<typeof textOf>>
@@ -107,10 +115,10 @@ describe.each(CASES)('the $template template (ATS mode $atsMode), as an ATS read
         const at = (heading: string) => read.text.indexOf(heading)
         // In two columns the side column is read where it sits, page by page, so only the
         // main column's order is promised. ATS mode gives one column and the full order.
-        const twoColumns = template === 'modern' && !atsMode
-        const order = twoColumns ? ['SUMMARY', 'EXPERIENCE', 'EDUCATION', 'PROJECTS'] : ['SUMMARY', 'EXPERIENCE', 'EDUCATION', 'PROJECTS', 'SKILLS']
+        const twoColumns = TWO_COLUMNS.has(template) && !atsMode
+        const order = twoColumns ? ['SUMMARY', 'EXPERIENCE', 'EDUCATION'] : ['SUMMARY', 'EXPERIENCE', 'EDUCATION', 'PROJECTS', 'SKILLS']
 
-        for (const heading of [...order, 'SKILLS']) {
+        for (const heading of [...order, 'PROJECTS', 'SKILLS']) {
             expect(at(heading), heading).toBeGreaterThan(-1)
         }
 
@@ -119,17 +127,22 @@ describe.each(CASES)('the $template template (ATS mode $atsMode), as an ATS read
         }
     })
 
-    it('keeps each skill group whole, beside its label', () => {
-        expect(read.text.replace(/\s+/g, ' ')).toMatch(/Systems:? ?PostgreSQL, Kafka, Redis, Kubernetes, AWS/)
+    it('keeps each skill group whole, its label first and its skills in order', () => {
+        const text = read.text.replace(/\s+/g, ' ')
+        const at = ['Systems', 'PostgreSQL', 'Kafka', 'Redis', 'Kubernetes', 'AWS'].map((word) => text.indexOf(word, text.indexOf('SKILLS')))
+
+        expect(at.every((index) => index > -1)).toBe(true)
+        expect([...at].sort((a, b) => a - b)).toEqual(at)
     })
 
     it('puts each job\'s dates with that job, not in a column of their own', () => {
-        const job = read.text.indexOf('Pathao')
-        const next = read.text.indexOf('Kaz Software')
+        // Inside that job's block: after the job before it, before the job after it.
+        const before = read.text.indexOf('Bkash Labs')
+        const after = read.text.indexOf('Kaz Software')
         const dates = read.text.indexOf('Jan 2019 – Feb 2022')
 
-        expect(dates).toBeGreaterThan(job)
-        expect(dates).toBeLessThan(next)
+        expect(dates).toBeGreaterThan(before)
+        expect(dates).toBeLessThan(after)
     })
 
     it('keeps letters apart, so "fi" and "ff" match keywords', () => {
@@ -167,8 +180,26 @@ describe.each(CV_TEMPLATES.map((template) => template.id))('formatting in the %s
         )
         const read = await textOf(await pdfOf(template, {...cv, sections}))
 
-        expect(read.text).toContain('making slow systems fast')
-        expect(read.text).toContain('my talks')
+        const text = read.text.replace(/\s+/g, ' ')
+
+        expect(text).toContain('making slow systems fast')
+        expect(text).toContain('my talks')
         expect(read.text).not.toMatch(/\*\*|\]\(/)
+    })
+})
+
+/** A one-pixel PNG, standing in for a photo. */
+const PHOTO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+
+describe.each(['classic', 'modern', 'professional'])('a photo in the %s template', (template) => {
+    it('is drawn, and leaves the text exactly as it was', async () => {
+        const cv = sampleCv()
+        const without = await textOf(await pdfOf(template, cv))
+        const pdf = await pdfOf(template, {...cv, person: {...cv.person, photo: PHOTO}})
+        const read = await textOf(pdf)
+
+        expect(new TextDecoder('latin1').decode(pdf)).toMatch(/\/Subtype\s*\/Image/)
+        expect(read.text.trimStart().startsWith('Nadia Rahman')).toBe(true)
+        expect(read.text).toBe(without.text)
     })
 })

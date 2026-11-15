@@ -1,5 +1,5 @@
 // Modern: a tinted band with the name, then two columns. The wide column holds what
-// you've done; the narrow one holds skills, languages and other lists.
+// you've done; the narrow one holds skills, languages, projects and other lists.
 //
 // For ATS: the narrow column is written after the wide one, so text comes out with the
 // main story first and the lists after it. With ATS mode on, everything is one column,
@@ -20,7 +20,7 @@
   if s.at("url", default: "") != "" { body = link(s.url, body) }
   body
 }).join()
-#let two = not cv.design.atsMode and cv.sections.any(s => s.kind == "tags")
+#let two = not cv.design.atsMode and cv.sections.any(s => s.column == "side")
 
 #set document(title: if cv.name != "" { cv.name + " – CV" } else { "CV" }, author: cv.name)
 #set text(font: (cv.design.font, "Inter"), size: cv.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(20))
@@ -49,8 +49,8 @@
   block(above: gap(1.25), below: gap(0.55), sticky: true, upper(it.body))
 }
 
-// The name band.
-#block(width: 100%, fill: tint, inset: (x: 1.2em, y: 1.1em), radius: 3pt, {
+// The name band, with the photo at its right when there is one.
+#let band = {
   if cv.name != "" {
     text(size: 2.1em, weight: "bold", fill: accent)[#cv.name]
     linebreak()
@@ -68,6 +68,13 @@
       .map(((i, item)) => box(if i == 0 { item } else { [|#h(0.45em)#item] }))
       .join([#h(0.2em) ])
   }
+}
+
+#block(width: 100%, fill: tint, inset: (x: 1.2em, y: 1.1em), radius: 3pt, if cv.photo != "" {
+  grid(columns: (1fr, auto), column-gutter: 1em, align: (left + horizon, right + horizon), band,
+    box(width: 2.1cm, height: 2.1cm, radius: 50%, clip: true, image(cv.photo, width: 2.1cm, height: 2.1cm, fit: "cover")))
+} else {
+  band
 })
 
 #let entry(e) = {
@@ -104,8 +111,8 @@
 }
 
 #if two {
-  let main = cv.sections.filter(s => s.kind != "tags")
-  let side = cv.sections.filter(s => s.kind == "tags")
+  let main = cv.sections.filter(s => s.column == "main")
+  let side = cv.sections.filter(s => s.column == "side")
 
   grid(
     columns: (1fr, 0.42fr),

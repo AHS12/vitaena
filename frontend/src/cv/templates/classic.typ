@@ -55,26 +55,36 @@
   ]
 }
 
-// Header: the name is the document's first text, then the headline and contact.
-#if cv.name != "" {
-  text(size: 2.1em, weight: "bold")[#cv.name]
-  linebreak()
+// Header: the name is the document's first text, then the headline and contact, with
+// the photo beside them when there is one.
+#let header = {
+  if cv.name != "" {
+    text(size: 2.1em, weight: "bold")[#cv.name]
+    linebreak()
+  }
+  if cv.headline != "" {
+    text(size: 1.15em, fill: muted)[#cv.headline]
+    linebreak()
+  }
+  if cv.contact.len() > 0 {
+    v(0.2em)
+    set text(size: 0.92em)
+    // Each item is one unbreakable box: a long address wrapped at its hyphen reads to a
+    // parser as two broken words. Lines break only between items, and each separator
+    // travels with the item after it, so none is left hanging at a line's end.
+    cv.contact
+      .map(c => if c.url != "" { link(c.url)[#c.text] } else { c.text })
+      .enumerate()
+      .map(((i, item)) => box(if i == 0 { item } else { [|#h(0.5em)#item] }))
+      .join([#h(0.2em) ])
+  }
 }
-#if cv.headline != "" {
-  text(size: 1.15em, fill: muted)[#cv.headline]
-  linebreak()
-}
-#if cv.contact.len() > 0 {
-  v(0.2em)
-  set text(size: 0.92em)
-  // Each item is one unbreakable box: a long address wrapped at its hyphen reads to a
-  // parser as two broken words. Lines break only between items, and each separator
-  // travels with the item after it, so none is left hanging at a line's end.
-  cv.contact
-    .map(c => if c.url != "" { link(c.url)[#c.text] } else { c.text })
-    .enumerate()
-    .map(((i, item)) => box(if i == 0 { item } else { [|#h(0.5em)#item] }))
-    .join([#h(0.2em) ])
+
+#if cv.photo != "" {
+  grid(columns: (1fr, auto), column-gutter: 1em, align: (left + horizon, right + horizon), header,
+    box(width: 2.2cm, height: 2.2cm, radius: 50%, clip: true, image(cv.photo, width: 2.2cm, height: 2.2cm, fit: "cover")))
+} else {
+  header
 }
 
 // Dates sit inline after the location rather than right-aligned: a column of dates

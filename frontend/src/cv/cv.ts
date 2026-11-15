@@ -26,8 +26,10 @@ const personSchema = z.object({
     phone: z.string(),
     location: z.string(),
     links: z.array(linkSchema),
+    /** A square photo as a JPEG data URL, or "" for none. Kept small, inside the CV file. */
+    photo: z.union([z.literal(''), z.string().regex(/^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/)]),
     /** Details kept but left off the page. */
-    hide: z.array(z.enum(['email', 'phone', 'location'])),
+    hide: z.array(z.enum(['email', 'phone', 'location', 'photo'])),
 })
 
 const entrySchema = z.object({
@@ -118,7 +120,7 @@ export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79',
 /** A new CV: the sections most people need, empty, under the headings ATS parsers look for. */
 export function emptyCv(): Cv {
     return {
-        person: {name: '', headline: '', email: '', phone: '', location: '', links: [], hide: []},
+        person: {name: '', headline: '', email: '', phone: '', location: '', links: [], photo: '', hide: []},
         sections: [
             {id: newId('section'), kind: 'text', title: 'Summary', visible: true, text: ''},
             {id: newId('section'), kind: 'entries', title: 'Experience', visible: true, entries: []},
@@ -132,7 +134,7 @@ export function emptyCv(): Cv {
 export const cvType: DocumentType<Cv> = {
     kind: 'cv',
     noun: 'CV',
-    version: 4,
+    version: 5,
     content: cvSchema,
     empty: emptyCv,
     migrations: {
@@ -157,6 +159,12 @@ export const cvType: DocumentType<Cv> = {
                 person: {hide: [], ...cv.person},
                 sections: (cv.sections ?? []).map((section) => (section.kind === 'entries' ? {...section, entries: (section.entries ?? []).map((entry) => ({hide: [], ...entry}))} : section)),
             }
+        },
+        // Version 5 added a photo.
+        4: (content) => {
+            const cv = content as {person?: Record<string, unknown>}
+
+            return {...cv, person: {photo: '', ...cv.person}}
         },
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.

@@ -20,10 +20,21 @@ const {sampleCv} = await jiti.import('../src/cv/sample.ts')
 const {renderModel} = await jiti.import('../src/cv/render-model.ts')
 const {CV_TEMPLATES} = await jiti.import('../src/cv/templates/templates.ts')
 const {CV_FONTS} = await jiti.import('../src/cv/fonts.ts')
+const {withPhotoFile} = await jiti.import('../src/cv/typst/photo.ts')
 
 /** Each template in a colour of its own, so the gallery doesn't look like one template four times. */
-const LOOKS = {classic: {accent: '#1f4e79'}, modern: {accent: '#22706d'}, minimal: {accent: '#7a1f4b', font: 'source-serif-4'}, compact: {accent: '#2e6b3e', font: 'ibm-plex-sans'}}
+const LOOKS = {professional: {accent: '#2563eb'}, classic: {accent: '#1f4e79'}, modern: {accent: '#22706d'}, minimal: {accent: '#7a1f4b', font: 'source-serif-4'}, compact: {accent: '#2e6b3e', font: 'ibm-plex-sans'}}
 const WIDTH = 900
+
+/** A plain drawn silhouette, so templates with a photo show one without a real face. */
+const AVATAR = `data:image/png;base64,${new Resvg(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#c9d6e3"/><circle cx="100" cy="78" r="38" fill="#8aa1b8"/><path d="M30 200c6-48 36-70 70-70s64 22 70 70z" fill="#8aa1b8"/></svg>`,
+    {fitTo: {mode: 'width', value: 200}},
+)
+    .render()
+    .asPng()
+    .toString('base64')}`
+const WITH_PHOTO = new Set(['professional', 'modern', 'classic'])
 const out = here('../../docs/assets/templates/')
 
 const compiler = createTypstCompiler()
@@ -39,7 +50,13 @@ mkdirSync(out, {recursive: true})
 
 for (const template of CV_TEMPLATES) {
     const cv = sampleCv()
-    const model = renderModel({...cv, design: {...cv.design, ...LOOKS[template.id], template: template.id}})
+    const person = WITH_PHOTO.has(template.id) ? {...cv.person, photo: AVATAR} : cv.person
+    const full = renderModel({...cv, person, design: {...cv.design, ...LOOKS[template.id], template: template.id}})
+    const {model, file} = withPhotoFile(full)
+
+    if (file) {
+        compiler.mapShadow(file.path, file.bytes)
+    }
 
     compiler.addSource('/main.typ', readFileSync(here(`../src/cv/templates/${template.id}.typ`), 'utf8'))
     compiler.mapShadow('/cv.json', new TextEncoder().encode(JSON.stringify(model)))

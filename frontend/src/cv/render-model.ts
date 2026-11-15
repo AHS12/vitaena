@@ -20,21 +20,40 @@ export interface RenderEntry {
     readonly bullets: readonly (readonly Span[])[]
 }
 
-export interface RenderTagGroup {
-    readonly label: string
-    readonly items: string
+/** One item of a list, split for templates that show a level, such as languages. */
+export interface RenderTagItem {
+    readonly name: string
+    /** What was written in brackets after the name, such as "Native", or "". */
+    readonly note: string
+    /** 1 to 5 when the note names a level, else 0. */
+    readonly level: number
 }
 
-export type RenderSection =
+export interface RenderTagGroup {
+    readonly label: string
+    /** The items as one line, for templates that write them out. */
+    readonly items: string
+    readonly list: readonly RenderTagItem[]
+}
+
+/** Where a section sits in a two-column template; one-column templates ignore it. */
+export type Column = 'main' | 'side'
+
+export type RenderSection = {readonly column: Column} & (
     | {readonly kind: 'text'; readonly title: string; readonly paragraphs: readonly (readonly Span[])[]}
     | {readonly kind: 'entries'; readonly title: string; readonly entries: readonly RenderEntry[]}
     | {readonly kind: 'tags'; readonly title: string; readonly groups: readonly RenderTagGroup[]}
+)
+
+export type ContactKind = 'email' | 'phone' | 'location' | 'linkedin' | 'github' | 'web'
 
 export interface RenderModel {
     readonly name: string
     readonly headline: string
-    /** Contact details as plain text, in the order they're shown. */
-    readonly contact: readonly {readonly text: string; readonly url: string}[]
+    /** Contact details as plain text, in the order they're shown, with what each is for icons. */
+    readonly contact: readonly {readonly text: string; readonly url: string; readonly kind: ContactKind}[]
+    /** The photo as a data URL, or "" for none. The engine hands it to the template as a file. */
+    readonly photo: string
     readonly sections: readonly RenderSection[]
     readonly design: {
         readonly accent: string
@@ -77,18 +96,43 @@ export function datesText(entry: Pick<CvEntry, 'start' | 'end' | 'current'>): st
 const trimmed = (value: string): string => value.trim()
 
 /** A link as people read it, without the scheme: "linkedin.com/in/jane". */
-const linkText = (url: string): string => url.trim().replace(/^https?:\/\//i, '').replace(/\/$/, '')
+const linkText = (url: string): string => url.trim().replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/$/, '')
 
 const asUrl = (url: string): string => (/^[a-z][a-z0-9+.-]*:/i.test(url.trim()) ? url.trim() : `https://${url.trim()}`)
+
+const linkKind = (url: string): ContactKind => (/linkedin\./i.test(url) ? 'linkedin' : /github\./i.test(url) ? 'github' : 'web')
+
+/** Words for how well someone speaks or knows something, as a level out of five. */
+const LEVELS: readonly [RegExp, number][] = [
+    [/native|mother|fluent|bilingual|expert|c2/i, 5],
+    [/advanced|proficient|professional|c1/i, 4],
+    [/intermediate|upper|working|b2|b1/i, 3],
+    [/conversational|elementary|basic|limited|a2/i, 2],
+    [/beginner|starter|a1/i, 1],
+]
+
+/** "Bangla (Native)" as its name, its note and, when the note names one, a level. */
+export function tagItem(text: string): RenderTagItem {
+    const match = /^(.*?)\s*[(（]([^)）]*)[)）]\s*$/.exec(text)
+    const name = (match ? match[1] : text).trim()
+    const note = match ? match[2].trim() : ''
+
+    return {name, note, level: LEVELS.find(([words]) => words.test(note))?.[1] ?? 0}
+}
+
+/** Sections that belong beside the main story in a two-column template. */
+const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training/i
+
+const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education/i.test(title)) ? 'side' : 'main')
 
 export function renderModel(cv: Cv): RenderModel {
     const {person} = cv
     const contact = [
-        person.email.trim() && !person.hide.includes('email') ? {text: person.email.trim(), url: `mailto:${person.email.trim()}`} : null,
-        person.phone.trim() && !person.hide.includes('phone') ? {text: person.phone.trim(), url: `tel:${person.phone.replace(/[^\d+]/g, '')}`} : null,
-        person.location.trim() && !person.hide.includes('location') ? {text: person.location.trim(), url: ''} : null,
+        person.phone.trim() && !person.hide.includes('phone') ? {text: person.phone.trim(), url: `tel:${person.phone.replace(/[^\d+]/g, '')}`, kind: 'phone' as const} : null,
+        person.email.trim() && !person.hide.includes('email') ? {text: person.email.trim(), url: `mailto:${person.email.trim()}`, kind: 'email' as const} : null,
+        person.location.trim() && !person.hide.includes('location') ? {text: person.location.trim(), url: '', kind: 'location' as const} : null,
         // A link is written out in full, so a parser that drops links still has the address.
-        ...person.links.filter((link) => link.url.trim()).map((link) => ({text: linkText(link.url), url: asUrl(link.url)})),
+        ...person.links.filter((link) => link.url.trim()).map((link) => ({text: linkText(link.url), url: asUrl(link.url), kind: linkKind(link.url)})),
     ].filter((item) => item !== null)
 
     const sections: RenderSection[] = []
@@ -99,6 +143,7 @@ export function renderModel(cv: Cv): RenderModel {
         }
 
         const title = section.title.trim()
+        const column = columnOf(section.kind, title)
 
         if (section.kind === 'text') {
             const paragraphs = section.text
@@ -108,7 +153,7 @@ export function renderModel(cv: Cv): RenderModel {
                 .map(parseRich)
 
             if (paragraphs.length > 0) {
-                sections.push({kind: 'text', title, paragraphs})
+                sections.push({kind: 'text', title, column, paragraphs})
             }
         } else if (section.kind === 'entries') {
             const entries = section.entries
@@ -123,16 +168,20 @@ export function renderModel(cv: Cv): RenderModel {
                 }))
 
             if (entries.length > 0) {
-                sections.push({kind: 'entries', title, entries})
+                sections.push({kind: 'entries', title, column, entries})
             }
         } else {
             const groups = section.groups
                 .filter((group) => group.visible)
-                .map((group) => ({label: group.label.trim(), items: group.items.map(trimmed).filter(Boolean).join(', ')}))
+                .map((group) => {
+                    const items = group.items.map(trimmed).filter(Boolean)
+
+                    return {label: group.label.trim(), items: items.join(', '), list: items.map(tagItem)}
+                })
                 .filter((group) => group.items)
 
             if (groups.length > 0) {
-                sections.push({kind: 'tags', title, groups})
+                sections.push({kind: 'tags', title, column, groups})
             }
         }
     }
@@ -141,6 +190,7 @@ export function renderModel(cv: Cv): RenderModel {
         name: person.name.trim(),
         headline: person.headline.trim(),
         contact,
+        photo: person.photo && !person.hide.includes('photo') ? person.photo : '',
         sections,
         design: {
             accent: cv.design.accent,

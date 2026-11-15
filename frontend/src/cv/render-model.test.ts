@@ -47,15 +47,37 @@ describe('what a template is given', () => {
     it('writes links out in full, so a parser that drops links still has the address', () => {
         const model = renderModel(sampleCv())
 
-        expect(model.contact.map((item) => item.text)).toEqual(['nadia.rahman@example.com', '+880 1700 000000', 'Dhaka, Bangladesh', 'linkedin.com/in/nadia-rahman-example'])
-        expect(model.contact[0].url).toBe('mailto:nadia.rahman@example.com')
+        expect(model.contact.map((item) => item.text)).toEqual(['+880 1700 000000', 'nadia.rahman@example.com', 'Dhaka, Bangladesh', 'linkedin.com/in/nadia-rahman-example'])
+        expect(model.contact[1]).toEqual({text: 'nadia.rahman@example.com', url: 'mailto:nadia.rahman@example.com', kind: 'email'})
+        expect(model.contact[3].kind).toBe('linkedin')
     })
 
     it('gives a link without a scheme one, so it opens', () => {
         const cv = sampleCv()
         const model = renderModel({...cv, person: {...cv.person, links: [{id: 'l', label: '', url: 'nadia.dev'}]}})
 
-        expect(model.contact.at(-1)).toEqual({text: 'nadia.dev', url: 'https://nadia.dev'})
+        expect(model.contact.at(-1)).toEqual({text: 'nadia.dev', url: 'https://nadia.dev', kind: 'web'})
+    })
+})
+
+describe('lists with levels', () => {
+    it('reads a level from the words in brackets', () => {
+        const cv = sampleCv()
+        const model = renderModel({...cv, sections: [{id: 'l', kind: 'tags', title: 'Languages', visible: true, groups: [{id: 'g', visible: true, label: '', items: ['Bangla (Native/Fluent)', 'English (Advanced)', 'Go']}]}]})
+        const section = model.sections[0]
+
+        expect(section.column).toBe('side')
+        expect(section.kind === 'tags' && section.groups[0].list).toEqual([
+            {name: 'Bangla', note: 'Native/Fluent', level: 5},
+            {name: 'English', note: 'Advanced', level: 4},
+            {name: 'Go', note: '', level: 0},
+        ])
+    })
+
+    it('puts the story in the main column and lists beside it', () => {
+        const columns = renderModel(sampleCv()).sections.map((section) => `${section.title}:${section.column}`)
+
+        expect(columns).toEqual(['Summary:main', 'Experience:main', 'Education:main', 'Projects:side', 'Skills:side'])
     })
 })
 

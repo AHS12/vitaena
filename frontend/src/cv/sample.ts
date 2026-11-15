@@ -28,6 +28,7 @@ export function sampleCv(): Cv {
             phone: '+880 1700 000000',
             location: 'Dhaka, Bangladesh',
             links: [{id: 'link-1', label: '', url: 'https://linkedin.com/in/nadia-rahman-example'}],
+            photo: '',
             hide: [],
         },
         sections: [
