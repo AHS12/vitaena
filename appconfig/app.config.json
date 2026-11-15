@@ -3,7 +3,7 @@
   "id": "vitaena",
   "bundleId": "com.ahs12.vitaena",
   "company": "AHS12",
-  "description": "A starter for desktop apps that feel like desktop apps.",
+  "description": "Make a CV or resume that screening systems read correctly.",
   "copyright": "© 2026 AHS12",
   "repository": "AHS12/vitaena",
   "version": "0.1.5"

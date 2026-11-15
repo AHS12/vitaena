@@ -8,7 +8,7 @@
 // The Windows .ico takes its small sizes from the small art, since the full art shrunk to
 // 16 px turns its lines to a smudge. The Mac .icns is made from appicon.png by the build.
 
-import {readFileSync, writeFileSync} from 'node:fs'
+import {mkdirSync, readFileSync, writeFileSync} from 'node:fs'
 import {fileURLToPath} from 'node:url'
 import {Resvg} from '@resvg/resvg-js'
 
@@ -52,4 +52,16 @@ writeFileSync(
 )
 writeFileSync(at('backend/tray-mac.png'), png('build/icon-src/tray-mac.svg', 44))
 
-console.log('Made build/appicon.png, build/windows/icon.ico and backend/tray-mac.png')
+// Linux: the freedesktop icon theme's sizes, small art below 48 px as on Windows, and
+// the SVG itself for any size the desktop wants.
+const LINUX = 'build/linux/icons/hicolor'
+
+for (const size of [16, 24, 32, 48, 64, 128, 256, 512]) {
+    mkdirSync(at(`${LINUX}/${size}x${size}/apps`), {recursive: true})
+    writeFileSync(at(`${LINUX}/${size}x${size}/apps/vitaena.png`), png(size < 48 ? SMALL : FULL, size))
+}
+
+mkdirSync(at(`${LINUX}/scalable/apps`), {recursive: true})
+writeFileSync(at(`${LINUX}/scalable/apps/vitaena.svg`), readFileSync(at(FULL)))
+
+console.log('Made build/appicon.png, build/windows/icon.ico, backend/tray-mac.png and the Linux icons')

@@ -32,3 +32,6 @@ frontend/dist
 
 # Plans and specs: kept locally, not published.
 /specs/
+
+# Made while building the AppImage.
+/build/linux/appimage/

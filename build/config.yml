@@ -7,9 +7,9 @@ info:
   companyName: "AHS12"
   productName: "Vitaena"
   productIdentifier: "com.ahs12.vitaena"
-  description: "A starter for desktop apps that feel like desktop apps."
+  description: "Make a CV or resume that screening systems read correctly."
   copyright: "© 2026 AHS12"
-  comments: "A starter for desktop apps that feel like desktop apps."
+  comments: "Make a CV or resume that screening systems read correctly."
   version: "0.1.5"
 
 dev_mode:

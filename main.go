@@ -80,6 +80,11 @@ func main() {
 		Windows: application.WindowsOptions{
 			AdditionalBrowserArgs: browserArgs(),
 		},
+		// The desktop matches this id to the menu entry, installed as <bundle id>.desktop,
+		// to show the window's icon and name in the dock.
+		Linux: application.LinuxOptions{
+			ApplicationID: identity.BundleID,
+		},
 	})
 
 	backend.OpenWindow(service, app, application.WebviewWindowOptions{

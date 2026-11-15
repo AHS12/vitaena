@@ -82,7 +82,7 @@ jobs:
           set -euo pipefail
           v="$VERSION"
           mismatch=0
-          for file in build/config.yml build/windows/nsis/wails_tools.nsh build/windows/info.json build/darwin/Info.plist; do
+          for file in build/config.yml build/windows/nsis/wails_tools.nsh build/windows/info.json build/darwin/Info.plist build/linux/nfpm/nfpm.yaml; do
             grep -q "$v" "$file" || { echo "::error file=$file::version != $v"; mismatch=1; }
           done
           # Go and the frontend read the version from here; `make check` keeps the build files in step with it.

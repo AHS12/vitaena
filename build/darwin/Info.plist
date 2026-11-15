@@ -5,7 +5,7 @@
 		<key>CFBundleExecutable</key>
 		<string>vitaena</string>
 		<key>CFBundleGetInfoString</key>
-		<string>A starter for desktop apps that feel like desktop apps.</string>
+		<string>Make a CV or resume that screening systems read correctly.</string>
 		<key>CFBundleIconFile</key>
 		<string>icons</string>
 		<key>CFBundleIdentifier</key>
