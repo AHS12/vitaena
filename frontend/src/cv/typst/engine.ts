@@ -1,31 +1,16 @@
 /**
  * The Typst engine: turns a CV into pages to look at and a PDF to send.
  *
- * Both come from the same compile, so what the preview shows is what the PDF holds.
- * The compiler, the renderer and the fonts are all bundled with the app and loaded on
- * first use, never fetched from the network: the default font download is turned off.
+ * Both come from the same compile, so what the preview shows is what the PDF holds. The
+ * compiling happens in a worker (engine.worker.ts), so the editor never waits on it.
+ * Where a worker can't start, it runs in the page instead, slower but the same.
  *
- * Compiles run one at a time, since the compiler keeps one world. A preview asked for
- * while another is compiling replaces any still waiting, so typing never queues work.
+ * Requests run one at a time. A preview asked for while another is compiling replaces
+ * any still waiting, so typing never queues work.
  */
 
-import type {TypstCompiler, TypstRenderer} from '@myriaddreamin/typst.ts'
-import compilerWasm from '@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url'
-import rendererWasm from '@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url'
-import classic from '../templates/classic.typ?raw'
-import compact from '../templates/compact.typ?raw'
-import minimal from '../templates/minimal.typ?raw'
-import modern from '../templates/modern.typ?raw'
-import {CV_FONTS} from '../fonts'
-import {fontUrl} from './font-urls'
 import type {RenderModel} from '../render-model'
-
-const FONTS = CV_FONTS.flatMap((font) => font.files.map(fontUrl))
-
-export const TEMPLATES: Readonly<Record<string, string>> = {classic, modern, minimal, compact}
-
-const MAIN = '/main.typ'
-const DATA = '/cv.json'
+import type {LayoutReply, LayoutRequest} from './engine.worker'
 
 export interface TypstProblem {
     readonly message: string
@@ -45,53 +30,62 @@ export interface Preview {
     readonly ms: number
 }
 
-interface Engine {
-    readonly compiler: TypstCompiler
-    readonly renderer: TypstRenderer
-}
+type Job = {readonly op: 'svg' | 'pdf'; readonly model: RenderModel; readonly template: string} | {readonly op: 'warm'}
 
-let engine: Promise<Engine> | null = null
+/** Something that lays out: the worker, or the page itself. */
+type Runner = (job: Job) => Promise<{svg?: string; pdf?: Uint8Array}>
 
-const bytesOf = async (url: string): Promise<Uint8Array> => {
-    const response = await fetch(url)
+let runner: Runner | null = null
 
-    if (!response.ok) {
-        throw new Error(`Could not load ${url}`)
+function workerRunner(): Runner {
+    const worker = new Worker(new URL('./engine.worker.ts', import.meta.url), {type: 'module', name: 'layout'})
+    const pending = new Map<number, {resolve(reply: LayoutReply): void}>()
+    let next = 0
+
+    worker.onmessage = ({data}: MessageEvent<LayoutReply>) => {
+        pending.get(data.id)?.resolve(data)
+        pending.delete(data.id)
     }
 
-    return new Uint8Array(await response.arrayBuffer())
+    return async (job) => {
+        const id = (next += 1)
+        const reply = await new Promise<LayoutReply>((resolve) => {
+            pending.set(id, {resolve})
+            worker.postMessage({id, ...job} satisfies LayoutRequest)
+        })
+
+        if (!reply.ok) {
+            throw new TypstError(reply.problems)
+        }
+
+        return {svg: reply.svg, pdf: reply.pdf}
+    }
 }
 
-async function start(): Promise<Engine> {
-    const typst = await import('@myriaddreamin/typst.ts')
-    const fonts = await Promise.all(FONTS.map(bytesOf))
-    const compiler = typst.createTypstCompiler()
-    const renderer = typst.createTypstRenderer()
+/** Without workers, the same layout code runs in the page. */
+const pageRunner: Runner = async (job) => {
+    const layout = await import('./layout')
 
-    await Promise.all([
-        compiler.init({
-            beforeBuild: [typst.initOptions.disableDefaultFontAssets(), typst.loadFonts(fonts)],
-            getModule: () => bytesOf(compilerWasm),
-        }),
-        renderer.init({getModule: () => bytesOf(rendererWasm)}),
-    ])
+    try {
+        if (job.op === 'warm') {
+            await layout.warmUp()
+            return {}
+        }
 
-    return {compiler, renderer}
+        return job.op === 'svg' ? {svg: await layout.layOutSvg(job.model, job.template)} : {pdf: await layout.layOutPdf(job.model, job.template)}
+    } catch (error) {
+        throw error instanceof layout.LayoutFailed ? new TypstError(error.problems) : error
+    }
 }
 
-/** Starts the engine, once. Calling it early hides the start-up behind other work. */
-export function warmUp(): Promise<Engine> {
-    engine ??= start().catch((error: unknown) => {
-        engine = null
-        throw error
-    })
-
-    return engine
+const run: Runner = (job) => {
+    runner ??= typeof Worker === 'undefined' ? pageRunner : workerRunner()
+    return runner(job)
 }
 
 let running: Promise<unknown> = Promise.resolve()
 
-/** Runs compiles one after another. */
+/** Runs requests one after another. */
 function serial<T>(work: () => Promise<T>): Promise<T> {
     const next = running.then(work, work)
 
@@ -99,24 +93,10 @@ function serial<T>(work: () => Promise<T>): Promise<T> {
     return next
 }
 
-async function compile(model: RenderModel, template: string, format: 0 | 1): Promise<Uint8Array> {
-    const {compiler} = await warmUp()
-    const source = TEMPLATES[template] ?? TEMPLATES.classic
+/** Starts the engine early, so the first preview doesn't wait for it. */
+export const warmUp = (): Promise<unknown> => serial(() => run({op: 'warm'}))
 
-    compiler.addSource(MAIN, source)
-    compiler.mapShadow(DATA, new TextEncoder().encode(JSON.stringify(model)))
-
-    const result = await compiler.compile({mainFilePath: MAIN, format, diagnostics: 'full'})
-    const errors = (result.diagnostics ?? []).filter((item) => item.severity === 'error')
-
-    if (!result.result || errors.length > 0) {
-        throw new TypstError(errors.length > 0 ? errors.map((item) => ({message: item.message})) : [{message: 'The CV could not be laid out.'}])
-    }
-
-    return result.result
-}
-
-const pageCount = (svg: string): number => svg.match(/class="typst-page"/g)?.length ?? 0
+const pageCount = (svgText: string): number => svgText.match(/class="typst-page"/g)?.length ?? 0
 
 let waiting: {model: RenderModel; template: string; settle: (preview: Promise<Preview | null>) => void} | null = null
 
@@ -140,16 +120,7 @@ export function preview(model: RenderModel, template: string): Promise<Preview |
             waiting = null
 
             const began = performance.now()
-            const work = (async () => {
-                const vector = await compile(job.model, job.template, 0)
-                const {renderer} = await warmUp()
-                const svg = await renderer.runWithSession(async (session) => {
-                    renderer.manipulateData({renderSession: session, action: 'reset', data: vector})
-                    return renderer.renderSvg({renderSession: session})
-                })
-
-                return {svg, pages: pageCount(svg), ms: Math.round(performance.now() - began)}
-            })()
+            const work = run({op: 'svg', model: job.model, template: job.template}).then(({svg: text = ''}) => ({svg: text, pages: pageCount(text), ms: Math.round(performance.now() - began)}))
 
             resolve(work)
             await work.catch(() => undefined)
@@ -158,19 +129,7 @@ export function preview(model: RenderModel, template: string): Promise<Preview |
 }
 
 /** All pages as SVG, waiting its turn rather than giving way to newer previews. */
-export function svg(model: RenderModel, template: string): Promise<string> {
-    return serial(async () => {
-        const vector = await compile(model, template, 0)
-        const {renderer} = await warmUp()
-
-        return renderer.runWithSession(async (session) => {
-            renderer.manipulateData({renderSession: session, action: 'reset', data: vector})
-            return renderer.renderSvg({renderSession: session})
-        })
-    })
-}
+export const svg = (model: RenderModel, template: string): Promise<string> => serial(async () => (await run({op: 'svg', model, template})).svg ?? '')
 
 /** The CV as a PDF, the same layout the preview shows. */
-export function pdf(model: RenderModel, template: string): Promise<Uint8Array> {
-    return serial(() => compile(model, template, 1))
-}
+export const pdf = (model: RenderModel, template: string): Promise<Uint8Array> => serial(async () => (await run({op: 'pdf', model, template})).pdf ?? new Uint8Array())

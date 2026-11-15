@@ -42,6 +42,8 @@ export default defineConfig({
     },
     // What's new reads CHANGELOG.md, which lives at the top of the repository.
     server: {fs: {allow: ['..']}},
+    // The layout worker loads the Typst compiler on demand, which needs module workers.
+    worker: {format: 'es'},
     build: {
         rollupOptions: {
             output: {
