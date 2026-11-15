@@ -2,7 +2,20 @@
 
 What's new in each version.
 
-## 0.1.9 (November 15, 2026)
+## 0.1.9 (November 16, 2026)
+
+**Start from the CV you have**
+
+- Import a CV from a PDF or a Word file, and Vitaena makes it into one you can edit: your
+  name and contact details, each job and degree with its dates, your bullets, skills,
+  languages and photo.
+- It works on CVs made in Word, Google Docs and online makers, in one column or two. It's
+  all read on your computer, with no AI and nothing sent anywhere.
+- A biodata comes in as a biodata, with your heading line, your details, your date of
+  birth and height, and your family.
+- Anything it can't place waits in a hidden Not sorted section, and Check reminds you to
+  sort it.
+- Find Import a CV on Home, or open a PDF or Word file with Open a file.
 
 **Biodata**
 
