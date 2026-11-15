@@ -1,133 +1,254 @@
-/* The CV editor: a scrolling form on the left, the pages on a sunken desk to the right. */
+/* The CV editor: details in panels on the left, the pages on a desk to the right. */
 
 .cv-editor {
     flex: 1;
-    display: grid;
-    grid-template-columns: minmax(340px, 440px) 1fr;
+    display: flex;
     min-width: 0;
     min-height: 0;
     background: var(--surface-page);
 }
 
-.cv-form {
+.cv-sidebar {
+    flex: 1;
+    min-width: 0;
     overflow-y: auto;
-    padding: var(--space-4);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    background: var(--surface-panel);
-    border-right: 1px solid var(--border-subtle);
-}
-
-.cv-group {
-    margin: 0;
-    padding: 0;
-    border: none;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-}
-
-.cv-group__title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-    width: 100%;
-    padding: 0 0 var(--space-1);
-    margin-bottom: var(--space-1);
-    border-bottom: 1px solid var(--border-subtle);
-    font: var(--text-title);
-    color: var(--text-primary);
-}
-
-.cv-group__heading {
-    flex: 1;
-    min-width: 0;
-    padding: 2px 4px;
-    margin-left: -4px;
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    background: transparent;
-    color: inherit;
-    font: inherit;
-}
-
-.cv-group__heading:hover {
-    border-color: var(--border-subtle);
-}
-
-.cv-group__heading:focus {
-    outline: none;
-    border-color: var(--border-strong);
-    background: var(--surface-raised);
-}
-
-.cv-row {
-    display: flex;
-    gap: var(--space-2);
-}
-
-.cv-row > * {
-    flex: 1;
-    min-width: 0;
-}
-
-.cv-field {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.cv-field__label {
-    font: var(--text-label);
-    color: var(--text-secondary);
-}
-
-.cv-field__input {
-    width: 100%;
-    padding: 5px 8px;
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    background: var(--surface-raised);
-    color: var(--text-primary);
-    font: var(--text-body);
-}
-
-.cv-field__input:focus {
-    outline: none;
-    border-color: var(--border-strong);
-    box-shadow: var(--focus-ring);
-}
-
-.cv-field__area {
-    resize: vertical;
-}
-
-.cv-check {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font: var(--text-label);
-    color: var(--text-secondary);
-}
-
-.cv-entry {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
     padding: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    background: var(--surface-panel);
+}
+
+.section-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.cv-sidebar__tip {
+    margin: var(--space-1) var(--space-1) var(--space-3);
+    font: var(--text-caption);
+    color: var(--text-tertiary);
+}
+
+.add-section.button {
+    align-self: flex-start;
+}
+
+/* A panel: one section, or your details */
+
+.panel {
     border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     background: var(--surface-sunken);
 }
 
-.cv-entry__actions {
-    display: flex;
-    justify-content: flex-end;
+.panel[data-hidden] .panel__title,
+.panel[data-hidden] .panel__body {
+    opacity: 0.55;
 }
 
+.panel__head {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-height: 38px;
+    padding: 0 var(--space-2) 0 4px;
+}
+
+.panel__toggle .disclosure-chevron,
+.entry-card__toggle .disclosure-chevron {
+    transition: transform var(--motion-fast);
+}
+
+.panel[data-open] > .panel__head .disclosure-chevron,
+.entry-card[data-open] .entry-card__toggle .disclosure-chevron {
+    transform: rotate(90deg);
+}
+
+.panel__title {
+    flex: 1;
+    min-width: 0;
+    height: 28px;
+    padding: 0 6px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-primary);
+    font: var(--text-h2);
+}
+
+input.panel__title:hover {
+    border-color: var(--border-subtle);
+}
+
+input.panel__title:focus {
+    outline: none;
+    border-color: var(--brand-teal);
+    background: var(--surface-raised);
+}
+
+.panel__title--fixed {
+    display: flex;
+    align-items: center;
+}
+
+.panel__count {
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-active);
+    font: var(--text-caption);
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.panel__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-1) var(--space-3) var(--space-3);
+}
+
+.panel__add.button {
+    align-self: flex-start;
+}
+
+/* Entries */
+
+.entry-list,
+.group-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.entry-card {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-panel);
+}
+
+.entry-card[data-hidden] .entry-card__name {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.entry-card__head {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-height: 36px;
+    padding: 0 6px 0 2px;
+}
+
+.entry-card__toggle {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 4px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-primary);
+    font: var(--text-body);
+    text-align: left;
+    cursor: pointer;
+}
+
+.entry-card__toggle:hover {
+    background: var(--surface-hover);
+}
+
+.entry-card__name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.entry-card__dates {
+    flex: none;
+    font: var(--text-caption);
+    color: var(--text-tertiary);
+}
+
+.entry-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-1) var(--space-3) var(--space-3);
+    border-top: 1px solid var(--border-subtle);
+    padding-top: var(--space-3);
+}
+
+.form-row--dates {
+    grid-template-columns: minmax(130px, 1.3fr) minmax(110px, 1fr) minmax(110px, 1fr);
+}
+
+/* Skill groups */
+
+.group-row {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    gap: 4px;
+    align-items: start;
+    padding: 6px 6px 8px 2px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-panel);
+}
+
+.group-row[data-hidden] {
+    opacity: 0.55;
+}
+
+.group-row .drag-handle {
+    margin-top: 20px;
+}
+
+.group-row__fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.group-row__actions {
+    display: flex;
+    margin-top: 18px;
+}
+
+.link-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.link-row__field {
+    flex: 1;
+}
+
+.link-row__field .form-field__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+
+.link-row .icon-button {
+    margin-top: 3px;
+}
+
+/* Preview */
+
 .cv-preview {
+    flex: 1;
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -137,25 +258,28 @@
 .cv-preview__bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: var(--space-2);
-    padding: var(--space-1) var(--space-3);
+    min-height: 34px;
+    padding: 0 var(--space-2);
     border-bottom: 1px solid var(--border-subtle);
     background: var(--surface-panel);
     font: var(--text-label);
     color: var(--text-secondary);
 }
 
+.cv-preview__facts {
+    flex: 1;
+}
+
 .cv-preview__zoom {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-1);
+    gap: 2px;
 }
 
-.cv-preview__zoom-value {
-    min-width: 3.2em;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
+.cv-preview__zoom-value.text-button {
+    min-width: 48px;
+    justify-content: center;
 }
 
 .cv-preview__problem {
@@ -172,18 +296,50 @@
     padding: var(--space-6);
 }
 
-.cv-preview__pages {
+.cv-preview__stage {
+    position: relative;
     margin: 0 auto;
 }
 
-/* Typst draws every page in one SVG; it scales with the width set on the wrapper. */
+/* Typst draws every page in one SVG; it scales with the stage's width. */
 .cv-preview__pages > svg {
     display: block;
     width: 100%;
     height: auto;
 }
 
-/* Each page is white paper on the desk, whatever the theme. */
 .cv-preview__pages .typst-page {
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.22));
+}
+
+.cv-preview__empty {
+    position: absolute;
+    top: 12%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(80%, 340px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    text-align: center;
+    color: #5a5d63;
+    font: var(--text-body);
+}
+
+.cv-preview__empty p {
+    margin: 0;
+}
+
+.cv-preview__empty-title {
+    font: var(--text-h2);
+    color: #26282c;
+}
+
+/* The empty hint sits on white paper whatever the theme, so its button does too. */
+.cv-preview__empty .button {
+    margin-top: var(--space-2);
+    background: #1b1b1b;
+    border-color: #1b1b1b;
+    color: #fff;
 }

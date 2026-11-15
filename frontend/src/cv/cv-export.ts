@@ -54,6 +54,7 @@ export const CV_FORMATS: readonly ExportFormat<Cv>[] = [
         id: 'pdf',
         label: 'PDF',
         extension: 'pdf',
+        mimeType: 'application/pdf',
         help: 'What to send. It looks the same everywhere and reads well in applicant tracking systems.',
         make: async (cv) => {
             // Loaded here, so nothing that only lists formats pulls in the compiler.
@@ -66,6 +67,7 @@ export const CV_FORMATS: readonly ExportFormat<Cv>[] = [
         id: 'text',
         label: 'Plain text',
         extension: 'txt',
+        mimeType: 'text/plain',
         help: 'Just the words, for pasting into application forms.',
         make: (cv) => plainText(renderModel(cv)),
     },

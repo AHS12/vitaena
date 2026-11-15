@@ -1,0 +1,359 @@
+/*
+ * Form fields for editing a document: text, month, chips and bullets, plus the split
+ * pane and the drag handles that reorder lists. Label above, control, hint below.
+ */
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.form-field__label {
+    font: var(--text-label);
+    color: var(--text-secondary);
+}
+
+.form-field__input {
+    width: 100%;
+    min-height: 30px;
+    padding: 5px 9px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    font: var(--text-body);
+    transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+.form-field__input::placeholder {
+    color: var(--text-tertiary);
+    opacity: 0.75;
+}
+
+.form-field__input:hover {
+    border-color: var(--border-strong);
+}
+
+.form-field__input:focus,
+.form-field__input:focus-visible {
+    outline: none;
+    border-color: var(--brand-teal);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-teal) 22%, transparent);
+}
+
+.form-field[data-warning] .form-field__input {
+    border-color: var(--warning);
+}
+
+.form-field__area {
+    resize: none;
+    overflow: hidden;
+    line-height: 1.5;
+}
+
+.form-field__hint,
+.form-field__warning {
+    font: var(--text-caption);
+    color: var(--text-tertiary);
+}
+
+.form-field__warning {
+    color: var(--warning);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-2);
+}
+
+/* Month picker */
+
+.month-field__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    text-align: left;
+    cursor: pointer;
+}
+
+.month-field__trigger[data-empty] {
+    color: var(--text-tertiary);
+}
+
+.month-field__trigger svg {
+    flex: none;
+    color: var(--text-tertiary);
+}
+
+.sun-panel.month-panel {
+    width: 236px;
+}
+
+.month-panel__year {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.month-panel__year-value {
+    font: var(--text-title);
+}
+
+.month-panel__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+}
+
+.month-panel__month {
+    height: 30px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-primary);
+    font: var(--text-label);
+    cursor: pointer;
+}
+
+.month-panel__month:hover {
+    background: var(--surface-hover);
+}
+
+.month-panel__month[aria-pressed='true'],
+.month-panel__foot .button[aria-pressed='true'] {
+    background: var(--brand-teal);
+    color: #0d1f1f;
+}
+
+.month-panel__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--space-1);
+    border-top: 1px solid var(--border-subtle);
+}
+
+/* Chips */
+
+.tag-input {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    min-height: 30px;
+    padding: 3px 4px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+    cursor: text;
+}
+
+.tag-input:focus-within {
+    border-color: var(--brand-teal);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-teal) 22%, transparent);
+}
+
+.tag-input__chips {
+    display: contents;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 22px;
+    padding: 0 2px 0 8px;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--brand-teal) 18%, var(--surface-sunken));
+    color: var(--text-primary);
+    font: var(--text-label);
+    cursor: grab;
+    touch-action: none;
+}
+
+.chip:focus-visible {
+    outline: 2px solid var(--brand-teal);
+    outline-offset: 1px;
+}
+
+.chip__remove {
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.chip__remove:hover {
+    background: var(--surface-active);
+    color: var(--text-primary);
+}
+
+.tag-input__input {
+    flex: 1;
+    min-width: 80px;
+    height: 22px;
+    padding: 0 4px;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    font: var(--text-body);
+}
+
+/* Bullets */
+
+.bullets {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bullet {
+    display: grid;
+    grid-template-columns: 18px 10px minmax(0, 1fr);
+    align-items: start;
+    gap: 2px;
+    padding: 2px 4px 2px 0;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+}
+
+.bullet:focus-within {
+    border-color: var(--border-subtle);
+    background: var(--surface-raised);
+}
+
+.bullet[data-long] {
+    background: color-mix(in srgb, var(--warning) 10%, transparent);
+}
+
+.bullet__dot {
+    padding-top: 5px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+}
+
+.bullet__text {
+    width: 100%;
+    padding: 4px 4px;
+    border: 0;
+    outline: none;
+    resize: none;
+    overflow: hidden;
+    background: transparent;
+    color: var(--text-primary);
+    font: var(--text-body);
+    line-height: 1.5;
+}
+
+.bullets__add.text-button {
+    align-self: flex-start;
+}
+
+/* Reordering */
+
+.sortable[data-dragging] {
+    position: relative;
+    z-index: 2;
+    opacity: 0.92;
+    box-shadow: var(--shadow-2);
+    border-radius: var(--radius-md);
+}
+
+.drag-handle {
+    width: 18px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    flex: none;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: grab;
+    opacity: 0.45;
+    touch-action: none;
+    transition: opacity var(--motion-fast);
+}
+
+.sortable:hover > * > .drag-handle,
+.sortable:hover > * > * > .drag-handle,
+.drag-handle:focus-visible {
+    opacity: 1;
+}
+
+.drag-handle:hover {
+    background: var(--surface-hover);
+    color: var(--text-primary);
+}
+
+.drag-handle:active,
+:root[data-resizing] {
+    cursor: grabbing;
+}
+
+/* Split pane */
+
+.split-pane {
+    flex: 1;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+}
+
+.split-pane__side {
+    flex: none;
+    display: flex;
+    min-height: 0;
+}
+
+.split-pane__main {
+    flex: 1;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+}
+
+.split-pane__divider {
+    position: relative;
+    flex: none;
+    width: 1px;
+    background: var(--border-subtle);
+    cursor: col-resize;
+    outline: none;
+}
+
+/* A wider strip to grab than the line people see. */
+.split-pane__divider::before {
+    content: '';
+    position: absolute;
+    inset: 0 -4px;
+    z-index: 1;
+}
+
+.split-pane__divider:hover,
+.split-pane__divider:focus-visible,
+:root[data-resizing] .split-pane__divider {
+    background: var(--brand-teal);
+    box-shadow: 0 0 0 1px var(--brand-teal);
+}
+
+.split-pane__divider[data-collapsed='true'] {
+    cursor: e-resize;
+}
+
+:root[data-resizing] {
+    cursor: col-resize;
+    user-select: none;
+}

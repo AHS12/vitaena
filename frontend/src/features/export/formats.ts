@@ -14,6 +14,8 @@ export interface ExportFormat<T> {
     readonly label: string
     /** The file name's ending, without the dot. */
     readonly extension: string
+    /** What the file is, for a browser download. */
+    readonly mimeType?: string
     /** One line on what it's good for. */
     readonly help?: string
     /** The file's contents. Text is written as UTF-8. A format that has to lay pages out may take its time. */

@@ -106,6 +106,30 @@ export async function savePictureFile(bytes: Uint8Array, suggestedName: string):
 }
 
 /**
+ * Asks where to save an exported file, offering suggestedName, then writes it. Returns
+ * the path, or null if cancelled. A browser downloads it instead.
+ */
+export async function saveExportFile(bytes: Uint8Array, suggestedName: string, title: string, mimeType: string): Promise<string | null> {
+    const app = desktop()
+
+    if (!app) {
+        await downloadInBrowser(suggestedName, bytes, mimeType)
+        return suggestedName
+    }
+
+    const extension = suggestedName.includes('.') ? suggestedName.slice(suggestedName.lastIndexOf('.')) : ''
+    const target = await app.SaveFileDialog(title, suggestedName, extension ? [`*${extension}`] : [])
+
+    if (!target) {
+        return null
+    }
+
+    await app.WriteFile(target, [...bytes])
+
+    return target
+}
+
+/**
  * Asks for a folder and returns it, or null if cancelled. A browser has no
  * folders to offer, so it answers with where downloads go.
  */

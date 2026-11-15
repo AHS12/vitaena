@@ -48,6 +48,8 @@ export interface Feature {
     readonly DocumentFacts?: ComponentType<{readonly document: SavedDocument}>
     /** Buttons for the picked document, or every ticked one, on the library page. */
     readonly DocumentActions?: ComponentType<{readonly ids: readonly string[]}>
+    /** Buttons in the title bar beside Save, while a document is open. */
+    readonly TitleBarActions?: ComponentType
 }
 
 let registered: readonly Feature[] = []

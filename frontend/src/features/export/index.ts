@@ -8,6 +8,7 @@ import {Download, FileDown} from 'lucide-react'
 import type {Feature} from '../../shell/feature'
 import {documentType, type Content} from '../../store/document-store'
 import {ExportButton} from './ExportButton'
+import {ExportTitleButton} from './ExportTitleButton'
 import {ExportDialog} from './ExportDialog'
 import {ExportManyDialog} from './ExportManyDialog'
 import {useExportStore} from './export-store'
@@ -43,5 +44,6 @@ export function exporting(formats: readonly ExportFormat<Content>[]): Feature {
         dialogs: [ExportDialog, ExportManyDialog],
         ownsKeyboard: () => useExportStore.getState().dialog !== null,
         DocumentActions: ExportButton,
+        TitleBarActions: ExportTitleButton,
     }
 }

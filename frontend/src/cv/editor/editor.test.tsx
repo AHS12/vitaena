@@ -1,0 +1,189 @@
+import {cleanup, fireEvent, render, screen, within} from '@testing-library/react'
+import {useState} from 'react'
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
+import {BulletList} from '../../components/BulletList'
+import {SplitPane} from '../../components/SplitPane'
+import {TagInput} from '../../components/TagInput'
+import {useDocumentStore} from '../../store/document-store'
+import {CvEditor} from '../CvEditor'
+import {sampleCv} from '../sample'
+import {emailWarning, entryWords, linkWarning, moveSection, newSection, updateEntry} from './edit-ops'
+
+// The pages are Typst's job, tested on their own; here only the editor matters.
+vi.mock('../typst/engine', () => ({preview: async () => null, pdf: async () => new Uint8Array()}))
+
+afterEach(cleanup)
+
+describe('changes to a CV', () => {
+    it('moves a section and leaves the others in order', () => {
+        const cv = sampleCv()
+        const moved = moveSection(cv, 4, 0)
+
+        expect(moved.sections.map((section) => section.title)).toEqual(['Skills', 'Summary', 'Experience', 'Education', 'Projects'])
+        expect(cv.sections[0].title).toBe('Summary')
+    })
+
+    it('changes one entry and keeps every other the same object', () => {
+        const cv = sampleCv()
+        const next = updateEntry(cv, 'experience', 'e2', {title: 'Lead Engineer'})
+        const before = cv.sections[1]
+        const after = next.sections[1]
+
+        expect(after.kind === 'entries' && after.entries[1].title).toBe('Lead Engineer')
+        expect(before.kind === 'entries' && after.kind === 'entries' && after.entries[0]).toBe(before.kind === 'entries' && before.entries[0])
+        expect(next.sections[0]).toBe(cv.sections[0])
+    })
+
+    it('starts a new list section with one entry ready to fill in', () => {
+        const section = newSection('Projects', 'entries')
+
+        expect(section.kind === 'entries' && section.entries).toHaveLength(1)
+    })
+
+    it('names an entry\'s fields to suit its section', () => {
+        expect(entryWords('Education').title).toBe('Degree')
+        expect(entryWords('Work experience').org).toBe('Company')
+        expect(entryWords('Certifications').org).toBe('Issued by')
+    })
+
+    it('warns gently about contact details that look wrong, and says nothing about empty ones', () => {
+        expect(emailWarning('')).toBeNull()
+        expect(emailWarning('nadia@example.com')).toBeNull()
+        expect(emailWarning('nadia@')).not.toBeNull()
+        expect(linkWarning('linkedin.com/in/nadia')).toBeNull()
+        expect(linkWarning('my profile')).not.toBeNull()
+    })
+})
+
+function Bullets({initial}: {initial: string[]}) {
+    const [values, setValues] = useState(initial)
+
+    return (
+        <>
+            <BulletList label="Achievements" values={values} onChange={setValues} />
+            <output data-testid="values">{JSON.stringify(values)}</output>
+        </>
+    )
+}
+
+const valuesNow = () => JSON.parse(screen.getByTestId('values').textContent ?? '[]') as string[]
+
+describe('editing bullets', () => {
+    it('starts a new bullet at the cursor with Enter', () => {
+        render(<Bullets initial={['Shipped the app and fixed the bugs']} />)
+        const first = screen.getByRole('textbox', {name: 'Achievements, bullet 1'}) as HTMLTextAreaElement
+
+        first.setSelectionRange(16, 16)
+        fireEvent.keyDown(first, {key: 'Enter'})
+
+        expect(valuesNow()).toEqual(['Shipped the app ', 'and fixed the bugs'])
+        expect(document.activeElement).toBe(screen.getByRole('textbox', {name: 'Achievements, bullet 2'}))
+    })
+
+    it('joins a bullet to the one above with Backspace at its start', () => {
+        render(<Bullets initial={['First', 'second']} />)
+        const second = screen.getByRole('textbox', {name: 'Achievements, bullet 2'}) as HTMLTextAreaElement
+
+        second.setSelectionRange(0, 0)
+        fireEvent.keyDown(second, {key: 'Backspace'})
+
+        expect(valuesNow()).toEqual(['Firstsecond'])
+    })
+
+    it('moves a bullet with Alt and the arrows, and keeps typing in it', () => {
+        render(<Bullets initial={['One', 'Two', 'Three']} />)
+        const first = screen.getByRole('textbox', {name: 'Achievements, bullet 1'})
+
+        fireEvent.keyDown(first, {key: 'ArrowDown', altKey: true})
+
+        expect(valuesNow()).toEqual(['Two', 'One', 'Three'])
+        expect(document.activeElement).toBe(screen.getByRole('textbox', {name: 'Achievements, bullet 2'}))
+    })
+
+    it('marks a bullet long enough to be cut short', () => {
+        render(<Bullets initial={['x'.repeat(260)]} />)
+
+        expect(screen.getByText(/A highlighted bullet is long/)).toBeInTheDocument()
+    })
+})
+
+function Tags({initial}: {initial: string[]}) {
+    const [values, setValues] = useState(initial)
+
+    return (
+        <>
+            <TagInput label="Skills" values={values} onChange={setValues} />
+            <output data-testid="values">{JSON.stringify(values)}</output>
+        </>
+    )
+}
+
+describe('editing chips', () => {
+    it('adds on Enter and on a comma, and skips one already there', () => {
+        render(<Tags initial={['Go']} />)
+        const input = screen.getByRole('textbox', {name: 'Skills'})
+
+        fireEvent.change(input, {target: {value: 'SQL'}})
+        fireEvent.keyDown(input, {key: 'Enter'})
+        fireEvent.change(input, {target: {value: 'go, Rust,'}})
+
+        expect(valuesNow()).toEqual(['Go', 'SQL', 'Rust'])
+    })
+
+    it('removes with its button, and the last with Backspace in an empty box', () => {
+        render(<Tags initial={['Go', 'SQL', 'Rust']} />)
+
+        fireEvent.click(screen.getByRole('button', {name: 'Remove SQL'}))
+        fireEvent.keyDown(screen.getByRole('textbox', {name: 'Skills'}), {key: 'Backspace'})
+
+        expect(valuesNow()).toEqual(['Go'])
+    })
+})
+
+describe('the side pane', () => {
+    beforeEach(() => window.localStorage.clear())
+
+    it('folds away with Enter on the divider, and remembers that', () => {
+        const {unmount} = render(
+            <SplitPane storageKey="test.layout" label="Editor" defaultWidth={400} minWidth={300} side={() => <p>Side</p>}>
+                {() => <p>Main</p>}
+            </SplitPane>,
+        )
+
+        fireEvent.keyDown(screen.getByRole('separator'), {key: 'Enter'})
+        expect(screen.queryByText('Side')).toBeNull()
+
+        unmount()
+        render(
+            <SplitPane storageKey="test.layout" label="Editor" defaultWidth={400} minWidth={300} side={() => <p>Side</p>}>
+                {() => <p>Main</p>}
+            </SplitPane>,
+        )
+        expect(screen.queryByText('Side')).toBeNull()
+    })
+})
+
+describe('the CV editor', () => {
+    beforeEach(() => {
+        window.localStorage.clear()
+        useDocumentStore.getState().startNew()
+        useDocumentStore.getState().previewEdit(sampleCv())
+    })
+
+    it('moves a section with Alt+↓, as one step to undo', () => {
+        render(<CvEditor />)
+        const summary = screen.getByRole('region', {name: 'Summary'})
+
+        fireEvent.keyDown(within(summary).getByRole('textbox', {name: 'Section heading'}), {key: 'ArrowDown', altKey: true})
+        expect(useDocumentStore.getState().content.sections.map((section) => section.title).slice(0, 2)).toEqual(['Experience', 'Summary'])
+
+        useDocumentStore.getState().undo()
+        expect(useDocumentStore.getState().content.sections[0].title).toBe('Summary')
+    })
+
+    it('shows each entry folded, with its name and dates', () => {
+        render(<CvEditor />)
+
+        expect(screen.getByRole('button', {name: /Senior Software Engineer, Bkash Labs.*Mar 2022 – Present/})).toHaveAttribute('aria-expanded', 'false')
+    })
+})

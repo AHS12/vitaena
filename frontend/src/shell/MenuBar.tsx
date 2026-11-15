@@ -309,6 +309,7 @@ export function MenuBar({home}: {home?: boolean}) {
                 <Keys keys={shortcutFor('palette') ?? 'Ctrl+K'} />
             </button>
             <span className="menubar__drag" />
+            {home ? null : features().flatMap(({id, TitleBarActions}) => (TitleBarActions ? [<TitleBarActions key={id} />] : []))}
             {home ? null : <SaveButton />}
             <WindowControls />
         </header>
