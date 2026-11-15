@@ -3,9 +3,9 @@
 **A private, offline CV and resume builder for the desktop.** Everything stays on your
 computer: no account, no cloud and no tracking.
 
-There's no AI built in, and your CVs never leave your computer unless you send them. An MCP server is
-planned, so an AI assistant you already use, such as Claude, can read and help edit your
-CVs when you connect it.
+There's no AI built in, and your CVs never leave your computer unless you send them. An
+MCP server is planned, so an AI assistant you already use, such as Claude, can read and
+help edit your CVs when you connect it.
 
 | Classic | Modern | Professional | Sidebar | Bold |
 |---|---|---|---|---|
