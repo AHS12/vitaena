@@ -1,20 +1,20 @@
 /** The editor's side pane: you at the top, then each section, in the order they print. */
 
-import {Dropdown} from '@heroui/react'
 import {ChevronRight, Plus, Trash2} from 'lucide-react'
 import {TextField} from '../../components/fields'
 import {PhotoField} from '../../components/PhotoField'
-import {SortableList} from '../../components/Sortable'
 import {newId, type Cv, type CvPerson} from '../cv'
-import type {useCvEdit} from '../use-cv-edit'
-import {emailWarning, linkWarning, moveSection, newSection, SECTION_CHOICES, toggled, updatePerson} from './edit-ops'
+import type {Sectioned} from '../sections'
+import type {DocumentEdit} from '../use-cv-edit'
+import {CV_SECTION_CHOICES, emailWarning, linkWarning, toggled, updatePerson} from './edit-ops'
 import {useEditorStore} from './editor-store'
 import {CheckPanel} from './CheckPanel'
+import {NotSortedNote} from '../import/NotSortedNote'
 import {StylePanel, TemplatesPanel} from './DesignPanel'
-import {SectionPanel} from './SectionPanel'
+import {SectionList} from './SectionList'
 import {ShowParts} from './ShowParts'
 
-type Edit = ReturnType<typeof useCvEdit>
+type Edit = DocumentEdit<Cv>
 
 const PERSON = 'person'
 
@@ -84,67 +84,6 @@ function PersonPanel({person, edit}: {person: CvPerson; edit: Edit}) {
     )
 }
 
-function AddSection({cv, edit}: {cv: Cv; edit: Edit}) {
-    const openEntry = useEditorStore((state) => state.openEntry)
-    const taken = new Set(cv.sections.map((section) => section.title.trim().toLowerCase()))
-
-    const add = (title: string, kind: Cv['sections'][number]['kind']) => {
-        const section = newSection(title, kind)
-
-        if (section.kind === 'entries') {
-            section.entries.forEach((entry) => openEntry(entry.id))
-        }
-
-        edit.act('add section', (current) => ({...current, sections: [...current.sections, section]}))
-    }
-
-    return (
-        <Dropdown>
-            <Dropdown.Trigger className="button add-section">
-                <Plus size={13} aria-hidden="true" />
-                Add a section
-            </Dropdown.Trigger>
-            <Dropdown.Popover className="menu-popover" placement="bottom start" offset={4}>
-                <Dropdown.Menu
-                    className="menu-list"
-                    aria-label="Add a section"
-                    onAction={(key) => {
-                        const id = String(key)
-
-                        if (id === 'custom-text') {
-                            add('Custom section', 'text')
-                        } else if (id === 'custom-list') {
-                            add('Custom section', 'entries')
-                        } else {
-                            const choice = SECTION_CHOICES.find((item) => item.title === id)
-
-                            if (choice) {
-                                add(choice.title, choice.kind)
-                            }
-                        }
-                    }}
-                    disabledKeys={SECTION_CHOICES.filter((choice) => taken.has(choice.title.toLowerCase())).map((choice) => choice.title)}
-                >
-                    {[
-                        ...SECTION_CHOICES.map((choice) => (
-                            <Dropdown.Item key={choice.title} id={choice.title} textValue={choice.title} className="menu-item">
-                                <span className="menu-item__label">{choice.title}</span>
-                            </Dropdown.Item>
-                        )),
-                        <Dropdown.Item key="divider" id="divider" isDisabled className="menu-divider" textValue="" aria-hidden="true" />,
-                        <Dropdown.Item key="custom-text" id="custom-text" textValue="Custom text" className="menu-item">
-                            <span className="menu-item__label">Custom: a paragraph</span>
-                        </Dropdown.Item>,
-                        <Dropdown.Item key="custom-list" id="custom-list" textValue="Custom list" className="menu-item">
-                            <span className="menu-item__label">Custom: a list of entries</span>
-                        </Dropdown.Item>,
-                    ]}
-                </Dropdown.Menu>
-            </Dropdown.Popover>
-        </Dropdown>
-    )
-}
-
 export function CvSidebar({cv, edit, onAtsMode}: {cv: Cv; edit: Edit; onAtsMode(): void}) {
     const tab = useEditorStore((state) => state.tab)
     const setTab = useEditorStore((state) => state.setTab)
@@ -168,18 +107,9 @@ export function CvSidebar({cv, edit, onAtsMode}: {cv: Cv; edit: Edit; onAtsMode(
 function ContentPanel({cv, edit}: {cv: Cv; edit: Edit}) {
     return (
         <>
+            <NotSortedNote doc={cv} />
             <PersonPanel person={cv.person} edit={edit} />
-            <SortableList
-                items={cv.sections}
-                idOf={(section) => section.id}
-                labelOf={(section) => section.title || 'section'}
-                className="section-list"
-                onMove={(from, to) => edit.act('move section', (current) => moveSection(current, from, to))}
-            >
-                {(section, _, handle) => <SectionPanel section={section} handle={handle} edit={edit} />}
-            </SortableList>
-            <AddSection cv={cv} edit={edit} />
-            <p className="cv-sidebar__tip">Drag the grips, or press Alt+↑/↓, to change the order. Undo with Ctrl+Z.</p>
+            <SectionList doc={cv} edit={edit as DocumentEdit<Sectioned>} choices={CV_SECTION_CHOICES} />
         </>
     )
 }

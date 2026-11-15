@@ -37,8 +37,9 @@ for the line to use.
 
 ## What a change has to respect
 
-**The shell stays generic.** Code outside `frontend/src/cv` doesn't know what a CV is. It
-talks about documents, and asks `documentType` for the word to show.
+**The shell stays generic.** Code outside `frontend/src/cv` and `frontend/src/biodata`
+doesn't know what a CV or a biodata is. It talks about documents, and asks `store/document-types.ts` for the word to show: the open
+document's own type (`typeInHand`), or `libraryWords()` for documents all together.
 
 **Optional features stay removable.** Nothing outside `frontend/src/features` imports a
 feature, and nothing outside a feature's Go package imports that package except
@@ -61,7 +62,7 @@ set in code uses `rem` or `uiScale()`. Check your change at more than 100% inter
 including anything under the GPL or a paid license. The bundled fonts come from npm
 packages under the SIL Open Font License.
 
-**Every template passes the screening test.** `frontend/src/cv/templates/ats.test.ts` lays
+**Every template passes the screening test.** `frontend/src/cv/templates/ats.typst.test.ts` lays
 each template out, reads the text back from the PDF, and checks its order, dates and
 contact details. A new template is listed in `templates.ts` and passes it.
 
@@ -75,7 +76,8 @@ contact details. A new template is listed in `templates.ts` and passes it.
 | `frontend/src/platform` | The only code that calls Go |
 | `frontend/src/shell` | The menu bar, palette, settings, pages and the feature registry |
 | `frontend/src/features` | Optional features |
-| `frontend/src/cv` | The CV: document type, Typst engine, templates |
+| `frontend/src/cv` | The CV: document type, Typst engine, templates, and the editor parts every type shares |
+| `frontend/src/biodata` | The biodata: document type, editor, templates |
 | `build` | Each system's build files: Windows installer, Mac app, Linux packages |
 | `.github/workflows` | Release builds for every system, and the Linux test build |
 | `tools/appinfo` | Renames the app, sets the version, checks the build files |

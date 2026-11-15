@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest'
-import {groupByTime, matchesSearch, sortDocuments, summarizeDocument, timeGroupOf, UNREADABLE_NAME, type ListedDocument} from './document-summary'
+import {EVERY_TYPE, groupByTime, matchesSearch, matchesType, sortDocuments, summarizeDocument, timeGroupOf, UNREADABLE_NAME, type ListedDocument} from './document-summary'
 
 const fileOf = (fields: Record<string, unknown>) =>
     JSON.stringify({
@@ -94,5 +94,14 @@ describe('searching documents', () => {
     it('matches part of a name, ignoring case', () => {
         expect(matchesSearch(listed('a', 'Weekly Shopping', ''), 'shop')).toBe(true)
         expect(matchesSearch(listed('a', 'Weekly Shopping', ''), 'garden')).toBe(false)
+    })
+})
+
+describe('showing one type of document', () => {
+    it('keeps only documents of that kind, or every one when asked for all', () => {
+        expect(matchesType({kind: 'cv'}, 'cv')).toBe(true)
+        expect(matchesType({kind: 'biodata'}, 'cv')).toBe(false)
+        expect(matchesType({kind: null}, 'cv')).toBe(false)
+        expect(matchesType({kind: null}, EVERY_TYPE)).toBe(true)
     })
 })

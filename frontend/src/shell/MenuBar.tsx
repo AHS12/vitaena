@@ -146,9 +146,36 @@ function MenuEntries({items, onDone}: {items: readonly (string | null)[]; onDone
 
 function Menus() {
     const [open, setOpen] = useState<string | null>(null)
+    const bar = useRef<HTMLElement>(null)
+
+    // A menu that lets you move along the bar closes only when focus leaves it, and a Mac's
+    // web view doesn't move focus to what you click. So a press anywhere else closes it.
+    useEffect(() => {
+        if (open === null) {
+            return
+        }
+
+        const close = (event: PointerEvent) => {
+            const target = event.target as Element | null
+
+            if (!target?.closest?.('.menu-popover') && !bar.current?.contains(target)) {
+                setOpen(null)
+            }
+        }
+
+        const leave = () => setOpen(null)
+
+        document.addEventListener('pointerdown', close, true)
+        window.addEventListener('blur', leave)
+
+        return () => {
+            document.removeEventListener('pointerdown', close, true)
+            window.removeEventListener('blur', leave)
+        }
+    }, [open])
 
     return (
-        <nav className="menus" aria-label="Menu">
+        <nav className="menus" aria-label="Menu" ref={bar}>
             {MENUS.map(({title, items}) => (
                 <Dropdown
                     key={title}

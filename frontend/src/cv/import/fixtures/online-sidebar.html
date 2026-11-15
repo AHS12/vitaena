@@ -1,0 +1,87 @@
+<!doctype html>
+<!--
+  An invented CV laid out as online makers often do: a dark column on the left with
+  contact details under one-word labels, letter-spaced headings, and each job's years in
+  a margin beside it. Printed by scripts/import-fixtures.mjs.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Alex Doe</title>
+<style>
+    @font-face { font-family: Inter; font-weight: 400; src: url('../../../../node_modules/@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf'); }
+    @font-face { font-family: Inter; font-weight: 700; src: url('../../../../node_modules/@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf'); }
+    @page { size: A4; margin: 0; }
+    body { margin: 0; font-family: Inter; font-size: 9.5pt; color: #222; line-height: 1.4; }
+    .page { display: grid; grid-template-columns: 62mm 1fr; min-height: 297mm; }
+    .side { background: #23395b; color: #fff; padding: 16mm 7mm; }
+    .main { padding: 16mm 12mm; }
+    h2 { font-size: 10pt; font-weight: 700; letter-spacing: 0.3em; margin: 14pt 0 6pt; }
+    .side h2 { margin-top: 0; }
+    .label { font-weight: 700; margin: 6pt 0 0; }
+    p { margin: 0; }
+    .name { font-size: 30pt; font-weight: 700; margin: 0; letter-spacing: 0.02em; }
+    .headline { font-size: 11pt; letter-spacing: 0.25em; margin: 4pt 0 10pt; color: #555; }
+    .job { display: grid; grid-template-columns: 22mm 1fr; margin-top: 8pt; }
+    .years { color: #777; font-size: 8.5pt; }
+    ul { margin: 2pt 0 0 12pt; padding: 0; }
+</style>
+</head>
+<body>
+<div class="page">
+    <div class="side">
+        <h2>CONTACT</h2>
+        <p class="label">Phone</p>
+        <p>+1 555 0142</p>
+        <p class="label">Email</p>
+        <p>alex.doe@example.com</p>
+        <p class="label">Address</p>
+        <p>Portland, Oregon</p>
+        <h2>SKILLS</h2>
+        <p>Brand identity</p>
+        <p>Typography</p>
+        <p>Figma</p>
+        <p>Illustration</p>
+        <h2>LANGUAGES</h2>
+        <p>Spanish — Fluent</p>
+        <p>German — Basic</p>
+    </div>
+    <div class="main">
+        <p class="name">Alex Doe</p>
+        <p class="headline">GRAPHIC DESIGNER</p>
+        <h2>ABOUT ME</h2>
+        <p>Designer who turns rough ideas into brands people remember, for shops, studios and charities.</p>
+        <h2>EXPERIENCE</h2>
+        <div class="job">
+            <p class="years">2019 - 2024</p>
+            <div>
+                <p><b>Senior Designer</b></p>
+                <p>Lantern Studio</p>
+                <ul>
+                    <li>Led brand work for 30 clients, from logo to shop front.</li>
+                    <li>Mentored two junior designers.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="job">
+            <p class="years">2016 - 2019</p>
+            <div>
+                <p><b>Designer</b></p>
+                <p>Oakleaf Print</p>
+                <ul>
+                    <li>Designed packaging for a range of local food brands.</li>
+                </ul>
+            </div>
+        </div>
+        <h2>EDUCATION</h2>
+        <div class="job">
+            <p class="years">2012 - 2016</p>
+            <div>
+                <p><b>BA Graphic Design</b></p>
+                <p>Riverside College of Art</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,8 +1,10 @@
-// Pictures of the sample CV in every template, for the README and the website (which
-// lives in its own repository), made by the same Typst compiler, fonts and templates as
-// the app. Run `make previews` after changing a template, so no picture goes stale.
+// Pictures of the sample CV and the sample biodata in every template, for the README and
+// the website (which lives in its own repository), made by the same Typst compiler,
+// fonts and templates as the app. Run `make previews` after changing a template, so no
+// picture goes stale.
 //
-//   docs/assets/templates/<template>.png   page 1, 900 px wide
+//   docs/assets/templates/<template>.png           a CV template, page 1, 900 px wide
+//   docs/assets/templates/biodata-<template>.png   a biodata template, the same
 
 import {mkdirSync, readFileSync, writeFileSync} from 'node:fs'
 import {createRequire} from 'node:module'
@@ -20,7 +22,10 @@ const {sampleCv} = await jiti.import('../src/cv/sample.ts')
 const {renderModel} = await jiti.import('../src/cv/render-model.ts')
 const {CV_TEMPLATES} = await jiti.import('../src/cv/templates/templates.ts')
 const {CV_FONTS} = await jiti.import('../src/cv/fonts.ts')
-const {withPhotoFile} = await jiti.import('../src/cv/typst/photo.ts')
+const {withImageFiles} = await jiti.import('../src/cv/typst/images.ts')
+const {sampleBiodata} = await jiti.import('../src/biodata/sample.ts')
+const {biodataRenderModel} = await jiti.import('../src/biodata/render-model.ts')
+const {BIODATA_TEMPLATES} = await jiti.import('../src/biodata/templates/templates.ts')
 
 /** Each template in a colour of its own, so the gallery doesn't look like one template four times. */
 const LOOKS = {academic: {accent: '#3b3b6d', font: 'source-serif-4'}, professional: {accent: '#2563eb'}, classic: {accent: '#1f4e79'}, modern: {accent: '#22706d'}, minimal: {accent: '#7a1f4b', font: 'source-serif-4'}, compact: {accent: '#2e6b3e', font: 'ibm-plex-sans'}, executive: {accent: '#5b4636', font: 'eb-garamond'}, bold: {accent: '#b4442c'}, timeline: {accent: '#0f766e', font: 'lato'}, sidebar: {accent: '#1e3a5f'}}
@@ -29,6 +34,14 @@ const WIDTH = 900
 /** A plain drawn silhouette, so templates with a photo show one without a real face. */
 const AVATAR = `data:image/png;base64,${new Resvg(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#c9d6e3"/><circle cx="100" cy="78" r="38" fill="#8aa1b8"/><path d="M30 200c6-48 36-70 70-70s64 22 70 70z" fill="#8aa1b8"/></svg>`,
+    {fitTo: {mode: 'width', value: 200}},
+)
+    .render()
+    .asPng()
+    .toString('base64')}`
+/** The same, standing, for the full-length photo a biodata may have. */
+const STANDING = `data:image/png;base64,${new Resvg(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400"><rect width="200" height="400" fill="#c9d6e3"/><circle cx="100" cy="62" r="30" fill="#8aa1b8"/><path d="M58 400l8-230c4-48 64-48 68 0l8 230z" fill="#8aa1b8"/></svg>`,
     {fitTo: {mode: 'width', value: 200}},
 )
     .render()
@@ -53,18 +66,16 @@ await renderer.init({getModule: () => bytes('@myriaddreamin/typst-ts-renderer/pk
 
 mkdirSync(out, {recursive: true})
 
-for (const template of CV_TEMPLATES) {
-    const cv = sampleCv()
-    const person = WITH_PHOTO.has(template.id) ? {...cv.person, photo: AVATAR} : cv.person
-    const full = renderModel({...cv, person, sections: [...cv.sections, ...(EXTRA[template.id] ?? [])], design: {...cv.design, ...LOOKS[template.id], template: template.id}})
-    const {model, file} = withPhotoFile(full)
+/** Page 1 of a template, laid out with its data, as a PNG. */
+async function picture(source, dataPath, full) {
+    const {model, files} = withImageFiles(full)
 
-    if (file) {
+    for (const file of files) {
         compiler.mapShadow(file.path, file.bytes)
     }
 
-    compiler.addSource('/main.typ', readFileSync(here(`../src/cv/templates/${template.id}.typ`), 'utf8'))
-    compiler.mapShadow('/cv.json', new TextEncoder().encode(JSON.stringify(model)))
+    compiler.addSource('/main.typ', readFileSync(source, 'utf8'))
+    compiler.mapShadow(dataPath, new TextEncoder().encode(JSON.stringify(model)))
 
     const vector = (await compiler.compile({mainFilePath: '/main.typ', format: 0})).result
     const svg = await renderer.runWithSession(async (session) => {
@@ -82,8 +93,24 @@ for (const template of CV_TEMPLATES) {
         // Without them, each glyph inherits the fill set on its group, which is the same colour.
         .replace(/(fill|stroke): *var\(--[a-z_]+\);?/g, '')
     const page = still.replace(/<svg([^>]*?)viewBox="[^"]*"([^>]*?)width="[^"]*"([^>]*?)height="[^"]*"/, `<svg$1viewBox="0 0 ${pageWidth} ${pageHeight}"$2width="${pageWidth}"$3height="${pageHeight}"`)
-    const png = new Resvg(page, {fitTo: {mode: 'width', value: WIDTH}, background: '#ffffff'}).render().asPng()
 
-    writeFileSync(`${out}${template.id}.png`, png)
+    return new Resvg(page, {fitTo: {mode: 'width', value: WIDTH}, background: '#ffffff'}).render().asPng()
+}
+
+for (const template of CV_TEMPLATES) {
+    const cv = sampleCv()
+    const person = WITH_PHOTO.has(template.id) ? {...cv.person, photo: AVATAR} : cv.person
+    const full = renderModel({...cv, person, sections: [...cv.sections, ...(EXTRA[template.id] ?? [])], design: {...cv.design, ...LOOKS[template.id], template: template.id}})
+
+    writeFileSync(`${out}${template.id}.png`, await picture(here(`../src/cv/templates/${template.id}.typ`), '/cv.json', full))
     console.log(`Made docs/assets/templates/${template.id}.png`)
+}
+
+for (const template of BIODATA_TEMPLATES) {
+    const biodata = sampleBiodata()
+    const person = {...biodata.person, photo: AVATAR, fullPhoto: template.id === 'portrait' ? STANDING : ''}
+    const full = biodataRenderModel({...biodata, person, design: {...biodata.design, template: template.id, border: template.border}})
+
+    writeFileSync(`${out}biodata-${template.id}.png`, await picture(here(`../src/biodata/templates/${template.id}.typ`), '/biodata.json', full))
+    console.log(`Made docs/assets/templates/biodata-${template.id}.png`)
 }

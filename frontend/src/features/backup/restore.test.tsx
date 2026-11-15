@@ -64,14 +64,14 @@ describe('restoring from a backup', () => {
         expect(within(fresh).getByRole('checkbox', {name: 'Ideas'})).toHaveAttribute('aria-checked', 'true')
         expect(within(different).getByRole('checkbox', {name: 'Shopping'})).toHaveAttribute('aria-checked', 'true')
         expect(screen.queryByRole('checkbox', {name: 'Recipes'})).toBeNull()
-        expect(screen.getByText(/1 CV is already here/)).toBeInTheDocument()
-        expect(screen.getByRole('button', {name: 'Restore 2 CVs'})).toBeEnabled()
+        expect(screen.getByText(/1 document is already here/)).toBeInTheDocument()
+        expect(screen.getByRole('button', {name: 'Restore 2 documents'})).toBeEnabled()
     })
 
     it('brings in a document that differs as a renamed second copy', async () => {
         await openTheBackup()
 
-        fireEvent.click(screen.getByRole('button', {name: 'Restore 2 CVs'}))
+        fireEvent.click(screen.getByRole('button', {name: 'Restore 2 documents'}))
 
         await waitFor(() => expect(app.RestoreFromHolding).toHaveBeenCalled())
 
@@ -82,7 +82,7 @@ describe('restoring from a backup', () => {
         expect(choices[1].copyId).not.toBe('')
         expect(JSON.parse(choices[1].copyContents).name).toBe('Shopping (from backup)')
 
-        await waitFor(() => expect(useDocumentStore.getState().toast?.message).toBe('Restored 2 CVs'))
+        await waitFor(() => expect(useDocumentStore.getState().toast?.message).toBe('Restored 2 documents'))
         expect(app.ClearHolding).toHaveBeenCalled()
         expect(useBackupStore.getState().restoring).toBeNull()
     })
@@ -91,7 +91,7 @@ describe('restoring from a backup', () => {
         await openTheBackup()
 
         fireEvent.click(screen.getByRole('checkbox', {name: 'Shopping'}))
-        fireEvent.click(screen.getByRole('button', {name: 'Restore 1 CV'}))
+        fireEvent.click(screen.getByRole('button', {name: 'Restore 1 document'}))
 
         await waitFor(() => expect(app.RestoreFromHolding).toHaveBeenCalledWith([{id: 'ideas', copyId: '', copyContents: ''}]))
     })
@@ -133,7 +133,7 @@ describe('backing up to a file', () => {
         const [path] = app.BackUpToFile.mock.calls[0] as [string, number[]]
 
         expect(path).toBe('C:/backups/my-backup.zip')
-        expect(useDocumentStore.getState().toast).toMatchObject({message: 'Backed up 3 CVs', folder: 'C:/backups'})
+        expect(useDocumentStore.getState().toast).toMatchObject({message: 'Backed up 3 documents', folder: 'C:/backups'})
     })
 
     it('names the file by the local date', () => {

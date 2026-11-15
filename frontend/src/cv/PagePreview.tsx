@@ -9,13 +9,10 @@
  */
 
 import {Minus, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Plus} from 'lucide-react'
-import {useEffect, useMemo, useRef, useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 import {Segmented} from '../components/Segmented'
 import type {SplitPaneHandle} from '../components/SplitPane'
-import {useDocumentStore} from '../store/document-store'
-import type {Cv} from './cv'
-import {renderModel} from './render-model'
-import {sampleCv} from './sample'
+import type {PageModel} from './typst/images'
 
 const SETTLE_MS = 120
 /** A page's width at 100%, in CSS pixels: an A4 page at about its real size. */
@@ -23,6 +20,7 @@ const PAGE_PX = 794
 /** Fit never makes a page bigger than this, so a wide window doesn't blow it up. */
 const FIT_MAX = 1.25
 const ZOOMS = [0.5, 0.67, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 2]
+/** Room either side of a fitted page, a scrollbar's width included. */
 const GUTTER = 48
 
 type State =
@@ -37,16 +35,39 @@ export interface AtsModeControl {
     set(on: boolean): void
 }
 
-export function CvPreview({left, right, ats, onExample}: {left: SplitPaneHandle; right: SplitPaneHandle; ats: AtsModeControl; onExample(cv: Cv): void}) {
-    const content = useDocumentStore((state) => state.content)
-    const model = useMemo(() => renderModel(content), [content])
-    const template = content.design.template
+/** What the pages say before anything is written, and how to see a finished one. */
+export interface EmptyPages {
+    readonly title: string
+    readonly text: string
+    onExample(): void
+}
+
+/**
+ * Any document's pages: its render model laid out in its template. `empty` is shown over
+ * the pages while nothing the person wrote shows on them.
+ */
+export function PagePreview({
+    left,
+    right,
+    model,
+    template,
+    paper,
+    empty,
+    ats,
+}: {
+    left: SplitPaneHandle
+    right: SplitPaneHandle
+    model: PageModel
+    template: string
+    paper: string
+    empty: EmptyPages | null
+    ats?: AtsModeControl
+}) {
     const pagesRef = useRef<HTMLDivElement>(null)
     const scrollRef = useRef<HTMLDivElement>(null)
     const [state, setState] = useState<State>({kind: 'starting'})
     const [zoom, setZoom] = useState<number | 'fit'>('fit')
     const [available, setAvailable] = useState(PAGE_PX)
-    const empty = !model.name && !model.headline && model.contact.length === 0 && model.sections.length === 0
 
     useEffect(() => {
         const scroll = scrollRef.current
@@ -56,7 +77,16 @@ export function CvPreview({left, right, ats, onExample}: {left: SplitPaneHandle;
             return
         }
 
-        const observer = new ResizeObserver(([entry]) => setAvailable(Math.max(200, entry.contentRect.width - GUTTER)))
+        // The width outside the scrollbar, not inside it: fitting to the inside shrinks the
+        // page when a scrollbar appears, which can make it fit again and the scrollbar go,
+        // over and over, wherever scrollbars take room, as on a Mac with a mouse.
+        const measure = () => {
+            const style = getComputedStyle(scroll)
+            const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
+
+            setAvailable(Math.max(200, scroll.offsetWidth - padding - GUTTER))
+        }
+        const observer = new ResizeObserver(measure)
 
         observer.observe(scroll)
         return () => observer.disconnect()
@@ -72,7 +102,7 @@ export function CvPreview({left, right, ats, onExample}: {left: SplitPaneHandle;
                         return
                     }
 
-                    // The SVG is the compiler's own output, made from the CV's text by Typst:
+                    // The SVG is the compiler's own output, made from the document's text by Typst:
                     // text in it is escaped, so nothing a person types can become markup.
                     pagesRef.current.innerHTML = result.svg
                     setState({kind: 'ready', pages: result.pages})
@@ -113,9 +143,9 @@ export function CvPreview({left, right, ats, onExample}: {left: SplitPaneHandle;
                 </button>
                 <span className="cv-preview__facts" role="status">
                     {state.kind === 'starting' ? 'Laying out…' : state.kind === 'failed' ? "Couldn't lay out the pages" : `${state.pages} ${state.pages === 1 ? 'page' : 'pages'}`}
-                    {state.kind === 'ready' ? ` · ${content.design.paper === 'a4' ? 'A4' : 'US Letter'}` : null}
+                    {state.kind === 'ready' ? ` · ${paper === 'a4' ? 'A4' : 'US Letter'}` : null}
                 </span>
-                {ats.available ? (
+                {ats?.available ? (
                     <span className="cv-preview__ats" title="One column is read in order by every screening system. Use it when you apply through an online form.">
                         <Segmented
                             label="Layout"
@@ -155,9 +185,9 @@ export function CvPreview({left, right, ats, onExample}: {left: SplitPaneHandle;
                     <div className="cv-preview__pages" ref={pagesRef} />
                     {empty ? (
                         <div className="cv-preview__empty">
-                            <p className="cv-preview__empty-title">Your CV appears here as you type</p>
-                            <p>Start with your name on the left, or look at a finished one first.</p>
-                            <button type="button" className="button" onClick={() => onExample(sampleCv())}>
+                            <p className="cv-preview__empty-title">{empty.title}</p>
+                            <p>{empty.text}</p>
+                            <button type="button" className="button" onClick={empty.onExample}>
                                 Fill with an example
                             </button>
                         </div>

@@ -8,11 +8,12 @@
 
 import type {LucideIcon} from 'lucide-react'
 import {
-    Check, FilePlus, FolderOpen, Home, Keyboard, Library, LogOut, Redo2, RefreshCw, Save, Search, Settings, Sparkles, SunMoon, Trash2, Undo2,
+    Check, FileInput, FilePlus, FolderOpen, Home, Keyboard, Library, LogOut, Redo2, RefreshCw, Save, Search, Settings, Sparkles, SunMoon, Trash2, Undo2,
 } from 'lucide-react'
 import {APP} from '../core/app'
 import {canRedo, canUndo} from '../core/history/history'
-import {documentType, hasUnsavedChanges, useDocumentStore, type DocumentStore} from '../store/document-store'
+import {hasUnsavedChanges, typeInHand, useDocumentStore, type DocumentStore} from '../store/document-store'
+import {defaultType, DOCUMENT_TYPES, libraryWords} from '../store/document-types'
 import {settingValue, useSettingsStore} from '../store/settings-store'
 import {useUiStore} from '../store/ui-store'
 import {useUpdateStore} from '../store/update-store'
@@ -59,7 +60,7 @@ export function guardUnsaved(state: DocumentStore, action: string, run: () => vo
 
     useUiStore.getState().askConfirm({
         title: `${action}?`,
-        text: `You have unsaved changes to this ${documentType.noun}. Undo can't bring them back after this.`,
+        text: `You have unsaved changes to this ${typeInHand(state).noun}. Undo can't bring them back after this.`,
         action,
         danger: true,
         run,
@@ -76,17 +77,29 @@ const togglePalette = () => {
 const SHELL_COMMANDS: readonly Command[] = [
     {
         id: 'new',
-        label: `New ${documentType.noun}`,
+        label: `New ${defaultType().noun}`,
         group: 'File',
         shortcut: 'Ctrl+N',
         icon: FilePlus,
         global: true,
         keywords: 'start create blank empty',
-        run: (state) => guardUnsaved(state, `Start a new ${documentType.noun}`, () => state.startNew()),
+        run: (state) => guardUnsaved(state, `Start a new ${defaultType().noun}`, () => state.startNew()),
     },
+    // Every other type gets one too, without a key of its own.
+    ...DOCUMENT_TYPES.filter((type) => type !== defaultType()).map(
+        (type): Command => ({
+            id: `new-${type.kind}`,
+            label: `New ${type.noun}`,
+            group: 'File',
+            icon: FilePlus,
+            global: true,
+            keywords: 'start create blank empty',
+            run: (state) => guardUnsaved(state, `Start a new ${type.noun}`, () => state.startNew(undefined, type.kind)),
+        }),
+    ),
     {
         id: 'documents',
-        label: `Your ${documentType.noun}s`,
+        label: `Your ${libraryWords().plural}`,
         group: 'File',
         shortcut: 'Ctrl+G',
         icon: Library,
@@ -112,6 +125,15 @@ const SHELL_COMMANDS: readonly Command[] = [
         global: true,
         keywords: 'load read disk json dialog',
         run: (state) => guardUnsaved(state, 'Open a file', () => void state.openFromFile()),
+    },
+    {
+        id: 'import-cv',
+        label: 'Import a CV from a PDF or Word file…',
+        group: 'File',
+        icon: FileInput,
+        global: true,
+        keywords: 'pdf word docx import existing resume convert read upload bring in',
+        run: (state) => guardUnsaved(state, 'Import a CV', () => void state.importCv()),
     },
     {
         id: 'save',

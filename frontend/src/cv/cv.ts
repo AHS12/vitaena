@@ -1,5 +1,5 @@
 /**
- * The app's one type of document: a CV.
+ * A CV: the app's first type of document.
  *
  * A CV is the person, an ordered list of sections, and how it looks. Sections are one
  * list rather than a fixed field each, so reordering, hiding and adding a custom
@@ -10,9 +10,12 @@ import {z} from 'zod'
 import type {DocumentType} from '../core/document/document-file'
 import {cvFromV1} from './import-v1'
 import {withWordLevels} from './levels'
+import {detailsSection, emptyEntry, entriesSection, newId, tagsSection, textSection, type DetailRow, type Entry, type TagGroup} from './sections'
 
-/** A month as "2023-01", or "" when not given. */
-const month = z.union([z.literal(''), z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/)])
+export {emptyEntry, newId}
+
+/** The kinds of section a CV can have. */
+const sectionSchema = z.discriminatedUnion('kind', [textSection, entriesSection, tagsSection, detailsSection])
 
 const linkSchema = z.object({
     id: z.string().min(1),
@@ -32,46 +35,6 @@ const personSchema = z.object({
     /** Details kept but left off the page. */
     hide: z.array(z.enum(['email', 'phone', 'location', 'photo'])),
 })
-
-const entrySchema = z.object({
-    id: z.string().min(1),
-    visible: z.boolean(),
-    /** The role, degree or project name. */
-    title: z.string(),
-    /** The company, school or client. */
-    org: z.string(),
-    location: z.string(),
-    start: month,
-    end: month,
-    current: z.boolean(),
-    summary: z.string(),
-    bullets: z.array(z.string()),
-    /** Parts kept but left off the page. */
-    hide: z.array(z.enum(['location', 'dates', 'summary'])),
-})
-
-const tagGroupSchema = z.object({
-    id: z.string().min(1),
-    visible: z.boolean(),
-    label: z.string(),
-    items: z.array(z.string()),
-    /** Draw a level beside each item, as for languages. */
-    showLevels: z.boolean(),
-    /** Each item's level, 0 to 5 in half steps, in the items' order. 0 draws no level. */
-    levels: z.array(z.number().min(0).max(5).multipleOf(0.5)),
-})
-
-const sectionBase = {
-    id: z.string().min(1),
-    title: z.string(),
-    visible: z.boolean(),
-}
-
-const sectionSchema = z.discriminatedUnion('kind', [
-    z.object({...sectionBase, kind: z.literal('text'), text: z.string()}),
-    z.object({...sectionBase, kind: z.literal('entries'), entries: z.array(entrySchema)}),
-    z.object({...sectionBase, kind: z.literal('tags'), groups: z.array(tagGroupSchema)}),
-])
 
 const designSchema = z.object({
     template: z.string().min(1),
@@ -97,30 +60,12 @@ const cvSchema = z.object({
 export type Cv = z.infer<typeof cvSchema>
 export type CvPerson = Cv['person']
 export type CvSection = Cv['sections'][number]
-export type CvEntry = z.infer<typeof entrySchema>
-export type CvTagGroup = z.infer<typeof tagGroupSchema>
+export type CvEntry = Entry
+export type CvTagGroup = TagGroup
+export type CvDetailRow = DetailRow
 export type CvDesign = Cv['design']
 export type EntryPart = CvEntry['hide'][number]
 export type PersonPart = CvPerson['hide'][number]
-
-let counter = 0
-
-/** An id unique within this session and, with the time in it, across files. */
-export const newId = (prefix: string): string => `${prefix}-${Date.now().toString(36)}-${(counter++).toString(36)}`
-
-export const emptyEntry = (): CvEntry => ({
-    id: newId('entry'),
-    visible: true,
-    title: '',
-    org: '',
-    location: '',
-    start: '',
-    end: '',
-    current: false,
-    summary: '',
-    bullets: [],
-    hide: [],
-})
 
 export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', font: 'inter', fontSize: 10, paper: 'a4', margins: 'normal', spacing: 'normal', atsMode: false, levelStyle: 'template'}
 
@@ -141,7 +86,7 @@ export function emptyCv(): Cv {
 export const cvType: DocumentType<Cv> = {
     kind: 'cv',
     noun: 'CV',
-    version: 7,
+    version: 8,
     content: cvSchema,
     empty: emptyCv,
     migrations: {
@@ -196,6 +141,8 @@ export const cvType: DocumentType<Cv> = {
 
             return {...cv, design: {levelStyle: 'template', ...cv.design}}
         },
+        // Version 8 added details sections. Older files have none, so nothing changes.
+        7: (content) => content,
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.
     thumbnail: async (cv) => (await import('./thumbnail')).cvThumbnail(cv),

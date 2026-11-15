@@ -12,11 +12,11 @@ body:
       label: What were you doing?
       options:
         - Installing, opening or updating the app
-        - Browsing Home or my saved CVs
-        - Editing a CV
+        - Browsing Home or my saved documents
+        - Editing a document
         - Choosing a template or changing the style
         - The page preview looks wrong
-        - Saving or opening a CV
+        - Saving or opening a document
         - Exporting a PDF, Word file or text
         - The Check tab or a screening system
         - Backing up or restoring
@@ -36,7 +36,7 @@ body:
     attributes:
       label: How can we make it happen?
       placeholder: |
-        1. Open a saved CV
+        1. Open a saved document
         2. Choose Export, then PDF
         3. Pick a folder
     validations:

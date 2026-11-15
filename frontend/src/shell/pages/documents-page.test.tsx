@@ -103,7 +103,7 @@ async function showPage() {
     await waitFor(() => expect(tile('Shopping')).toBeInTheDocument())
 }
 
-describe('Your CVs page', () => {
+describe('Your documents page', () => {
     it('lists every saved document, newest first', async () => {
         await showPage()
 
@@ -135,7 +135,7 @@ describe('Your CVs page', () => {
     it('finds a document by part of its name', async () => {
         await showPage()
 
-        fireEvent.change(screen.getByRole('textbox', {name: 'Search your CVs'}), {target: {value: 'gard'}})
+        fireEvent.change(screen.getByRole('textbox', {name: 'Search your documents'}), {target: {value: 'gard'}})
 
         expect(screen.queryByRole('button', {name: /^Shopping/})).toBeNull()
         expect(tile('Garden ideas')).toBeInTheDocument()
@@ -228,7 +228,7 @@ describe('ticking several documents', () => {
         fireEvent.click(tile('Shopping'))
         fireEvent.click(tile('Recipes'), {ctrlKey: true})
 
-        const panel = screen.getByRole('complementary', {name: '2 CVs ticked'})
+        const panel = screen.getByRole('complementary', {name: '2 documents ticked'})
 
         fireEvent.click(within(panel).getByRole('button', {name: /Remove/}))
 
@@ -241,7 +241,7 @@ describe('ticking several documents', () => {
         fireEvent.click(tile('Shopping'))
         fireEvent.click(tile('Recipes'), {shiftKey: true})
 
-        expect(screen.getByRole('complementary', {name: '3 CVs ticked'})).toBeInTheDocument()
+        expect(screen.getByRole('complementary', {name: '3 documents ticked'})).toBeInTheDocument()
     })
 
     it('removes every ticked document, and Undo brings them all back', async () => {
@@ -251,7 +251,7 @@ describe('ticking several documents', () => {
         fireEvent.click(tile('Garden ideas'), {ctrlKey: true})
         fireEvent.click(within(screen.getByRole('complementary')).getByRole('button', {name: /Remove/}))
 
-        await waitFor(() => expect(screen.getByText('Removed 2 CVs')).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByText('Removed 2 documents')).toBeInTheDocument())
         expect(app.saved.size).toBe(1)
 
         fireEvent.click(screen.getByRole('button', {name: 'Undo'}))

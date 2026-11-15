@@ -5,44 +5,32 @@
  */
 
 import './cv-editor.css'
-import type {KeyboardEvent} from 'react'
+import {useMemo} from 'react'
 import {SplitPane} from '../components/SplitPane'
 import {APP} from '../core/app'
 import {useDocumentStore} from '../store/document-store'
-import {CvPreview} from './CvPreview'
+import type {Cv} from './cv'
+import {useHistoryKeys} from './history-keys'
+import {PagePreview} from './PagePreview'
+import {renderModel} from './render-model'
+import {sampleCv} from './sample'
 import {CV_TEMPLATES} from './templates/templates'
 import {CvSidebar, DesignSidebar} from './editor/CvSidebar'
 import {useCvEdit} from './use-cv-edit'
 
 export function CvEditor() {
-    const cv = useDocumentStore((state) => state.content)
+    // The app shows this editor only while a CV is in hand.
+    const cv = useDocumentStore((state) => state.content) as Cv
     const edit = useCvEdit()
+    const model = useMemo(() => renderModel(cv), [cv])
+    const blank = !model.name && !model.headline && model.contact.length === 0 && model.sections.length === 0
     const ats = {
         available: CV_TEMPLATES.find((template) => template.id === cv.design.template)?.twoColumns === true,
         on: cv.design.atsMode,
         set: (on: boolean) => edit.act(on ? 'ATS mode on' : 'ATS mode off', (current) => ({...current, design: {...current.design, atsMode: on}})),
     }
 
-    // The document's history, not a field's own, which knows nothing of saving or of
-    // changes made elsewhere. Finishing the step first means Undo takes back the typing.
-    const onKeyDown = (event: KeyboardEvent) => {
-        const key = event.key.toLowerCase()
-
-        if (!(event.ctrlKey || event.metaKey) || (key !== 'z' && key !== 'y')) {
-            return
-        }
-
-        event.preventDefault()
-        edit.commit()
-
-        const store = useDocumentStore.getState()
-
-        if (key === 'y' || event.shiftKey) {
-            store.redo()
-        } else {
-            store.undo()
-        }
-    }
+    const onKeyDown = useHistoryKeys(edit)
 
     return (
         <main className="cv-editor" onKeyDown={onKeyDown}>
@@ -59,7 +47,25 @@ export function CvEditor() {
                         defaultCollapsed={window.innerWidth < 1200}
                         side={() => <DesignSidebar cv={cv} edit={edit} />}
                     >
-                        {(right) => <CvPreview left={left} right={right} ats={ats} onExample={(example) => edit.act('example', (current) => ({...example, design: current.design}))} />}
+                        {(right) => (
+                            <PagePreview
+                                left={left}
+                                right={right}
+                                model={model}
+                                template={cv.design.template}
+                                paper={cv.design.paper}
+                                ats={ats}
+                                empty={
+                                    blank
+                                        ? {
+                                              title: 'Your CV appears here as you type',
+                                              text: 'Start with your name on the left, or look at a finished one first.',
+                                              onExample: () => edit.act('example', (current) => ({...sampleCv(), design: current.design})),
+                                          }
+                                        : null
+                                }
+                            />
+                        )}
                     </SplitPane>
                 )}
             </SplitPane>

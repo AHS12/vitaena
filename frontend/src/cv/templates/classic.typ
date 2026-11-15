@@ -157,6 +157,13 @@
     for e in s.entries {
       entry(e)
     }
+  } else if s.kind == "details" {
+    for r in s.rows {
+      block(above: gap(0.3), below: gap(0.3))[
+        #if r.label != "" [#text(weight: "bold")[#r.label:] ]
+        #r.value
+      ]
+    }
   } else if s.kind == "tags" {
     for g in s.groups {
       if g.levels {

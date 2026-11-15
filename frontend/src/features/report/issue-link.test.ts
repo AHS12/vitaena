@@ -70,7 +70,7 @@ describe('the report as text', () => {
 
 describe('what the app fills in', () => {
     it('guesses what the person was doing from where they are', () => {
-        expect(guessAction({onHome: true})).toBe('Browsing Home or my saved CVs')
-        expect(guessAction({onHome: false})).toBe('Editing a CV')
+        expect(guessAction({onHome: true})).toBe('Browsing Home or my saved documents')
+        expect(guessAction({onHome: false})).toBe('Editing a document')
     })
 })

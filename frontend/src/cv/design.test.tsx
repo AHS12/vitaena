@@ -2,7 +2,7 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
 import {parseDocument} from '../core/document/document-file'
 import {useDocumentStore} from '../store/document-store'
-import {cvType, DEFAULT_DESIGN, emptyCv} from './cv'
+import {cvType, DEFAULT_DESIGN, emptyCv, type Cv} from './cv'
 import {CvEditor} from './CvEditor'
 import {useEditorStore} from './editor/editor-store'
 import {renderModel} from './render-model'
@@ -104,7 +104,7 @@ describe('the design panel', () => {
         fireEvent.click(screen.getByRole('tab', {name: 'Check'}))
         fireEvent.click(screen.getByRole('button', {name: 'Turn on ATS mode'}))
 
-        expect(useDocumentStore.getState().content.design.atsMode).toBe(true)
+        expect((useDocumentStore.getState().content as Cv).design.atsMode).toBe(true)
         useEditorStore.setState({tab: 'content'})
     })
 

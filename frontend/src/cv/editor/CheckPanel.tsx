@@ -6,7 +6,7 @@
 
 import {AlertTriangle, CheckCircle2, Lightbulb} from 'lucide-react'
 import {useEffect, useMemo, useState} from 'react'
-import {checkCv, type CheckLevel} from '../ats-check'
+import {checkCv, type CheckLevel, type CheckResult} from '../ats-check'
 import type {Cv} from '../cv'
 import {renderModel} from '../render-model'
 
@@ -14,6 +14,34 @@ const SETTLE_MS = 700
 
 const ICONS: Record<CheckLevel, typeof CheckCircle2> = {good: CheckCircle2, tip: Lightbulb, warning: AlertTriangle}
 const ORDER: Record<CheckLevel, number> = {warning: 0, tip: 1, good: 2}
+
+/** Advice, the most pressing first. `onAtsMode` serves a CV's one-click fix. */
+export function CheckList({results, onAtsMode}: {results: readonly CheckResult[]; onAtsMode?(): void}) {
+    const sorted = [...results].sort((a, b) => ORDER[a.level] - ORDER[b.level])
+
+    return (
+        <ul className="checks">
+            {sorted.map((result) => {
+                const Icon = ICONS[result.level]
+
+                return (
+                    <li key={result.id} className="check" data-level={result.level}>
+                        <Icon size={15} aria-hidden="true" className="check__icon" />
+                        <span className="check__body">
+                            <span className="check__title">{result.title}</span>
+                            {result.detail ? <span className="check__detail">{result.detail}</span> : null}
+                            {result.fix === 'ats-mode' && onAtsMode ? (
+                                <button type="button" className="button button--primary check__fix" onClick={onAtsMode}>
+                                    Turn on ATS mode
+                                </button>
+                            ) : null}
+                        </span>
+                    </li>
+                )
+            })}
+        </ul>
+    )
+}
 
 type Read = {readonly kind: 'reading'} | {readonly kind: 'read'; readonly pages: number; readonly text: string} | {readonly kind: 'failed'; readonly message: string}
 
@@ -46,32 +74,13 @@ export function CheckPanel({cv, onAtsMode}: {cv: Cv; onAtsMode(): void}) {
     }, [cv])
 
     const pages = read.kind === 'read' ? read.pages : null
-    const results = useMemo(() => [...checkCv(cv, pages)].sort((a, b) => ORDER[a.level] - ORDER[b.level]), [cv, pages])
+    const results = useMemo(() => checkCv(cv, pages), [cv, pages])
 
     return (
         <div className="check-panel">
             <section aria-label="Advice">
                 <h3 className="design-group__title">Before you send it</h3>
-                <ul className="checks">
-                    {results.map((result) => {
-                        const Icon = ICONS[result.level]
-
-                        return (
-                            <li key={result.id} className="check" data-level={result.level}>
-                                <Icon size={15} aria-hidden="true" className="check__icon" />
-                                <span className="check__body">
-                                    <span className="check__title">{result.title}</span>
-                                    {result.detail ? <span className="check__detail">{result.detail}</span> : null}
-                                    {result.fix === 'ats-mode' ? (
-                                        <button type="button" className="button button--primary check__fix" onClick={onAtsMode}>
-                                            Turn on ATS mode
-                                        </button>
-                                    ) : null}
-                                </span>
-                            </li>
-                        )
-                    })}
-                </ul>
+                <CheckList results={results} onAtsMode={onAtsMode} />
             </section>
             <section aria-label="What a screening system reads">
                 <h3 className="design-group__title">What a screening system reads</h3>

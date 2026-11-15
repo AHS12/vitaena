@@ -3,10 +3,10 @@
  * while a long CV is laid out. Answers one request at a time, in the order they came.
  */
 
-import type {RenderModel} from '../render-model'
+import type {PageModel} from './images'
 import {LayoutFailed, layOutPdf, layOutSvg, warmUp} from './layout'
 
-export type LayoutRequest = {readonly id: number} & ({readonly op: 'warm'} | {readonly op: 'svg' | 'pdf'; readonly model: RenderModel; readonly template: string})
+export type LayoutRequest = {readonly id: number} & ({readonly op: 'warm'} | {readonly op: 'svg' | 'pdf'; readonly model: PageModel; readonly template: string})
 
 export type LayoutReply =
     | {readonly id: number; readonly ok: true; readonly svg?: string; readonly pdf?: Uint8Array}

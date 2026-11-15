@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+  An invented CV in the plain, labelled style common for nursing, trades and public-sector
+  jobs: "Email:" and "Address:" lines, a Personal details block, skills in a table, duties
+  written as a paragraph and References. Printed by scripts/import-fixtures.mjs.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mary Doe</title>
+<style>
+    @font-face { font-family: Plex; font-weight: 400; src: url('../../../../node_modules/@expo-google-fonts/ibm-plex-sans/400Regular/IBMPlexSans_400Regular.ttf'); }
+    @font-face { font-family: Plex; font-weight: 700; src: url('../../../../node_modules/@expo-google-fonts/ibm-plex-sans/700Bold/IBMPlexSans_700Bold.ttf'); }
+    @page { size: A4; margin: 18mm; }
+    body { font-family: Plex; font-size: 10.5pt; color: #111; line-height: 1.4; }
+    .name { font-size: 20pt; font-weight: 700; margin: 0 0 6pt; }
+    p { margin: 0; }
+    h2 { font-size: 12pt; font-weight: 700; margin: 14pt 0 4pt; border-bottom: 1px solid #999; }
+    .role { font-weight: 700; margin-top: 8pt; }
+    table { border-collapse: collapse; width: 100%; }
+    td { padding: 1pt 0; width: 50%; }
+</style>
+</head>
+<body>
+    <p class="name">Mary Doe</p>
+    <p>Email: mary.doe@example.com</p>
+    <p>Phone: 01632 960 123</p>
+    <p>Address: 12 Elm Street, Springfield</p>
+
+    <h2>Personal Details</h2>
+    <p>Date of birth: 1 April 1990</p>
+    <p>Nationality: Irish</p>
+    <p>Driving licence: Full, clean</p>
+
+    <h2>Personal Statement</h2>
+    <p>Caring and organised nurse with eight years on busy surgical wards, looking for a senior post in community care.</p>
+
+    <h2>Key Skills</h2>
+    <table>
+        <tr><td>Wound care</td><td>Patient assessment</td></tr>
+        <tr><td>Medication rounds</td><td>Team leadership</td></tr>
+    </table>
+
+    <h2>Employment History</h2>
+    <p class="role">Senior Staff Nurse, St Mary's Hospital, Dublin</p>
+    <p>September 2017 – Present</p>
+    <p>Lead a team of six nurses on a 28-bed surgical ward. Plan care with doctors and families, and train new starters in wound care.</p>
+    <p class="role">Staff Nurse, Riverside General Hospital, Cork</p>
+    <p>August 2013 – August 2017</p>
+    <p>Cared for patients before and after surgery on a busy general ward.</p>
+
+    <h2>Education and Training</h2>
+    <p class="role">BSc Nursing, University of Riverside</p>
+    <p>2009 – 2013</p>
+
+    <h2>References</h2>
+    <p>Available on request.</p>
+</body>
+</html>

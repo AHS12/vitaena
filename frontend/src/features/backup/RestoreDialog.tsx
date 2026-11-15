@@ -13,7 +13,7 @@ import {FROM_BACKUP} from './restore-plan'
 import {APP} from '../../core/app'
 import {DOCUMENT_ICON, displayName, savedLabel} from '../../shell/pages/document-labels'
 import {useBackupStore, type HeldDocumentView} from './backup-store'
-import {documentType} from '../../store/document-store'
+import {libraryCount} from '../../store/document-types'
 
 const GROUPS = [
     {status: 'new', title: 'New to this computer', hint: null},
@@ -59,7 +59,6 @@ export function RestoreDialog() {
     const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set())
 
     const documents = useMemo(() => restoring?.documents ?? [], [restoring])
-    const plural = `${documentType.noun}s`
 
     // A fresh backup starts with everything worth bringing in ticked. Removed ones were removed on purpose, so they wait to be asked for.
     useEffect(() => {
@@ -116,7 +115,7 @@ export function RestoreDialog() {
 
                     {same > 0 ? (
                         <p className="dialog__hint">
-                            {same === 1 ? `1 ${documentType.noun} is` : `${same} ${plural} are`} already here, exactly as in the backup, so {same === 1 ? 'it' : 'they'} will be left alone.
+                            {`${libraryCount(same)} ${same === 1 ? 'is' : 'are'}`} already here, exactly as in the backup, so {same === 1 ? 'it' : 'they'} will be left alone.
                         </p>
                     ) : null}
                     {documents.length === 0 ? <p className="dialog__hint">This backup is empty.</p> : null}
@@ -148,7 +147,7 @@ export function RestoreDialog() {
                             disabled={busy || chosen === 0}
                             onClick={() => void restore(ticked)}
                         >
-                            {chosen === 1 ? `Restore 1 ${documentType.noun}` : `Restore ${chosen} ${plural}`}
+                            {`Restore ${libraryCount(chosen)}`}
                         </button>
                     )}
                 </div>

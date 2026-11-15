@@ -6,7 +6,8 @@
 import './export.css'
 import {Download, FileDown} from 'lucide-react'
 import type {Feature} from '../../shell/feature'
-import {documentType, type Content} from '../../store/document-store'
+import type {Content} from '../../store/document-store'
+import {libraryWords} from '../../store/document-types'
 import {ExportButton} from './ExportButton'
 import {ExportTitleButton} from './ExportTitleButton'
 import {ExportDialog} from './ExportDialog'
@@ -14,8 +15,8 @@ import {ExportManyDialog} from './ExportManyDialog'
 import {useExportStore} from './export-store'
 import type {ExportFormat} from './formats'
 
-/** The export feature, offering these formats. */
-export function exporting(formats: readonly ExportFormat<Content>[]): Feature {
+/** The export feature, offering these formats for each type of document, by its `kind`. */
+export function exporting(formats: Readonly<Record<string, readonly ExportFormat<Content>[]>>): Feature {
     useExportStore.setState({formats})
 
     return {
@@ -27,7 +28,10 @@ export function exporting(formats: readonly ExportFormat<Content>[]): Feature {
                 group: 'File',
                 shortcut: 'Ctrl+E',
                 icon: Download,
-                keywords: formats.map((format) => `${format.label} ${format.extension}`).join(' '),
+                keywords: Object.values(formats)
+                    .flat()
+                    .map((format) => `${format.label} ${format.extension}`)
+                    .join(' '),
                 run: () => useExportStore.getState().openOne(),
             },
             {
@@ -36,7 +40,7 @@ export function exporting(formats: readonly ExportFormat<Content>[]): Feature {
                 group: 'File',
                 icon: FileDown,
                 global: true,
-                keywords: `batch all several ${documentType.noun}s`,
+                keywords: `batch all several ${libraryWords().plural}`,
                 run: () => useExportStore.getState().openMany(),
             },
         ],

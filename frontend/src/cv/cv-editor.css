@@ -309,6 +309,13 @@ input.panel__title:focus {
     height: auto;
 }
 
+/* Typst's invisible text, there to be selected, is fixed in place inside the SVG. Safari,
+   the Mac's web view, places it against the window instead, so it stretches over the
+   design pane and swallows its clicks. Absolute keeps it on its page everywhere. */
+.cv-preview__pages .tsel {
+    position: absolute;
+}
+
 .cv-preview__pages .typst-page {
     filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.22));
 }
@@ -627,6 +634,18 @@ input.panel__title:focus {
 
 /* Home: start from a template */
 
+/* Home's starters, a tab for each type */
+.start-tabs {
+    padding: 0;
+    margin-bottom: var(--space-4);
+}
+
+.start-panel__note {
+    margin: 0 0 var(--space-3);
+    font: var(--text-body);
+    color: var(--text-secondary);
+}
+
 .start-templates {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -920,4 +939,122 @@ input.panel__title:focus {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px;
+}
+
+/* Details: rows of a label and its value */
+
+.detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-row {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 0.8fr) minmax(0, 1.2fr) auto;
+    align-items: center;
+    gap: 4px 6px;
+    padding: 6px 4px 6px 0;
+    border-radius: var(--radius-sm);
+    background: var(--surface-sunken);
+}
+
+.detail-row[data-hidden] {
+    opacity: 0.55;
+}
+
+.detail-row .form-field__input {
+    min-width: 0;
+    width: 100%;
+}
+
+.detail-row__label {
+    font-weight: 600;
+}
+
+.detail-row__value {
+    min-width: 0;
+}
+
+.detail-row__height {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.detail-row__unit {
+    flex: none;
+    font: var(--text-caption);
+    color: var(--text-tertiary);
+}
+
+.detail-row__actions {
+    display: flex;
+}
+
+.detail-row__show {
+    grid-column: 2 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.detail-row__preview {
+    font: var(--text-caption);
+    color: var(--text-secondary);
+}
+
+.detail-list__add {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+/* Family: relation and name, then work and a note */
+
+.member-row {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 0.8fr) minmax(0, 1.2fr) auto;
+    align-items: center;
+    gap: 4px 6px;
+    padding: 6px 4px 6px 0;
+    border-radius: var(--radius-sm);
+    background: var(--surface-sunken);
+}
+
+.member-row[data-hidden] {
+    opacity: 0.55;
+}
+
+.member-row .form-field__input {
+    min-width: 0;
+    width: 100%;
+}
+
+.member-row__relation {
+    font-weight: 600;
+}
+
+.member-row__actions {
+    display: flex;
+}
+
+.member-row__work {
+    grid-column: 2;
+}
+
+.member-row__note {
+    grid-column: 3 / -1;
+}
+
+/* Above Content after an import, while lines from the PDF wait in Not sorted. */
+.import-note {
+    margin: 0 0 var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--warning) 12%, var(--surface-sunken));
+    font: var(--text-label);
+    line-height: 1.5;
+    color: var(--text-primary);
 }

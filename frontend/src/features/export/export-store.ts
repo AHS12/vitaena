@@ -4,10 +4,11 @@
  */
 
 import {create} from 'zustand'
-import {parseDocument} from '../../core/document/document-file'
+import {parseAnyDocument} from '../../core/document/document-file'
 import {yieldIfBusy} from '../../core/yield'
 import {readDocument} from '../../platform/documents'
-import {documentType, type Content} from '../../store/document-store'
+import {type Content} from '../../store/document-store'
+import {DOCUMENT_TYPES} from '../../store/document-types'
 import {exportFiles, uniqueNames, type ExportFile, type ExportFormat} from './formats'
 import {existingFiles, writeFiles} from './platform'
 
@@ -25,8 +26,8 @@ export interface ExportRun {
 }
 
 interface ExportStore {
-    /** What the app can export to, from the feature. */
-    formats: readonly ExportFormat<Content>[]
+    /** What each type of document can be exported to, by its `kind`, from the feature. */
+    formats: Readonly<Record<string, readonly ExportFormat<Content>[]>>
 
     dialog: 'one' | 'many' | null
     /** The documents an export of many starts with ticked. */
@@ -42,11 +43,34 @@ interface ExportStore {
     clearRun(): void
 }
 
+/** A saved document to export. */
+export interface ExportedDocument {
+    readonly id: string
+    readonly name: string
+    /** Its file's `kind`, which says what it can be exported as. */
+    readonly kind: string | null
+}
+
+/** The formats a type of document can be exported as. */
+export const formatsOf = (kind: string | null): readonly ExportFormat<Content>[] => (kind === null ? [] : (useExportStore.getState().formats[kind] ?? []))
+
+/** Every format any type offers, each once, so one choice covers documents of several types. */
+export function everyFormat(formats: Readonly<Record<string, readonly ExportFormat<Content>[]>>): readonly ExportFormat<Content>[] {
+    const seen = new Set<string>()
+
+    return Object.values(formats)
+        .flat()
+        .filter((format) => !seen.has(format.id) && Boolean(seen.add(format.id)))
+}
+
+/** The formats picked that a document's type has. */
+const pickedFor = (kind: string | null, formatIds: readonly string[]) => formatsOf(kind).filter((format) => formatIds.includes(format.id))
+
 /** Set by Stop, and read between documents. Not state: nothing draws it. */
 let stopping = false
 
-export const useExportStore = create<ExportStore>((set, get) => ({
-    formats: [],
+export const useExportStore = create<ExportStore>((set) => ({
+    formats: {},
 
     dialog: null,
     picked: [],
@@ -57,7 +81,6 @@ export const useExportStore = create<ExportStore>((set, get) => ({
     run: null,
 
     exportMany: async (documents, formatIds, folder) => {
-        const formats = get().formats.filter((format) => formatIds.includes(format.id))
         const names = uniqueNames(documents.map((document) => document.name))
         const failed: string[] = []
         let done = 0
@@ -76,8 +99,8 @@ export const useExportStore = create<ExportStore>((set, get) => ({
             await yieldIfBusy()
 
             try {
-                const loaded = parseDocument(await readDocument(document.id), documentType)
-                const files: ExportFile[] = await exportFiles(formats, names[index], loaded.content)
+                const loaded = parseAnyDocument(await readDocument(document.id), DOCUMENT_TYPES)
+                const files: ExportFile[] = await exportFiles(pickedFor(loaded.type.kind, formatIds), names[index], loaded.content)
 
                 await writeFiles(folder, files)
             } catch {
@@ -98,9 +121,10 @@ export const useExportStore = create<ExportStore>((set, get) => ({
 }))
 
 /** The files an export of these documents would write that are in folder already. */
-export async function filesAlreadyThere(documents: readonly {name: string}[], formatIds: readonly string[], folder: string): Promise<string[]> {
-    const formats = useExportStore.getState().formats.filter((format) => formatIds.includes(format.id))
-    const names = uniqueNames(documents.map((document) => document.name)).flatMap((name) => formats.map((format) => `${name}.${format.extension}`))
+export async function filesAlreadyThere(documents: readonly ExportedDocument[], formatIds: readonly string[], folder: string): Promise<string[]> {
+    const names = uniqueNames(documents.map((document) => document.name)).flatMap((name, index) =>
+        pickedFor(documents[index].kind, formatIds).map((format) => `${name}${format.suffix ?? ''}.${format.extension}`),
+    )
 
     return existingFiles(folder, names)
 }

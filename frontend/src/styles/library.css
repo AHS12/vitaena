@@ -346,6 +346,15 @@
     font: var(--text-caption);
 }
 
+/* A document's type, while the library holds more than one. */
+.document-tile__type {
+    padding: 0 5px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
 .document-tile__badge {
     color: var(--accent-moss-text);
     font-weight: 600;
@@ -405,13 +414,24 @@
     gap: var(--space-3);
 }
 
+/* Gives way first, so the search, type and sort stay on one line in a narrow window. */
 .library-page__search {
-    width: 260px;
+    flex: 1 1 160px;
+    max-width: 260px;
+}
+
+.library-page__type {
+    width: 150px;
+    margin-left: auto;
 }
 
 .library-page__sort {
     width: 150px;
     margin-left: auto;
+}
+
+.library-page__type + .library-page__sort {
+    margin-left: 0;
 }
 
 .library-page__body {

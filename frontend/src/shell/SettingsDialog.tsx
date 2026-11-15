@@ -20,7 +20,8 @@ import {chooseFolder} from '../platform/desktop'
 import {hasDesktopStorage, libraryInfo, openLibraryFolder, type LibraryInfo} from '../platform/settings'
 import {canCheckForUpdates, type ManualReason} from '../platform/update'
 import {hasTray, openLink} from '../platform/window'
-import {documentType, useDocumentStore} from '../store/document-store'
+import {useDocumentStore} from '../store/document-store'
+import {libraryCount, libraryWords} from '../store/document-types'
 import {useSettingsStore} from '../store/settings-store'
 import {useUiStore} from '../store/ui-store'
 import {REPOSITORY_URL} from '../core/app'
@@ -233,7 +234,7 @@ function StoragePage() {
                     </SettingRow>
                     <SettingRow
                         label="Change folder"
-                        help={`New saves go to the new folder, and Your ${documentType.noun}s lists what is there. Anything in the old folder stays where it is.`}
+                        help={`New saves go to the new folder, and Your ${libraryWords().plural} lists what is there. Anything in the old folder stays where it is.`}
                     >
                         {custom ? (
                             <button
@@ -262,12 +263,12 @@ function StoragePage() {
                             Change…
                         </button>
                     </SettingRow>
-                    <SettingRow label="Space used" help={info ? `${info.documents} ${info.documents === 1 ? documentType.noun : `${documentType.noun}s`}, with their pictures.` : undefined}>
+                    <SettingRow label="Space used" help={info ? `${libraryCount(info.documents)}, with their pictures.` : undefined}>
                         <span className="tabular setting__value">{info ? formatBytes(info.bytes) : '…'}</span>
                     </SettingRow>
                     <SettingRow
                         label="Recently removed"
-                        help={removed === 0 ? 'Nothing removed lately.' : `${removed} ${removed === 1 ? documentType.noun : `${documentType.noun}s`}, kept for 30 days in case you want them back.`}
+                        help={removed === 0 ? 'Nothing removed lately.' : `${libraryCount(removed)}, kept for 30 days in case you want them back.`}
                     >
                         <button type="button" className="button" onClick={() => openSettings('Recently removed')}>
                             Show

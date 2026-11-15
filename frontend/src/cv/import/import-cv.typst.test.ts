@@ -1,0 +1,84 @@
+// @vitest-environment node
+
+/** Importing a real PDF from start to finish, and the PDFs that can't be imported. */
+
+import {beforeAll, beforeEach, describe, expect, it} from 'vitest'
+import type {TypstCompiler} from '@myriaddreamin/typst.ts'
+import {useDocumentStore} from '../../store/document-store'
+import type {Cv} from '../cv'
+import {biodataRenderModel} from '../../biodata/render-model'
+import {sampleBiodata} from '../../biodata/sample'
+import {renderModel} from '../render-model'
+import {sampleCv} from '../sample'
+import {templatePdf, typstCompiler} from '../../tests/typst'
+import {importCv, useCvImport} from './import-cv'
+
+let compiler: TypstCompiler
+
+beforeAll(async () => {
+    // Node draws no frames; the import only waits for one so its dialog can show.
+    globalThis.requestAnimationFrame ??= (draw: FrameRequestCallback) => setTimeout(() => draw(0), 0) as unknown as number
+    compiler = await typstCompiler()
+}, 60_000)
+
+beforeEach(() => {
+    useCvImport.setState({file: null})
+    useDocumentStore.getState().startNew()
+})
+
+async function pdfOf(source: string): Promise<Uint8Array> {
+    compiler.addSource('/main.typ', source)
+
+    return (await compiler.compile({mainFilePath: '/main.typ', format: 1})).result!
+}
+
+describe('importing a CV from a PDF', () => {
+    it('opens the CV made from it as a new document named after the person', async () => {
+        const pdf = await templatePdf(compiler, new URL('../templates/modern.typ', import.meta.url), '/cv.json', renderModel(sampleCv()))
+
+        await importCv(pdf, 'C:\\Users\\jane\\Downloads\\jane-cv.pdf')
+
+        const state = useDocumentStore.getState()
+        const cv = state.content as Cv
+
+        expect(state).toMatchObject({kind: 'cv', name: 'Jane Doe', currentId: null, page: 'editor'})
+        expect(cv.person.email).toBe('jane.doe@example.com')
+        expect(cv.design.template).toBe('modern')
+        expect(state.toast?.message).toMatch(/^Made a CV from jane-cv\.pdf\. Check it against your PDF/)
+        expect(useCvImport.getState().file).toBeNull()
+    })
+
+    it('opens a biodata as a biodata', async () => {
+        const pdf = await templatePdf(compiler, new URL('../../biodata/templates/heritage.typ', import.meta.url), '/biodata.json', biodataRenderModel(sampleBiodata(), new Date(2026, 10, 15)))
+
+        await importCv(pdf, 'jane-biodata.pdf')
+
+        expect(useDocumentStore.getState()).toMatchObject({kind: 'biodata', name: 'Jane Doe'})
+        expect(useDocumentStore.getState().toast?.message).toMatch(/^Made a biodata from jane-biodata\.pdf/)
+    })
+
+    it('says so when the PDF has no text, as a scan has none', async () => {
+        await importCv(await pdfOf('#rect(width: 4cm, height: 2cm, fill: gray)'), 'scan.pdf')
+
+        expect(useCvImport.getState()).toMatchObject({file: 'scan.pdf', step: {kind: 'no-text'}})
+        expect(useDocumentStore.getState().name).not.toBe('scan')
+    })
+
+    it('says so when the file is not a PDF', async () => {
+        await importCv(new TextEncoder().encode('not a pdf at all'), 'notes.pdf')
+
+        expect(useCvImport.getState()).toMatchObject({file: 'notes.pdf', step: {kind: 'failed'}})
+    })
+
+    it('opens nothing once it is cancelled', async () => {
+        const pdf = await templatePdf(compiler, new URL('../templates/classic.typ', import.meta.url), '/cv.json', renderModel(sampleCv()))
+        const before = useDocumentStore.getState().content
+        const running = importCv(pdf, 'jane-cv.pdf')
+
+        useCvImport.getState().cancel()
+        await running
+
+        expect(useDocumentStore.getState().content).toBe(before)
+        expect(useCvImport.getState().file).toBeNull()
+    })
+})

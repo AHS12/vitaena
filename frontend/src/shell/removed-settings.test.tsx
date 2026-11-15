@@ -84,7 +84,7 @@ describe('Recently removed in Settings', () => {
         render(<SettingsDialog />)
 
         fireEvent.click(await screen.findByRole('button', {name: 'Remove all for good'}))
-        fireEvent.click(within(screen.getByRole('group', {name: /Remove all 2 CVs for good/})).getByRole('button', {name: 'Remove for good'}))
+        fireEvent.click(within(screen.getByRole('group', {name: /Remove all 2 documents for good/})).getByRole('button', {name: 'Remove for good'}))
 
         await waitFor(() => expect(screen.getByText('Nothing here.')).toBeInTheDocument())
         expect(app.bin.size).toBe(0)
@@ -103,7 +103,7 @@ describe('Recently removed in Settings', () => {
         useUiStore.getState().openSettings('Storage')
         render(<SettingsDialog />)
 
-        await waitFor(() => expect(screen.getByText(/2 CVs, kept for 30 days/)).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByText(/2 documents, kept for 30 days/)).toBeInTheDocument())
 
         fireEvent.click(screen.getByRole('button', {name: 'Show'}))
 

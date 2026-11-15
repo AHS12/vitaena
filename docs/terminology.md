@@ -10,8 +10,10 @@ by what a person does with them, not by how they work.
 
 | Technical term | People see | Notes |
 |---|---|---|
-| Document, file, record | **CV** | `documentType.noun` in code, so the word lives in one place. **Resume** only where a template suits one |
-| Library, data folder | **Your CVs** | The page; **Where your work is saved** in Settings |
+| Document, file, record | **CV** | The type's `noun` in code, so the word lives in one place. **Resume** only where a template suits one |
+| Marriage profile, matrimonial CV | **Biodata** | The same in the singular and the plural: "a biodata", "3 biodata" |
+| Documents of several types | **Documents** | Only once the app makes more than one type; `libraryWords()` says which. Each is then marked with its type |
+| Library, data folder | **Your documents** | The page; **Where your work is saved** in Settings. **Your CVs** while the app makes only CVs |
 | ATS, applicant tracking system, parser | **Screening system** | **ATS** only in **One column (ATS)** and **ATS mode**, where job ads have taught people the word |
 | Render, compile, Typst | *(never shown)* | The **page**, the **preview** |
 | Proficiency, rating | **Level** | Five dots, with a word such as **Native** beside them |
@@ -21,7 +23,8 @@ by what a person does with them, not by how they work.
 | Draft, autosave, crash recovery | **You left some work unsaved** / **Pick up where I left off** | |
 | Dirty, unsaved changes | **Unsaved** | A dot beside the name in the title bar |
 | Backup archive, zip | **Backup** | "A backup is one .zip file…" is fine where the file is the point |
-| Restore, import | **Restore** / **Bring back** | |
+| Restore, import | **Restore** / **Bring back** | For a backup. A CV from a PDF or Word file is **imported** |
+| Parse, convert, extract a PDF or .docx | **Import a CV** / **Make a CV from** | Lines it can't place go to **Not sorted** |
 | S3, bucket, endpoint | **Cloud backup**, **Bucket**, **Storage address** | Only in cloud setup, where people bring these words with them |
 | Credentials, secret key | **Keys** | The secret is never shown again once saved |
 | Command palette | **Search or run** | |

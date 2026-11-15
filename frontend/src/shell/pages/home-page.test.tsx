@@ -29,32 +29,32 @@ afterEach(() => {
 })
 
 describe('Home', () => {
-    it('shows recent work first, then the ways to start, then every CV', async () => {
+    it('shows recent work first, then the ways to start, then every document', async () => {
         render(<HomePage start={<section aria-label="Start something new" />} />)
 
         await screen.findByRole('region', {name: 'Recent'})
         const order = screen.getAllByRole('region').map((region) => region.getAttribute('aria-label'))
 
         expect(order.indexOf('Recent')).toBeLessThan(order.indexOf('Start something new'))
-        expect(order.indexOf('Start something new')).toBeLessThan(order.indexOf('All your CVs'))
+        expect(order.indexOf('Start something new')).toBeLessThan(order.indexOf('All your documents'))
     })
 
-    it('narrows the list of every CV as you search', async () => {
+    it('narrows the list of every document as you search', async () => {
         render(<HomePage />)
-        const all = await screen.findByRole('region', {name: 'All your CVs'})
+        const all = await screen.findByRole('region', {name: 'All your documents'})
 
         await waitFor(() => expect(within(all).getAllByRole('listitem')).toHaveLength(3))
-        fireEvent.change(within(all).getByRole('searchbox', {name: 'Search your CVs'}), {target: {value: 'nur'}})
+        fireEvent.change(within(all).getByRole('searchbox', {name: 'Search your documents'}), {target: {value: 'nur'}})
 
         expect(within(all).getAllByRole('listitem')).toHaveLength(1)
         expect(within(all).getByRole('button', {name: /Nurse/})).toBeInTheDocument()
     })
 
-    it('goes from Recent to the page of every CV', async () => {
+    it('goes from Recent to the page of every document', async () => {
         render(<HomePage />)
         const recent = await screen.findByRole('region', {name: 'Recent'})
 
-        fireEvent.click(await within(recent).findByRole('button', {name: 'See all 3 CVs'}))
+        fireEvent.click(await within(recent).findByRole('button', {name: 'See all 3 documents'}))
 
         expect(useDocumentStore.getState().page).toBe('documents')
     })

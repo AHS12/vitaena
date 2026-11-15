@@ -1,7 +1,8 @@
 # Vitaena
 
-**A private, offline CV and resume builder for the desktop.** Everything stays on your
-computer: no account, no cloud and no tracking. Vitaena runs on Windows, macOS and Linux.
+**A private, offline CV, resume and biodata builder for the desktop.** Your work stays on your
+computer: no account and no tracking, and nothing leaves it unless you back it up to
+storage of your own. Vitaena runs on Windows, macOS and Linux.
 
 ![Vitaena's editor: the form on the left, the CV's real pages in the middle, and the design on the right](docs/assets/screens/editor.png)
 
@@ -9,6 +10,10 @@ computer: no account, no cloud and no tracking. Vitaena runs on Windows, macOS a
 
 - **Real pages as you type.** The preview is the PDF: page breaks, page numbers and the
   name repeated on every page, however long the CV runs.
+- **Start from the CV you have.** Import it as a PDF or a Word file and Vitaena makes it
+  into a CV you can edit: your details and photo, each job with its dates and bullets,
+  your skills. A biodata comes in as a biodata, with its details and family. It's read on your computer, with no AI and nothing sent anywhere; what it
+  can't place waits in a hidden section for you to sort.
 - **Ten templates,** each shown with your own CV, for a resume, an academic CV, or both.
 - **Made to get through screening.** Every template is tested the way an applicant
   tracking system reads a PDF. The Check tab shows the text a parser gets from yours,
@@ -21,7 +26,65 @@ computer: no account, no cloud and no tracking. Vitaena runs on Windows, macOS a
 - **Export** a PDF, a one-column PDF for online forms, a Word file, plain text, or a
   Vitaena file to move a CV to another computer.
 
-![Home: recent CVs, then templates to start from](docs/assets/screens/home.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screens/home-dark.png">
+  <img alt="Home: recent documents, Open a file, Import a CV and New CV, then templates to start from in two tabs, CVs and resumes, and Biodata" src="docs/assets/screens/home-light.png">
+</picture>
+
+## Biodata
+
+A marriage biodata, as families in Bangladesh, India, Pakistan and Nepal make and share
+one: a page or two about you and your family. Online makers keep a family's details and
+photos on their servers; Vitaena keeps them on your computer.
+
+- **Your own heading.** An optional line above your name, in your own words, and a small
+  picture of your choosing. The app never suggests one.
+- **Details your way.** Rows of a label and a value: rename, reorder, hide or remove any of
+  them. Your date of birth shows as the date, your age, or both, and your height in feet
+  and inches, centimetres, or both.
+- **Your family** in rows of relation, name, work and a note, such as Married.
+- **Ready sets** of labels to add in one click: Horoscope, Religious practice, Lifestyle
+  and More about me. They hold labels only; what you write is up to you.
+- **Two photos:** a main one every template shows, and a full-length one.
+- **Check** asks for what families look for first, warns past two pages, and says when
+  the text would be too small once a chat app shrinks the picture.
+- **Share it** as a PDF, a picture of each page (PNG or JPG) for a chat, or a Word file.
+
+| Heritage | Clean | Portrait |
+|---|---|---|
+| ![Heritage](docs/assets/templates/biodata-heritage.png) | ![Clean](docs/assets/templates/biodata-clean.png) | ![Portrait](docs/assets/templates/biodata-portrait.png) |
+
+## Your work is safe
+
+- **Nothing is lost by closing.** While you work, everything is kept as a draft. If the
+  app or the computer closes before you save, Home offers to pick up where you left off.
+- **Removing isn't for good.** A removed CV goes to Recently removed for 30 days, and
+  Undo brings it straight back.
+- **Back up to a folder** of your choosing, such as one your cloud drive syncs. The app
+  makes a dated backup once a day when something has changed, and keeps the last 5, 10,
+  20 or 30.
+- **Back up to a file:** a .zip of all your work, saved wherever you like.
+- **Back up to your own cloud storage:** Cloudflare R2, Backblaze B2, Amazon S3, Wasabi,
+  DigitalOcean Spaces, MinIO, or any other S3-compatible service, by hand or
+  automatically. Your keys are kept in the system's own keychain (Windows Credential
+  Manager, the macOS Keychain, or GNOME Keyring or KWallet on Linux), never in a file.
+- **Restore** from any of them. You see what's in the backup first, and nothing replaces
+  what you have: a CV that differs comes back as a second copy beside yours.
+- **Your folder.** Choose where your work is saved, and see how much space it takes.
+
+## Around the editor
+
+- **Your library.** Every CV with a picture of its first page. Search, sort, and tick
+  several at once to export or remove them together.
+- **Find anything.** Ctrl+K searches every command and setting. Every shortcut can be
+  changed in Settings.
+- **Make it yours.** Light, dark or the system's theme, a larger or smaller interface, and
+  less motion. Start on Home or on the last CV you had open.
+- **In the background.** On Windows and macOS, closing or minimising can keep Vitaena in
+  the tray, as you prefer.
+- **Help when you need it.** A short tour of each page, hints on hover, and Report a
+  problem, which fills in a GitHub issue with what the app knows, for you to check and
+  send.
 
 ## Templates
 
@@ -47,8 +110,13 @@ installer isn't signed yet, so SmartScreen may warn you: choose **More info**, t
 ### macOS
 
 Open `vitaena-X.Y.Z-mac-universal.dmg` and drag Vitaena to Applications. It runs on Apple
-silicon and Intel Macs with macOS 12 or later. The app isn't notarised yet, so the first
-time, right-click it in Applications and choose **Open**.
+silicon and Intel Macs with macOS 12 or later. The app isn't notarised yet, so macOS warns
+the first time you open it. Close the warning with **Done**, then:
+
+- **macOS 15 and later:** open **System Settings** → **Privacy & Security**, scroll down to
+  the line about Vitaena, and click **Open Anyway**.
+- **macOS 12 to 14:** right-click Vitaena in Applications and choose **Open**, then
+  **Open** again.
 
 ### Linux
 
@@ -84,7 +152,8 @@ Debian and Ubuntu).
 make install   # frontend packages and git hooks
 make dev       # the desktop app with hot reload
 make check     # every lint, test and build check
-make previews  # pictures of the sample CV in every template
+make previews  # pictures of the sample CV and biodata in every template
+make import-fixtures  # PDFs from other apps the import is tested on (Chrome, LibreOffice)
 make icons     # the app icon files, from the SVGs
 make installer # the Windows installer (needs NSIS)
 ```

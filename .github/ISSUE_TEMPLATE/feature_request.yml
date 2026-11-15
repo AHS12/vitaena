@@ -8,8 +8,8 @@ body:
     attributes:
       label: Which part of the app is it about?
       options:
-        - Home and saved CVs
-        - Editing a CV
+        - Home and saved documents
+        - Editing a document
         - Templates and style
         - The Check tab and screening systems
         - Export

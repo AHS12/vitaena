@@ -11,12 +11,14 @@ import {ArrowLeft, Check, Copy, FolderOpen, Pencil, Search, Trash2, X} from 'luc
 import {useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent} from 'react'
 import {Select} from '../../components/controls'
 import {APP} from '../../core/app'
-import {groupByTime, matchesSearch, sortDocuments, type DocumentSort} from '../../core/library/document-summary'
+import {EVERY_TYPE, groupByTime, matchesSearch, matchesType, sortDocuments, type DocumentSort} from '../../core/library/document-summary'
 import type {SavedDocument} from '../../platform/documents'
 import {features} from '../feature'
-import {documentType, useDocumentStore} from '../../store/document-store'
+import {useDocumentStore} from '../../store/document-store'
+import {DOCUMENT_TYPES, hasSeveralTypes, libraryCount, libraryWords} from '../../store/document-types'
+import {pluralOf} from '../../core/document/document-file'
 import {useSettingsStore} from '../../store/settings-store'
-import {displayName, savedLabel} from './document-labels'
+import {displayName, savedLabel, typeMark} from './document-labels'
 import {DocumentPicture} from './document-tile'
 import {RemovedDocuments} from './RemovedDocuments'
 
@@ -24,6 +26,15 @@ const SORTS: readonly {value: DocumentSort; label: string}[] = [
     {value: 'changed', label: 'Last changed'},
     {value: 'name', label: 'Name'},
     {value: 'made', label: 'Date made'},
+]
+
+const typeChoices = (): readonly {value: string; label: string}[] => [
+    {value: EVERY_TYPE, label: 'Every type'},
+    ...DOCUMENT_TYPES.map((type) => {
+        const plural = pluralOf(type)
+
+        return {value: type.kind, label: `${plural[0].toUpperCase()}${plural.slice(1)}`}
+    }),
 ]
 
 /** F2 asking the panel to rename. `at` makes each press new. */
@@ -148,6 +159,12 @@ function Details({document, editing, request}: {document: SavedDocument; editing
                         <dd>{made}</dd>
                     </>
                 ) : null}
+                {typeMark(document) ? (
+                    <>
+                        <dt>Type</dt>
+                        <dd>{typeMark(document)}</dd>
+                    </>
+                ) : null}
                 <dt>Changed</dt>
                 <dd>{savedLabel(document.savedAt)}</dd>
                 <dt>Size</dt>
@@ -199,7 +216,7 @@ function Details({document, editing, request}: {document: SavedDocument; editing
 /** The panel while several documents are ticked: what can be done to all of them at once. */
 function TickedDetails({ids, onClear}: {ids: readonly string[]; onClear(): void}) {
     const remove = useDocumentStore((state) => state.remove)
-    const plural = `${ids.length} ${documentType.noun}s`
+    const plural = libraryCount(ids.length)
 
     return (
         <aside className="library-page__details" aria-label={`${plural} ticked`}>
@@ -235,7 +252,7 @@ function Removed({onBack}: {onBack(): void}) {
             <div className="home__section-head">
                 <h2 className="home__section-title">Recently removed</h2>
                 <button type="button" className="button" onClick={onBack}>
-                    Back to your {documentType.noun}s
+                    Back to your {libraryWords().plural}
                 </button>
             </div>
             <RemovedDocuments layout="tiles" />
@@ -257,9 +274,10 @@ export function DocumentsPage() {
     const showHome = useDocumentStore((state) => state.showHome)
     const sort = useSettingsStore((state) => state.documentsSort)
     const setSort = useSettingsStore((state) => state.setDocumentsSort)
-    const plural = `${documentType.noun}s`
+    const plural = libraryWords().plural
 
     const [search, setSearch] = useState('')
+    const [shownType, setShownType] = useState(EVERY_TYPE)
     const [request, setRequest] = useState<RenameRequest | null>(null)
     const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set())
     const [inRemoved, setInRemoved] = useState(false)
@@ -283,10 +301,12 @@ export function DocumentsPage() {
     const visible = useMemo(
         () =>
             sortDocuments(
-                documents.map((document) => ({...document, name: displayName(document)})).filter((document) => matchesSearch(document, search)),
+                documents
+                    .map((document) => ({...document, name: displayName(document)}))
+                    .filter((document) => matchesType(document, shownType) && matchesSearch(document, search)),
                 sort,
             ),
-        [documents, search, sort],
+        [documents, search, sort, shownType],
     )
 
     const groups = useMemo(() => (sort === 'changed' ? groupByTime(visible, new Date()) : [{group: null, documents: visible}]), [visible, sort])
@@ -416,6 +436,12 @@ export function DocumentsPage() {
                                 ) : null}
                             </div>
 
+                            {hasSeveralTypes() ? (
+                                <div className="library-page__type">
+                                    <Select label="Show" value={shownType} options={typeChoices()} onChange={setShownType} />
+                                </div>
+                            ) : null}
+
                             <div className="library-page__sort">
                                 <Select label={`Sort your ${plural}`} value={sort} options={SORTS} onChange={setSort} />
                             </div>
@@ -428,9 +454,9 @@ export function DocumentsPage() {
                                         Looking for your {plural}…
                                     </p>
                                 ) : documents.length === 0 ? (
-                                    <p className="dialog__hint">{`${documentType.noun[0].toUpperCase()}${documentType.noun.slice(1)}s`} you save show up here.</p>
+                                    <p className="dialog__hint">{`${plural[0].toUpperCase()}${plural.slice(1)}`} you save show up here.</p>
                                 ) : visible.length === 0 ? (
-                                    <p className="dialog__hint">Nothing by that name. Try a shorter word.</p>
+                                    <p className="dialog__hint">{search.trim() === '' ? `No ${typeChoices().find((choice) => choice.value === shownType)?.label.toLowerCase() ?? plural} yet.` : 'Nothing by that name. Try a shorter word.'}</p>
                                 ) : (
                                     groups.map(({group, documents: inGroup}) => (
                                         <section key={group ?? 'all'} aria-label={group ?? `Your ${plural}`}>
@@ -459,6 +485,7 @@ export function DocumentsPage() {
                                                             </span>
                                                             <span className="document-tile__name">{document.name}</span>
                                                             <span className="document-tile__meta">
+                                                                {typeMark(document) ? <span className="document-tile__type">{typeMark(document)}</span> : null}
                                                                 {savedLabel(document.savedAt)}
                                                                 {document.id === currentId ? <span className="document-tile__badge">Editing</span> : null}
                                                             </span>

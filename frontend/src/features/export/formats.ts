@@ -8,6 +8,9 @@
 import type {LucideIcon} from 'lucide-react'
 import {safeFileName} from '../../core/files'
 
+/** What a format makes: one file's contents, or several files'. */
+export type Made = string | Uint8Array | readonly Uint8Array[]
+
 /** One kind of file a document can be exported as. */
 export interface ExportFormat<T> {
     readonly id: string
@@ -25,8 +28,12 @@ export interface ExportFormat<T> {
     available?(content: T): boolean
     /** One line on what it's good for. */
     readonly help?: string
-    /** The file's contents. Text is written as UTF-8. A format that has to lay pages out may take its time. */
-    make(content: T, name: string): string | Uint8Array | Promise<string | Uint8Array>
+    /**
+     * The file's contents. Text is written as UTF-8. A format that has to lay pages out may
+     * take its time. A list makes one file for each, such as a picture of each page,
+     * numbered "-1", "-2" when there is more than one.
+     */
+    make(content: T, name: string): Made | Promise<Made>
 }
 
 export interface ExportFile {
@@ -41,13 +48,26 @@ export const exportName = (name: string): string => safeFileName(name, 'Export')
 export async function exportFiles<T>(formats: readonly ExportFormat<T>[], name: string, content: T): Promise<ExportFile[]> {
     const base = exportName(name)
 
-    return Promise.all(
-        formats.map(async (format) => {
-            const made = await format.make(content, name)
+    const made = await Promise.all(
+        formats.map(async (format): Promise<ExportFile[]> => {
+            const result = await format.make(content, name)
+            const named = (number: string, bytes: Uint8Array) => ({name: `${base}${format.suffix ?? ''}${number}.${format.extension}`, bytes})
 
-            return {name: `${base}${format.suffix ?? ''}.${format.extension}`, bytes: typeof made === 'string' ? new TextEncoder().encode(made) : made}
+            if (typeof result === 'string') {
+                return [named('', new TextEncoder().encode(result))]
+            }
+
+            // Bytes made in another realm, such as a worker, aren't this one's Uint8Array, so a
+            // list is told apart by being an array.
+            if (!Array.isArray(result)) {
+                return [named('', result as Uint8Array)]
+            }
+
+            return result.length === 1 ? [named('', result[0])] : result.map((bytes, index) => named(`-${index + 1}`, bytes))
         }),
     )
+
+    return made.flat()
 }
 
 /**

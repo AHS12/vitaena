@@ -7,21 +7,63 @@
 import {Dropdown} from '@heroui/react'
 import {ChevronDown, Download, FolderDown} from 'lucide-react'
 import {useState} from 'react'
-import {saveExportFile} from '../../platform/desktop'
+import {chooseFolder, saveExportFile} from '../../platform/desktop'
 import {useDocumentStore, type Content} from '../../store/document-store'
+import {useUiStore} from '../../store/ui-store'
 import {useExportStore} from './export-store'
-import {exportFiles, type ExportFormat} from './formats'
+import {exportFiles, filesAre, type ExportFile, type ExportFormat} from './formats'
+import {existingFiles, writeFiles, writesToFolders} from './platform'
 
 const FOLDER = 'folder'
 
 const folderOf = (path: string): string => path.replace(/[\\/][^\\/]*$/, '')
+
+/**
+ * Several files from one format, such as a picture of each page: they go into a folder
+ * picked for them, and files already there are replaced only when the person says so.
+ */
+async function saveSeveral(files: readonly ExportFile[], label: string): Promise<void> {
+    const {notify} = useDocumentStore.getState()
+    const folder = writesToFolders() ? await chooseFolder('', `Export as ${label} to this folder`) : ''
+
+    if (writesToFolders() && !folder) {
+        return
+    }
+
+    const write = async () => {
+        await writeFiles(folder ?? '', files)
+        notify(`Exported ${files.length} files`, folder || undefined)
+    }
+    const there = folder ? await existingFiles(folder, files.map((file) => file.name)) : []
+
+    if (there.length === 0) {
+        await write()
+        return
+    }
+
+    useUiStore.getState().askConfirm({
+        title: 'Replace files already there?',
+        text: `${filesAre(there.length)} there already: ${there.join(', ')}. Replacing ${there.length === 1 ? 'it' : 'them'} can't be undone.`,
+        action: 'Replace',
+        danger: true,
+        cancel: 'Keep them',
+        run: () => void write().catch((error: unknown) => notify(`Couldn't export. ${error instanceof Error ? error.message : String(error)}`)),
+    })
+}
 
 /** Makes one format of the open document and asks where to save it. */
 async function exportAs(format: ExportFormat<Content>): Promise<void> {
     const {name, content, notify} = useDocumentStore.getState()
 
     try {
-        const [file] = await exportFiles([format], name, content)
+        const files = await exportFiles([format], name, content)
+
+        if (files.length > 1) {
+            await saveSeveral(files, format.label)
+            return
+        }
+
+        const [file] = files
         const path = await saveExportFile(file.bytes, file.name, `Export as ${format.label}`, format.mimeType ?? 'application/octet-stream')
 
         if (path) {
@@ -47,9 +89,10 @@ function Choice({icon: Icon, title, help}: {icon: typeof Download; title: string
 }
 
 export function ExportTitleButton() {
-    const all = useExportStore((state) => state.formats)
+    const kind = useDocumentStore((state) => state.kind)
+    const all = useExportStore((state) => state.formats[kind])
     const content = useDocumentStore((state) => state.content)
-    const formats = all.filter((format) => format.available?.(content) ?? true)
+    const formats = (all ?? []).filter((format) => format.available?.(content) ?? true)
     const [open, setOpen] = useState(false)
     const [busy, setBusy] = useState<string | null>(null)
 

@@ -239,6 +239,13 @@
     for p in s.paragraphs { par(justify: not side, rich(p)) }
   } else if s.kind == "entries" {
     for e in s.entries { if side { entry-side(e) } else { entry-main(e) } }
+  } else if s.kind == "details" {
+    for r in s.rows {
+      block(above: gap(0.55), below: gap(0.55))[
+        #if r.label != "" { text(weight: "bold", fill: ink, r.label); if side { linebreak() } else [: ] }
+        #r.value
+      ]
+    }
   } else if s.kind == "tags" {
     if side { tags-side(s) } else { tags-main(s) }
   }

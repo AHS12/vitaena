@@ -142,7 +142,7 @@ describe('backing up to the cloud', () => {
     it('says how many documents are backed up, and remembers when', async () => {
         await useBackupStore.getState().backUpToCloudNow()
 
-        expect(useDocumentStore.getState().toast?.message).toBe('Backed up 23 CVs to the cloud')
+        expect(useDocumentStore.getState().toast?.message).toBe('Backed up 23 documents to the cloud')
         expect(useSettingsStore.getState().cloudBackup.lastAt).not.toBe('')
     })
 
@@ -152,7 +152,7 @@ describe('backing up to the cloud', () => {
         await useBackupStore.getState().backUpToCloudNow()
 
         expect(useDocumentStore.getState().toast?.message).toBe(
-            'Backed up 23 CVs to the cloud. 1 CV was changed on another computer and was left as it is there',
+            'Backed up 23 documents to the cloud. 1 document was changed on another computer and was left as it is there',
         )
     })
 
@@ -176,7 +176,7 @@ describe('backing up to the cloud', () => {
         expect(screen.getByRole('checkbox', {name: 'Shopping'})).toHaveAttribute('aria-checked', 'true')
 
         fireEvent.click(within(removed).getByRole('checkbox', {name: 'Old ideas'}))
-        fireEvent.click(screen.getByRole('button', {name: 'Restore 2 CVs'}))
+        fireEvent.click(screen.getByRole('button', {name: 'Restore 2 documents'}))
 
         await waitFor(() =>
             expect(app.RestoreFromHolding).toHaveBeenCalledWith([
