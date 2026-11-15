@@ -3,10 +3,11 @@ name: Linux Test Build
 # Builds the Linux packages, installs each on a clean system, starts the app and takes a
 # screenshot, so Linux can be checked without a Linux machine. Nothing is released: the
 # packages, screenshots and logs are this run's artifacts.
+# It runs on a pull request that touches the Linux build or the Go side, or by hand from
+# Actions. Not on a merge: the pull request already showed the result.
 on:
   workflow_dispatch:
-  push:
-    branches: [v2, dev, main]
+  pull_request:
     paths:
       - "build/linux/**"
       - ".github/workflows/linux.yml"
