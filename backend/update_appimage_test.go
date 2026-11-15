@@ -3,6 +3,7 @@ package backend
 import (
 	"os"
 	"path/filepath"
+	goruntime "runtime"
 	"strings"
 	"testing"
 )
@@ -50,5 +51,25 @@ func TestLinuxIsToldOfAnUpdateByTheDebAndUpdatesFromTheAppImage(t *testing.T) {
 
 	if findAsset(release, appImageUpdateName(info.Version)) == nil {
 		t.Fatal("the AppImage to update from isn't found")
+	}
+}
+
+func TestALinuxPackageIsPointedAtTheDownloadPage(t *testing.T) {
+	if goruntime.GOOS != "linux" {
+		t.Skip("this is how Linux answers a check")
+	}
+
+	t.Setenv("APPIMAGE", "")
+	t.Setenv("APPDIR", "")
+
+	app := &App{updateAPI: releaseServer(t, "v9.0.0", installerDigest()).URL + "/latest", updateRoot: t.TempDir()}
+
+	info, err := app.CheckForUpdate("0.1.0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !info.Available || info.CanInstall || info.ManualReason != manualPackageManager {
+		t.Fatalf("got %+v", info)
 	}
 }

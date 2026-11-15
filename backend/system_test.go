@@ -37,7 +37,7 @@ func TestThisSystemIsOneTheBugReportOffers(t *testing.T) {
 
 	t.Logf("this system: %s", name)
 
-	for _, offered := range []string{"Windows 11", "Windows 10", "Mac with Apple silicon", "Mac with Intel", "Built from source on another system"} {
+	for _, offered := range []string{"Windows 11", "Windows 10", "Mac with Apple silicon", "Mac with Intel", "Linux, from the .deb, .rpm or Arch package", "Linux, from the AppImage", "Built from source on another system"} {
 		if name == offered {
 			return
 		}
