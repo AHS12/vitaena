@@ -1,9 +1,10 @@
 /**
- * Home: start something new, open a file, pick up a draft, or go back to a recent
- * document. A start page, so it shows one row of recent work and links to the rest.
+ * Home: pick up recent work, start something new, or find any saved document. Recent
+ * work comes first as one row of pictures, then the app's own ways to start (such as
+ * templates), then every document as a list to search.
  */
 
-import {ChevronRight, FilePlus, FolderOpen, Pencil, RotateCcw, Trash2} from 'lucide-react'
+import {ChevronRight, FilePlus, FolderOpen, Pencil, RotateCcw, Search, Trash2} from 'lucide-react'
 import {useEffect, useLayoutEffect, useRef, useState, type ReactNode} from 'react'
 import {APP} from '../../core/app'
 import {guardUnsaved} from '../commands'
@@ -111,7 +112,7 @@ function DocumentCard({document, current, onOpen, onRemove, onRename}: CardProps
     )
 }
 
-/** Home. `start` is the app's own way in, shown under New and Open, such as its templates. */
+/** Home. `start` is the app's own way in, such as its templates, shown between recent work and the full list. */
 export function HomePage({start}: {start?: ReactNode}) {
     const documents = useDocumentStore((state) => state.documents)
     const loading = useDocumentStore((state) => state.documentsLoading)
@@ -132,6 +133,7 @@ export function HomePage({start}: {start?: ReactNode}) {
     const plural = `${documentType.noun}s`
 
     const [perRow, setPerRow] = useState(RECENT_MOST)
+    const [query, setQuery] = useState('')
     const recentList = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -159,6 +161,12 @@ export function HomePage({start}: {start?: ReactNode}) {
         }
 
         measure()
+
+        // Without one, as in tests, the row keeps its first measure.
+        if (typeof ResizeObserver === 'undefined') {
+            return
+        }
+
         const observer = new ResizeObserver(measure)
         observer.observe(list)
 
@@ -168,24 +176,41 @@ export function HomePage({start}: {start?: ReactNode}) {
     // Only something opened or changed in this session is worth going back to.
     const inHand = documentInHand || canUndo(history)
     const store = useDocumentStore.getState
+    const openDocument = (document: SavedDocument) => guardUnsaved(store(), `Open “${displayName(document)}”`, () => void open(document.id))
+    const words = query.trim().toLowerCase()
+    const listed = words ? documents.filter((document) => displayName(document).toLowerCase().includes(words)) : documents
 
     return (
         <main className="home">
             <div className="home__inner">
-                <header className="home__head">
-                    <div>
-                        <h1 className="home__title">
-                            <AppMark size={30} className="home__mark" />
-                            {APP.name}
-                        </h1>
-                        <p className="home__sub">Start a new {documentType.noun}, or pick up one you saved.</p>
+                <header className="home__hero">
+                    <div className="home__brand">
+                        <AppMark size={44} className="home__mark" />
+                        <div>
+                            <h1 className="home__title">{APP.name}</h1>
+                            <p className="home__sub">{hasDocuments ? `Pick up a ${documentType.noun}, or start a new one.` : `Make your first ${documentType.noun}. Everything stays on this computer.`}</p>
+                        </div>
                     </div>
-                    {inHand ? (
-                        <button type="button" className="button" onClick={showEditor}>
-                            <RotateCcw size={13} aria-hidden="true" />
-                            Back to “{name}”
+                    <div className="home__actions" data-coach="home-start">
+                        {inHand ? (
+                            <button type="button" className="button" onClick={showEditor}>
+                                <RotateCcw size={14} aria-hidden="true" />
+                                Back to “{name}”
+                            </button>
+                        ) : null}
+                        <button type="button" className="button button--large" onClick={() => guardUnsaved(store(), 'Open a file', () => void store().openFromFile())}>
+                            <FolderOpen size={15} aria-hidden="true" />
+                            Open a file…
                         </button>
-                    ) : null}
+                        <button
+                            type="button"
+                            className="button button--primary button--large"
+                            onClick={() => guardUnsaved(store(), `Start a new ${documentType.noun}`, () => store().startNew())}
+                        >
+                            <FilePlus size={15} aria-hidden="true" />
+                            New {documentType.noun}
+                        </button>
+                    </div>
                 </header>
 
                 {draftAvailable ? (
@@ -205,33 +230,47 @@ export function HomePage({start}: {start?: ReactNode}) {
                     </section>
                 ) : null}
 
-                <section className="home__section" aria-label="Start" data-coach="home-start">
-                    <div className="home__start">
-                        <button
-                            type="button"
-                            className="button button--primary"
-                            onClick={() => guardUnsaved(store(), `Start a new ${documentType.noun}`, () => store().startNew())}
-                        >
-                            <FilePlus size={14} aria-hidden="true" />
-                            New {documentType.noun}
-                        </button>
-                        <button type="button" className="button" onClick={() => guardUnsaved(store(), 'Open a file', () => void store().openFromFile())}>
-                            <FolderOpen size={14} aria-hidden="true" />
-                            Open a file…
-                        </button>
-                    </div>
-                </section>
+                {hasDocuments ? (
+                    <section className="home__section" aria-label="Recent" data-coach="home-recent">
+                        <div className="home__section-head">
+                            <h2 className="home__section-title">Recent</h2>
+                        </div>
+                        <div ref={recentList}>
+                            <ul className="tile-grid home__recent">
+                                {documents.slice(0, perRow).map((document) => (
+                                    <DocumentCard
+                                        key={document.id}
+                                        document={document}
+                                        current={document.id === currentId}
+                                        onOpen={() => openDocument(document)}
+                                        onRemove={() => void remove([document.id])}
+                                        onRename={(next) => void rename(document.id, next)}
+                                    />
+                                ))}
+                            </ul>
+                        </div>
+                    </section>
+                ) : null}
 
                 {start}
 
-                <section className="home__section" aria-label={`Recent ${plural}`} data-coach="home-recent">
+                <section className="home__section" aria-label={`All your ${plural}`}>
                     <div className="home__section-head">
-                        <h2 className="home__section-title">Recent {plural}</h2>
+                        <h2 className="home__section-title">
+                            All your {plural}
+                            {hasDocuments ? <span className="home__count tabular">{documents.length}</span> : null}
+                        </h2>
                         {hasDocuments ? (
-                            <button type="button" className="button" onClick={showDocuments}>
-                                All your {plural} ({documents.length})
-                                <ChevronRight size={13} aria-hidden="true" />
-                            </button>
+                            <div className="home__list-tools">
+                                <label className="home__search">
+                                    <Search size={13} aria-hidden="true" />
+                                    <input type="search" value={query} placeholder={`Search your ${plural}`} aria-label={`Search your ${plural}`} onChange={(event) => setQuery(event.target.value)} />
+                                </label>
+                                <button type="button" className="button" onClick={showDocuments} title={`Rename, copy, export or remove several ${plural} at once`}>
+                                    Manage
+                                    <ChevronRight size={13} aria-hidden="true" />
+                                </button>
+                            </div>
                         ) : null}
                     </div>
 
@@ -244,21 +283,24 @@ export function HomePage({start}: {start?: ReactNode}) {
                             <p className="dialog__hint">What you save shows up here.</p>
                             {features().map(({id, HomeEmpty}) => (HomeEmpty ? <HomeEmpty key={id} /> : null))}
                         </div>
+                    ) : listed.length === 0 ? (
+                        <p className="dialog__hint">Nothing called “{query.trim()}”.</p>
                     ) : (
-                        <div ref={recentList}>
-                            <ul className="tile-grid">
-                                {documents.slice(0, perRow).map((document) => (
-                                    <DocumentCard
-                                        key={document.id}
-                                        document={document}
-                                        current={document.id === currentId}
-                                        onOpen={() => guardUnsaved(store(), `Open “${displayName(document)}”`, () => void open(document.id))}
-                                        onRemove={() => void remove([document.id])}
-                                        onRename={(next) => void rename(document.id, next)}
-                                    />
-                                ))}
-                            </ul>
-                        </div>
+                        <ul className="home-list">
+                            {listed.map((document) => (
+                                <li key={document.id}>
+                                    <button type="button" className="home-list__row" data-current={document.id === currentId} onClick={() => openDocument(document)}>
+                                        <span className="home-list__thumb">
+                                            <DocumentPicture document={document} iconSize={16} />
+                                        </span>
+                                        <span className="home-list__name">{displayName(document)}</span>
+                                        {document.id === currentId ? <span className="document-tile__badge">Editing</span> : null}
+                                        <span className="home-list__saved">{savedLabel(document.savedAt)}</span>
+                                        <ChevronRight size={14} aria-hidden="true" className="home-list__go" />
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
                     )}
                 </section>
             </div>
