@@ -47,9 +47,9 @@ describe('what a template is given', () => {
     it('writes links out in full, so a parser that drops links still has the address', () => {
         const model = renderModel(sampleCv())
 
-        expect(model.contact.map((item) => item.text)).toEqual(['+880 1700 000000', 'nadia.rahman@example.com', 'Dhaka, Bangladesh', 'linkedin.com/in/nadia-rahman-example'])
+        expect(model.contact.map((item) => item.text)).toEqual(['+880 1700 000000', 'nadia.rahman@example.com', 'Dhaka, Bangladesh', 'example.com/nadia-rahman'])
         expect(model.contact[1]).toEqual({text: 'nadia.rahman@example.com', url: 'mailto:nadia.rahman@example.com', kind: 'email'})
-        expect(model.contact[3].kind).toBe('linkedin')
+        expect(model.contact[3].kind).toBe('web')
     })
 
     it('gives a link without a scheme one, so it opens', () => {

@@ -108,7 +108,7 @@ describe.each(CASES)('the $template template (ATS mode $atsMode), as an ATS read
         expect(read.text.trimStart().startsWith('Nadia Rahman')).toBe(true)
         expect(read.text).toContain('nadia.rahman@example.com')
         expect(read.text).toContain('+880 1700 000000')
-        expect(read.text).toContain('linkedin.com/in/nadia-rahman-example')
+        expect(read.text).toContain('example.com/nadia-rahman')
     })
 
     it('keeps the sections in order, under headings parsers know', () => {
@@ -192,7 +192,7 @@ describe.each(CV_TEMPLATES.map((template) => template.id))('formatting in the %s
 const PHOTO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
 
 describe.each(['classic', 'modern', 'professional'])('a photo in the %s template', (template) => {
-    it('is drawn, and leaves the text exactly as it was', async () => {
+    it('is drawn, and leaves the words a parser reads exactly as they were', async () => {
         const cv = sampleCv()
         const without = await textOf(await pdfOf(template, cv))
         const pdf = await pdfOf(template, {...cv, person: {...cv.person, photo: PHOTO}})
@@ -200,6 +200,10 @@ describe.each(['classic', 'modern', 'professional'])('a photo in the %s template
 
         expect(new TextDecoder('latin1').decode(pdf)).toMatch(/\/Subtype\s*\/Image/)
         expect(read.text.trimStart().startsWith('Nadia Rahman')).toBe(true)
-        expect(read.text).toBe(without.text)
+        // The photo narrows the header, so lines may break in other places; the words and
+        // their order must not change.
+        const words = (text: string) => text.replace(/\s+/g, ' ').trim()
+
+        expect(words(read.text)).toBe(words(without.text))
     })
 })

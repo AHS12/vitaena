@@ -31,7 +31,7 @@ export function sampleCv(): Cv {
             email: 'nadia.rahman@example.com',
             phone: '+880 1700 000000',
             location: 'Dhaka, Bangladesh',
-            links: [{id: 'link-1', label: '', url: 'https://linkedin.com/in/nadia-rahman-example'}],
+            links: [{id: 'link-1', label: '', url: 'https://www.example.com/nadia-rahman'}],
             photo: '',
             hide: [],
         },
