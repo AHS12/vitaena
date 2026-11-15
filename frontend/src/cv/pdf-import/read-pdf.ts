@@ -5,10 +5,13 @@
 
 import {pageContent, withPdf, type PdfPageProxy} from '../pdf-text'
 import {pageLines, type PdfLine, type TextPiece} from './layout'
+import {photoFrom, photoPlacement, picturePlacements, type PdfPhoto} from './photo'
 
 export interface PdfLayout {
     readonly pages: number
     readonly lines: readonly PdfLine[]
+    /** The photo on the first page, or null when there's none. */
+    readonly photo?: PdfPhoto | null
 }
 
 export interface ReadOptions {
@@ -38,9 +41,6 @@ function fontName(page: PdfPageProxy, id: string): string {
 async function piecesOf(page: PdfPageProxy): Promise<TextPiece[]> {
     const content = await pageContent(page)
 
-    // Loads the page's fonts, which hold their names.
-    await page.getOperatorList()
-
     const [left, , , top] = page.view
     const bold = new Map<string, boolean>()
     const pieces: TextPiece[] = []
@@ -67,22 +67,62 @@ async function piecesOf(page: PdfPageProxy): Promise<TextPiece[]> {
     return pieces
 }
 
+/** The decoded picture pdf.js holds for an id, waiting for it, or null if it never comes. */
+function pictureOf(page: PdfPageProxy, id: string): Promise<unknown> {
+    // Pictures used on several pages are kept with the document, the rest with the page.
+    const objects = id.startsWith('g_') ? page.commonObjs : page.objs
+
+    return new Promise((resolve) => {
+        const waited = setTimeout(() => resolve(null), 5000)
+
+        try {
+            objects.get(id, (picture: unknown) => {
+                clearTimeout(waited)
+                resolve(picture)
+            })
+        } catch {
+            clearTimeout(waited)
+            resolve(null)
+        }
+    })
+}
+
+/** The photo among a page's pictures, from the drawing pdf.js has already worked out. */
+async function photoOf(page: PdfPageProxy, drawing: {fnArray: number[]; argsArray: unknown[]}, width: number): Promise<PdfPhoto | null> {
+    const {OPS} = await import('pdfjs-dist/legacy/build/pdf.mjs')
+    const placement = photoPlacement(picturePlacements(drawing.fnArray, drawing.argsArray, OPS), width)
+
+    const photo = placement ? photoFrom(await pictureOf(page, placement.id)) : null
+
+    // pdf.js closes its bitmap when the page is cleaned up, so the photo keeps a copy.
+    return photo?.bitmap ? {...photo, bitmap: await createImageBitmap(photo.bitmap)} : photo
+}
+
 export function readPdfLayout(pdf: Uint8Array, {onPage, signal}: ReadOptions = {}): Promise<PdfLayout> {
     return withPdf(pdf, async (document) => {
         const lines: PdfLine[] = []
+        let photo: PdfPhoto | null = null
 
         for (let number = 1; number <= document.numPages; number += 1) {
             signal?.throwIfAborted()
 
             const page = await document.getPage(number)
             const [left, bottom, right, top] = page.view
+            // Works out the page's drawing, which loads its fonts (their names say which are
+            // bold) and says where its pictures go.
+            const drawing = await page.getOperatorList()
 
             lines.push(...pageLines({width: right - left, height: top - bottom, pieces: await piecesOf(page)}, number))
+
+            if (number === 1) {
+                photo = await photoOf(page, drawing, right - left).catch(() => null)
+            }
+
             page.cleanup()
             onPage?.(number, document.numPages)
         }
 
         signal?.throwIfAborted()
-        return {pages: document.numPages, lines}
+        return {pages: document.numPages, lines, photo}
     })
 }

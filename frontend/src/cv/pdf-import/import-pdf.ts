@@ -4,9 +4,11 @@
  */
 
 import {create} from 'zustand'
+import {squarePhoto} from '../../components/square-photo'
 import {afterPaint} from '../../core/yield'
 import {useDocumentStore} from '../../store/document-store'
-import {cvType} from '../cv'
+import {cvType, type Cv} from '../cv'
+import type {PdfPhoto} from './photo'
 
 /** Where an import is: reading pages, making the CV, or stopped with something to say. */
 export type ImportStep =
@@ -38,6 +40,38 @@ export const usePdfImport = create<ImportState>()((set) => ({
 }))
 
 const fileNameOf = (path: string) => path.split(/[\\/]/).pop() ?? path
+
+/** The photo from the PDF as the CV keeps one, or "" if it can't be drawn. */
+function photoOf(photo: PdfPhoto | null | undefined): string {
+    try {
+        if (photo?.bitmap) {
+            return squarePhoto(photo.bitmap, photo.width, photo.height)
+        }
+
+        if (photo?.rgba) {
+            const canvas = document.createElement('canvas')
+
+            canvas.width = photo.width
+            canvas.height = photo.height
+            canvas.getContext('2d')?.putImageData(new ImageData(new Uint8ClampedArray(photo.rgba), photo.width, photo.height), 0, 0)
+
+            return squarePhoto(canvas, photo.width, photo.height)
+        }
+    } catch {
+        // A photo that can't be drawn is left out; the rest of the CV still comes in.
+    }
+
+    return ''
+}
+
+/** The photo added, in a template that shows one, as the PDF did. */
+function withPhoto(cv: Cv, photo: string): Cv {
+    if (!photo) {
+        return cv
+    }
+
+    return {...cv, person: {...cv.person, photo}, design: {...cv.design, template: cv.design.template === 'modern' ? 'professional' : 'bold'}}
+}
 
 /** pdf.js says a PDF is locked or isn't one through the error's name. */
 function stepFor(error: unknown): ImportStep {
@@ -85,7 +119,10 @@ export async function importPdf(bytes: Uint8Array, path: string): Promise<void> 
         set({kind: 'making'})
         await afterPaint()
 
-        const {cv, unsorted} = cvFromLayout(layout)
+        const made = cvFromLayout(layout)
+        // A browser draws the photo; elsewhere, as in tests, there's no canvas to.
+        const cv = typeof document === 'undefined' ? made.cv : withPhoto(made.cv, photoOf(layout.photo))
+        const {unsorted} = made
 
         if (controller.signal.aborted) {
             return

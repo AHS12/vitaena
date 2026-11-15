@@ -6,32 +6,7 @@
 
 import {ImagePlus, Trash2} from 'lucide-react'
 import {useId, useRef, useState} from 'react'
-
-/** Big enough to print sharp at photo size, small enough to save often. */
-const SIZE = 400
-
-/** The image as a centred square JPEG data URL. */
-async function squarePhoto(file: Blob): Promise<string> {
-    const bitmap = await createImageBitmap(file)
-    const side = Math.min(bitmap.width, bitmap.height)
-    const canvas = document.createElement('canvas')
-
-    canvas.width = SIZE
-    canvas.height = SIZE
-
-    const context = canvas.getContext('2d')
-
-    if (!context) {
-        throw new Error("Couldn't read that picture.")
-    }
-
-    context.fillStyle = '#ffffff'
-    context.fillRect(0, 0, SIZE, SIZE)
-    context.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, SIZE, SIZE)
-    bitmap.close()
-
-    return canvas.toDataURL('image/jpeg', 0.86)
-}
+import {squarePhotoOf} from './square-photo'
 
 /**
  * The image in its own shape, its longest side at most `longest` pixels. A PNG keeps
@@ -121,7 +96,7 @@ export function PhotoField({
                             return
                         }
 
-                        const picture = shape.kind === 'square' ? squarePhoto(file) : wholePicture(file, shape.longest, shape.format)
+                        const picture = shape.kind === 'square' ? squarePhotoOf(file) : wholePicture(file, shape.longest, shape.format)
 
                         setProblem(null)
                         picture
