@@ -103,8 +103,13 @@ installer isn't signed yet, so SmartScreen may warn you: choose **More info**, t
 ### macOS
 
 Open `vitaena-X.Y.Z-mac-universal.dmg` and drag Vitaena to Applications. It runs on Apple
-silicon and Intel Macs with macOS 12 or later. The app isn't notarised yet, so the first
-time, right-click it in Applications and choose **Open**.
+silicon and Intel Macs with macOS 12 or later. The app isn't notarised yet, so macOS warns
+the first time you open it. Close the warning with **Done**, then:
+
+- **macOS 15 and later:** open **System Settings** → **Privacy & Security**, scroll down to
+  the line about Vitaena, and click **Open Anyway**.
+- **macOS 12 to 14:** right-click Vitaena in Applications and choose **Open**, then
+  **Open** again.
 
 ### Linux
 
