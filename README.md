@@ -28,8 +28,6 @@ Templates are tested the way an applicant tracking system reads them: each one i
 its text is pulled back out of the PDF, and the test checks the reading order, contact
 details, dates and every bundled font.
 
-The plan and what's left are in [docs/REWORK_PLAN.md](docs/REWORK_PLAN.md).
-
 ## Developing
 
 Needs Go 1.26, Node 20+, pnpm and the [Wails 3](https://v3.wails.io) CLI.

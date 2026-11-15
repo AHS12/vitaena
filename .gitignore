@@ -29,3 +29,6 @@ frontend/dist
 
 # Made by the build alongside the Mac icon; the real one is build/windows/icon.ico.
 /build/windows/unused-generated.ico
+
+# Plans and specs: kept locally, not published.
+/specs/

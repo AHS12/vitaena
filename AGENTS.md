@@ -3,7 +3,9 @@
 A desktop CV and resume builder: Wails 3 (Go) for the window, files, tray, backups and
 updates; React and TypeScript for everything else; Typst (compiled to WebAssembly) lays out
 the pages for both the preview and the PDF. Built from wails-desktop-template.
-The rework plan is in [docs/REWORK_PLAN.md](docs/REWORK_PLAN.md).
+Plans live in `specs/` (such as `specs/REWORK_PLAN.md` and `specs/LINUX_PLAN.md`). Git
+ignores that folder, so it exists only on the owner's machine; never link to it from
+published files.
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) first. Its rules apply to you, and this file only
 adds what an agent needs on top of them.
