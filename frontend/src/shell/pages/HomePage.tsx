@@ -234,6 +234,10 @@ export function HomePage({start}: {start?: ReactNode}) {
                     <section className="home__section" aria-label="Recent" data-coach="home-recent">
                         <div className="home__section-head">
                             <h2 className="home__section-title">Recent</h2>
+                            <button type="button" className="button home__see-all" onClick={showDocuments}>
+                                See all {documents.length} {documents.length === 1 ? documentType.noun : plural}
+                                <ChevronRight size={14} aria-hidden="true" />
+                            </button>
                         </div>
                         <div ref={recentList}>
                             <ul className="tile-grid home__recent">

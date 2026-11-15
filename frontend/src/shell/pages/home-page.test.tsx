@@ -1,6 +1,7 @@
 import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react'
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
 import {fakeDesktop} from '../../platform/shell'
+import {useDocumentStore} from '../../store/document-store'
 import {HomePage} from './HomePage'
 
 const fileOf = (name: string) =>
@@ -47,5 +48,14 @@ describe('Home', () => {
 
         expect(within(all).getAllByRole('listitem')).toHaveLength(1)
         expect(within(all).getByRole('button', {name: /Nurse/})).toBeInTheDocument()
+    })
+
+    it('goes from Recent to the page of every CV', async () => {
+        render(<HomePage />)
+        const recent = await screen.findByRole('region', {name: 'Recent'})
+
+        fireEvent.click(await within(recent).findByRole('button', {name: 'See all 3 CVs'}))
+
+        expect(useDocumentStore.getState().page).toBe('documents')
     })
 })

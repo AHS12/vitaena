@@ -663,3 +663,16 @@
     gap: var(--space-3);
 }
 
+
+/* Beside "Recent": the way to every saved document, in the accent colour so it reads as a link. */
+.home__see-all.button {
+    gap: 2px;
+    padding: 0 6px 0 10px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--accent-moss);
+}
+
+.home__see-all.button:hover:not(:disabled) {
+    background: var(--surface-hover);
+}
