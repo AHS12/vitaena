@@ -264,10 +264,33 @@
     border-radius: var(--radius-md);
     background: var(--surface-sunken);
     overflow: hidden;
+    transition: border-color var(--motion-fast), transform var(--motion-fast), box-shadow var(--motion-fast);
 }
 
 .document-tile:hover {
-    border-color: var(--border-strong);
+    border-color: var(--brand-teal);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2);
+}
+
+.document-tile:focus-within {
+    border-color: var(--brand-teal);
+}
+
+[data-reduce-motion='true'] .document-tile:hover {
+    transform: none;
+}
+
+/* A long button label stays on one line, cut short, rather than wrapping the header. */
+.home__actions .button {
+    max-width: 320px;
+}
+
+.home__actions .button > span,
+.home__actions .button {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .document-tile[data-current='true'] {

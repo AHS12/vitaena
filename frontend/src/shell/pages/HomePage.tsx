@@ -193,8 +193,8 @@ export function HomePage({start}: {start?: ReactNode}) {
                     </div>
                     <div className="home__actions" data-coach="home-start">
                         {inHand ? (
-                            <button type="button" className="button" onClick={showEditor}>
-                                <RotateCcw size={14} aria-hidden="true" />
+                            <button type="button" className="button button--large" onClick={showEditor}>
+                                <RotateCcw size={15} aria-hidden="true" />
                                 Back to “{name}”
                             </button>
                         ) : null}

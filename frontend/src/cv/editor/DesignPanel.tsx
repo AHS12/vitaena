@@ -56,6 +56,41 @@ function Group({title, children}: {title: string; children: React.ReactNode}) {
     )
 }
 
+let silhouette: string | null = null
+
+/**
+ * A plain drawn head and shoulders, standing in for a photo in the template pictures
+ * of a CV without one, so templates with a photo show where it goes. Never on a CV.
+ */
+function silhouettePhoto(): string {
+    if (silhouette !== null) {
+        return silhouette
+    }
+
+    const canvas = document.createElement('canvas')
+
+    canvas.width = 200
+    canvas.height = 200
+
+    const context = canvas.getContext('2d')
+
+    if (!context) {
+        return (silhouette = '')
+    }
+
+    context.fillStyle = '#c9d6e3'
+    context.fillRect(0, 0, 200, 200)
+    context.fillStyle = '#8aa1b8'
+    context.beginPath()
+    context.arc(100, 78, 38, 0, Math.PI * 2)
+    context.fill()
+    context.beginPath()
+    context.ellipse(100, 200, 70, 70, 0, Math.PI, 0)
+    context.fill()
+
+    return (silhouette = canvas.toDataURL('image/png'))
+}
+
 /** A change to the design, as one step to undo. */
 const setter =
     (edit: Edit) =>
@@ -66,20 +101,28 @@ const setter =
 export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
     const design = cv.design
     const set = setter(edit)
-    // An empty CV looks the same in every template, so the example stands in, in this CV's style.
-    const blank = useMemo(() => {
-        const model = renderModel(cv)
+    // Until a CV has sections with something in them, every template looks nearly blank,
+    // so the example's sections stand in, in this CV's style, with your own details when
+    // you've filled them in.
+    const model = useMemo(() => renderModel(cv), [cv])
+    const blank = model.sections.length === 0
+    const shown = useMemo(() => {
+        if (!blank) {
+            return cv
+        }
 
-        return !model.name && model.sections.length === 0
-    }, [cv])
-    const shown = useMemo(() => (blank ? {...sampleCv(), design: cv.design} : cv), [blank, cv])
+        const example = sampleCv()
+        const person = model.name ? cv.person : example.person
+
+        return {...example, person: {...person, photo: cv.person.photo || silhouettePhoto()}, design: cv.design}
+    }, [blank, cv, model.name])
     const previews = useTemplatePreviews(shown)
     const twoColumns = CV_TEMPLATES.find((template) => template.id === design.template)?.twoColumns === true
 
     return (
         <div className="design-panel">
             <Group title="Template">
-                {blank ? <p className="design-panel__tip">Shown with the example CV until yours has something in it.</p> : null}
+                {blank ? <p className="design-panel__tip">Shown with example content until your CV has some of its own.</p> : null}
                 <div className="template-choices" role="radiogroup" aria-label="Template">
                     {CV_TEMPLATES.map((template) => (
                         <button

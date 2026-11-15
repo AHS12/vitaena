@@ -79,6 +79,21 @@ describe('the design panel', () => {
         expect(screen.getByRole('switch', {name: 'ATS mode'})).toBeInTheDocument()
     })
 
+    it('shows templates with example content while the CV has only a name', () => {
+        useDocumentStore.getState().previewEdit({...emptyCv(), person: {...emptyCv().person, name: 'Rahim Uddin'}})
+        render(<CvEditor />)
+        fireEvent.click(screen.getByRole('button', {name: 'Show the design'}))
+
+        expect(screen.getByText('Shown with example content until your CV has some of its own.')).toBeInTheDocument()
+    })
+
+    it('shows templates with the CV itself once it has content', () => {
+        render(<CvEditor />)
+        fireEvent.click(screen.getByRole('button', {name: 'Show the design'}))
+
+        expect(screen.queryByText(/Shown with example content/)).toBeNull()
+    })
+
     it('sets margins and spacing from their choices', () => {
         render(<CvEditor />)
         fireEvent.click(screen.getByRole('button', {name: 'Show the design'}))
