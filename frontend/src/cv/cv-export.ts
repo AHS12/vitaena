@@ -64,6 +64,14 @@ export const CV_FORMATS: readonly ExportFormat<Cv>[] = [
         },
     },
     {
+        id: 'docx',
+        label: 'Word',
+        extension: 'docx',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        help: 'For job portals that ask for a Word file. Always one column, with real headings and bullets.',
+        make: async (cv) => (await import('./docx-export')).cvDocx(renderModel(cv)),
+    },
+    {
         id: 'text',
         label: 'Plain text',
         extension: 'txt',

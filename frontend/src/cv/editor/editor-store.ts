@@ -7,7 +7,7 @@
 
 import {create} from 'zustand'
 
-export type EditorTab = 'content' | 'design'
+export type EditorTab = 'content' | 'design' | 'check'
 
 interface EditorStore {
     /** What the side pane shows: what the CV says, or how it looks. */

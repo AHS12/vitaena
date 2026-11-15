@@ -8,12 +8,15 @@ import {newId, type Cv, type CvPerson} from '../cv'
 import type {useCvEdit} from '../use-cv-edit'
 import {emailWarning, linkWarning, moveSection, newSection, SECTION_CHOICES, updatePerson} from './edit-ops'
 import {useEditorStore} from './editor-store'
+import {CheckPanel} from './CheckPanel'
 import {DesignPanel} from './DesignPanel'
 import {SectionPanel} from './SectionPanel'
 
 type Edit = ReturnType<typeof useCvEdit>
 
 const PERSON = 'person'
+
+const TAB_LABELS = {content: 'Content', design: 'Design', check: 'Check'} as const
 
 function PersonPanel({person, edit}: {person: CvPerson; edit: Edit}) {
     const closed = useEditorStore((state) => state.closedSections.has(PERSON))
@@ -134,14 +137,14 @@ export function CvSidebar({cv, edit}: {cv: Cv; edit: Edit}) {
     return (
         <div className="cv-side">
             <div className="cv-tabs" role="tablist" aria-label="Edit">
-                {(['content', 'design'] as const).map((id) => (
+                {(['content', 'design', 'check'] as const).map((id) => (
                     <button key={id} type="button" role="tab" id={`cv-tab-${id}`} aria-selected={tab === id} aria-controls="cv-tab-panel" className="cv-tabs__tab" onClick={() => setTab(id)}>
-                        {id === 'content' ? 'Content' : 'Design'}
+                        {TAB_LABELS[id]}
                     </button>
                 ))}
             </div>
             <div className="cv-sidebar" id="cv-tab-panel" role="tabpanel" aria-labelledby={`cv-tab-${tab}`} data-coach="editor">
-                {tab === 'content' ? <ContentPanel cv={cv} edit={edit} /> : <DesignPanel cv={cv} edit={edit} />}
+                {tab === 'content' ? <ContentPanel cv={cv} edit={edit} /> : tab === 'design' ? <DesignPanel cv={cv} edit={edit} /> : <CheckPanel cv={cv} />}
             </div>
         </div>
     )
