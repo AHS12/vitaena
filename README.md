@@ -150,6 +150,7 @@ make install   # frontend packages and git hooks
 make dev       # the desktop app with hot reload
 make check     # every lint, test and build check
 make previews  # pictures of the sample CV and biodata in every template
+make import-fixtures  # PDFs from other apps the import is tested on (Chrome, LibreOffice)
 make icons     # the app icon files, from the SVGs
 make installer # the Windows installer (needs NSIS)
 ```

@@ -81,6 +81,16 @@ describe('reading a page into lines', () => {
         expect(texts(pieces)).toEqual([...[0, 1, 2, 3, 4].map((row) => `Side ${row}`), ...[0, 1, 2, 3, 4, 5].map((row) => `Main line ${row}`)])
     })
 
+    it('closes up a heading spaced out letter by letter, word by word', () => {
+        expect(texts([piece('A B O U T', 50, 100, {bold: true}), {...piece(' ', 95, 100), width: 11}, piece('M E', 106, 100, {bold: true})])).toEqual(['ABOUT ME'])
+    })
+
+    it('reads a character a font left unnamed as a dash between numbers, and drops it elsewhere', () => {
+        const unnamed = String.fromCodePoint(0xe09d)
+
+        expect(texts([piece(`2019 ${unnamed} 2024`, 50, 100), piece(`${unnamed}1 555 0142`, 50, 120)])).toEqual(['2019 – 2024', '1 555 0142'])
+    })
+
     it('reads nothing from an empty page', () => {
         expect(texts([piece('   ', 50, 100)])).toEqual([])
     })

@@ -108,7 +108,7 @@ function runsOf(row: readonly TextPiece[]): TextRun[] {
         }
     }
 
-    return runs.map((run) => ({...run, text: run.text.replace(/\s+/g, ' ').trim()})).filter((run) => run.text !== '')
+    return runs.map((run) => ({...run, text: withoutUnknown(run.text).replace(/\s+/g, ' ').trim()})).filter((run) => run.text !== '')
 }
 
 /** Groups items on one baseline, top to bottom; each group left to right. */
@@ -207,12 +207,23 @@ function lineOf(page: number, column: Column, runs: readonly TextRun[]): PdfLine
     }
 }
 
+/** A heading spaced out letter by letter, which pdf.js gives as "C O N T A C T", closed up. The words of a spaced-out line come as separate pieces. */
+const closedUp = (text: string): string => (/^(?:[\p{Lu}\d&] )+[\p{Lu}\d&]$/u.test(text) ? text.replace(/ /g, '') : text)
+
+/**
+ * Characters a font drew without saying what they are come through from the Private Use
+ * Area. Between numbers, as in "2019 – 2024", one is a dash the font drew its own way;
+ * anywhere else it means nothing, and goes.
+ */
+const withoutUnknown = (text: string): string => text.replace(/(\d)\s*\p{Co}\s*(?=\d)/gu, '$1 – ').replace(/\p{Co}/gu, '')
+
 /**
  * A page's lines in reading order: what runs across the page above any columns, then the
  * left column, then the right.
  */
 export function pageLines(page: PdfPage, number: number): PdfLine[] {
-    const runs = rowsOf(page.pieces.filter((piece) => piece.width >= 0)).flatMap(runsOf)
+    const pieces = page.pieces.filter((piece) => piece.width >= 0).map((piece) => ({...piece, text: closedUp(piece.text)}))
+    const runs = rowsOf(pieces).flatMap(runsOf)
     const gutter = findGutter(runs, page.width)
     const columnOf = (run: TextRun): Column => (!gutter || run.y <= gutter.top ? 'full' : run.right <= gutter.x ? 'left' : run.x >= gutter.x ? 'right' : 'full')
     const lines: PdfLine[] = []

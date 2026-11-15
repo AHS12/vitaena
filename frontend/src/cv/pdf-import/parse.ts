@@ -32,8 +32,21 @@ const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/
 const URL_LIKE = /^(?:https?:\/\/)?(?:www\.)?(?:[\w-]+\.)+[a-z]{2,}(?:\/\S*)?$/i
 const PHONE = /^\+?[\d\s().-]{7,}$/
 const PAGE_NUMBER = /^(?:page\s+)?\d+\s*(?:\/|of)\s*\d+$|^page\s+\d+$/i
+const LABEL_WORDS = 'e-?mail|phone|mobile|tel(?:ephone)?|cell|address|location|web(?:site)?|linkedin|github|portfolio'
 /** Labels in front of contact details, as in "Email: jane@example.com". */
-const CONTACT_LABEL = /^(?:e-?mail|phone|mobile|tel(?:ephone)?|cell|address|location|web(?:site)?|linkedin|github|portfolio)\s*:\s*/i
+const CONTACT_LABEL = new RegExp(String.raw`^(?:${LABEL_WORDS})\s*:\s*`, 'i')
+/** A label on a line of its own above its detail, as sidebars set them. */
+const LABEL_ALONE = new RegExp(String.raw`^(?:${LABEL_WORDS}|contact)\s*:?$`, 'i')
+/** A label that says the detail is where someone lives, whatever its shape. */
+const PLACE_LABEL = /^(?:address|location)\s*:\s*/i
+/** Words in a job title. */
+const ROLE = /\b(?:engineer|developer|programmer|manager|director|head|lead|officer|assistant|associate|intern|consultant|specialist|coordinator|administrator|analyst|designer|architect|scientist|researcher|technician|supervisor|operative|operator|nurse|doctor|physician|teacher|lecturer|professor|tutor|instructor|accountant|auditor|editor|writer|producer|representative|executive|advis[eo]r|agent|clerk|chef|cook|driver|therapist|pharmacist|founder|owner|partner|volunteer|trainee|apprentice|fellow|secretary|receptionist|cashier|attendant|mechanic|electrician|plumber|carpenter|worker|controller|planner|buyer|recruiter|strategist|marketer|photographer|artist|translator|interpreter|lawyer|solicitor|attorney|president|chair|captain|mentor|coach|maintainer|speaker)s?\b/i
+/** Words in a degree or qualification. */
+const DEGREE = /\b(?:bsc|ba|msc|ma|mphil|phd|dphil|mba|beng|meng|llb|llm|md|bachelor|master|doctorate|diploma|certificate|degree|gcses?|a-?levels?|hn[cd]|associate)\b/i
+/** Words in the name of a school. */
+const SCHOOL = /\b(?:university|college|school|institute|academy|polytechnic|conservatoire)\b/i
+/** How a company's name may end, which isn't a place after a comma. */
+const COMPANY_ENDING = /^(?:inc|ltd|llc|llp|plc|gmbh|ag|sa|bv|co|corp|limited|pty)\.?$/i
 /** A range of dates cut off at the end of a line. */
 const OPEN_RANGE = /(?:19|20)\d{2}\s*[–—-]$/
 /** Words a wrapped line ends on, so the next line carries on the same thing. */
@@ -79,7 +92,7 @@ const sameStyle = (a: Style, b: Style) => a.bold === b.bold && a.caps === b.caps
 function couldBeHeading(line: PdfLine, body: number): boolean {
     const text = line.text.replace(/:$/, '')
 
-    return text.length <= 40 && words(text) <= 5 && !/[.,;@]|\d/.test(text) && line.runs.length === 1 && (line.bold || isCaps(text) || line.size > body + 0.9)
+    return text.length <= 40 && words(text) <= 5 && !/[.,;@]|\d/.test(text) && line.runs.every((run) => run.bold === line.bold && run.size === line.size) && (line.bold || isCaps(text) || line.size > body + 0.9)
 }
 
 /**
@@ -123,6 +136,15 @@ interface Contact {
 function placeDetail(text: string, contact: Contact): boolean {
     const detail = text.replace(CONTACT_LABEL, '').trim()
     const email = EMAIL.exec(detail)
+
+    if (LABEL_ALONE.test(text.trim())) {
+        return true
+    }
+
+    if (PLACE_LABEL.test(text) && !contact.location) {
+        contact.location = detail
+        return true
+    }
 
     if (email) {
         contact.email ||= email[0]
@@ -170,9 +192,25 @@ function textOf(lines: readonly PdfLine[]): string {
 
 type Role = 'head' | 'bullet' | 'more' | 'summary'
 
+/** Where a line's words start, past any dates in a margin before them. */
+function textX(line: PdfLine): number {
+    const words = line.runs.find((run) => {
+        const dates = findDates(run.text)
+
+        return !dates || withoutDates(run.text, dates) !== ''
+    })
+
+    return (words ?? line.runs[0]).x
+}
+
+/** Whether a line runs on to the next: it reaches near the column's edge without ending a sentence. */
+const runsOn = (line: PdfLine, columnRight: number) => !/[.!?;:]$/.test(line.text) && line.right >= columnRight - 0.15 * (columnRight - line.x)
+
 /** What each line of a list of jobs or degrees is. */
 function rolesOf(lines: readonly PdfLine[], body: number): Role[] {
     const roles: Role[] = []
+    const left = Math.min(...lines.map(textX))
+    const columnRight = Math.max(...lines.map((line) => line.right))
     let bulletX = -1
 
     lines.forEach((line, index) => {
@@ -185,6 +223,13 @@ function rolesOf(lines: readonly PdfLine[], body: number): Role[] {
             bulletX = line.x
         } else if ((before === 'bullet' || before === 'more') && line.x > bulletX + 2 && !dated && !boldLed) {
             roles.push('more')
+        } else if (line.x > left + 6 && !dated && !boldLed) {
+            // A list whose bullets are drawn as shapes, as a browser's are: indented lines,
+            // each new one starting where the last ended a sentence or stopped short.
+            const previous = lines[index - 1]
+
+            roles.push((before === 'bullet' || before === 'more') && Math.abs(previous.x - line.x) < 2 && runsOn(previous, columnRight) ? 'more' : 'bullet')
+            bulletX = line.x
         } else if (before === 'summary' && !/[.!?]$/.test(lines[index - 1].text) && !dated && !boldLed) {
             roles.push('summary')
         } else if (before !== undefined && !dated && !boldLed && line.size >= body - 0.3 && (/[.!?]$/.test(line.text) || line.text.length > 60)) {
@@ -222,7 +267,7 @@ function splitHeads(runs: readonly PdfLine[][], linesBeforeDates: number): PdfLi
  * `columnRight` is where the column's longest lines end, so a wrapped line can be told
  * from a short one.
  */
-function entryHead(lines: readonly PdfLine[], columnRight: number): Pick<CvEntry, 'title' | 'org' | 'location' | 'start' | 'end' | 'current'> {
+function entryHead(lines: readonly PdfLine[], columnRight: number, jobs: boolean): Pick<CvEntry, 'title' | 'org' | 'location' | 'start' | 'end' | 'current'> {
     const segments = lines.flatMap((line, lineIndex) => segmentsOf(line).map((segment) => ({...segment, lineIndex})))
     let dates: DateRange | null = null
 
@@ -263,15 +308,34 @@ function entryHead(lines: readonly PdfLine[], columnRight: number): Pick<CvEntry
 
     let title = parts[titleAt]?.text ?? ''
 
-    // "Designer, Northwind" or "Designer at Northwind" in one look, with no organisation
-    // anywhere else.
+    // "Designer, Northwind" in one look, with no organisation anywhere else; "Designer at
+    // Northwind" too, under jobs, where "First Aid at Work" isn't likely.
     if (rest.length === 0) {
-        const split = /^(.+?)(?:,\s+|\s+(?:at|@)\s+)(.+)$/.exec(title)
+        const split = (jobs ? /^(.+?)(?:,\s+|\s+(?:at|@)\s+)(.+)$/ : /^(.+?),\s+(.+)$/).exec(title)
 
         if (split) {
             title = split[1]
-            rest.push(split[2])
+            rest.push(...split[2].split(/\s*,\s*/))
         }
+    }
+
+    // "Northwind Logistics, Leeds": a company and the place it is.
+    if (rest.length === 1) {
+        const place = /^(.+),\s+(\p{Lu}[\p{L}.' -]{1,30})$/u.exec(rest[0])
+
+        if (place && !COMPANY_ENDING.test(place[2])) {
+            rest.splice(0, 1, place[1], place[2])
+        }
+    }
+
+    // "Riverbank Energy, Bristol — Data Analyst": the company first, the role after it.
+    const swapWith = rest.findIndex((part) => (ROLE.test(part) && !ROLE.test(title)) || (DEGREE.test(part) && SCHOOL.test(title) && !DEGREE.test(title)))
+
+    if (swapWith >= 0) {
+        const role = rest.splice(swapWith, 1)[0]
+
+        rest.unshift(title)
+        title = role
     }
 
     return {
@@ -284,7 +348,10 @@ function entryHead(lines: readonly PdfLine[], columnRight: number): Pick<CvEntry
     }
 }
 
-function entriesOf(lines: readonly PdfLine[], body: number, linesBeforeDates: number): CvEntry[] {
+/** Section names about jobs, where "Role at Company" means a role at a company. */
+const JOBS = /experience|employment|work|career|positions|volunteer|leadership/i
+
+function entriesOf(lines: readonly PdfLine[], body: number, linesBeforeDates: number, jobs: boolean): CvEntry[] {
     const roles = rolesOf(lines, body)
     const columnRight = Math.max(...lines.map((line) => line.right))
     const groups: {head: PdfLine[]; body: {role: Role; line: PdfLine}[]}[] = []
@@ -309,7 +376,7 @@ function entriesOf(lines: readonly PdfLine[], body: number, linesBeforeDates: nu
         const heads = group.head.length > 0 ? splitHeads([group.head], linesBeforeDates) : [[]]
 
         return heads.map((head, index) => {
-            const entry: CvEntry = {...emptyEntry(), ...entryHead(head, columnRight)}
+            const entry: CvEntry = {...emptyEntry(), ...entryHead(head, columnRight, jobs)}
 
             // The bullets and summary belong to the last job of the run.
             if (index < heads.length - 1) {
@@ -369,6 +436,7 @@ function tagGroupsOf(lines: readonly PdfLine[]): CvTagGroup[] {
     const groups: {label: string; items: string[]; text: string}[] = []
     const current = () => groups[groups.length - 1] ?? (groups.push({label: '', items: [], text: ''}), groups[groups.length - 1])
     const start = (label: string, text = '') => groups.push({label, items: [], text})
+    let listRunsOn = false
 
     for (const line of lines) {
         const labelled = LABELLED.exec(line.text)
@@ -391,16 +459,30 @@ function tagGroupsOf(lines: readonly PdfLine[]): CvTagGroup[] {
         } else if (runs.length > 1 && !line.text.includes(',')) {
             // Each skill drawn on its own, as boxes are.
             current().items.push(...runs.map((run) => run.text))
+        } else if (!line.text.includes(',') && !listRunsOn) {
+            // One skill a line, as a column lists them.
+            current().items.push(line.text.replace(BULLET, ''))
         } else {
             const group = current()
 
             group.text = group.text ? `${group.text} ${line.text.replace(BULLET, '')}` : line.text.replace(BULLET, '')
         }
+
+        // A list with commas may wrap mid-skill, "Performance" then "tuning, Code review".
+        listRunsOn = line.text.includes(',') && !/[.;]$/.test(line.text)
     }
 
     return groups
         .map((group) => {
-            const items = [...group.items, ...group.text.split(/\s*[,;•·|]\s*/)].map((item) => item.replace(/\.$/, '').trim()).filter(Boolean)
+            const items = [...group.items, ...group.text.split(/\s*[,;•·|]\s*/)]
+                .map((item) => item.replace(/\.$/, '').trim())
+                .filter(Boolean)
+                .map((item) => {
+                    // "Spanish — Fluent" or "Spanish: Fluent", written as the app writes levels.
+                    const level = /^(.+?)(?:\s+[—–-]\s+|\s*:\s*)(.+)$/.exec(item)
+
+                    return level && levelOfWords(level[2]) > 0 ? joinItem(level[1], level[2]) : item
+                })
 
             return {id: newId('group'), visible: true, label: group.label, items, ...withWordLevels(items)}
         })
@@ -427,6 +509,11 @@ export function cvFromLayout(layout: PdfLayout): ImportedCv {
     const streams = [content.filter((line) => line.column !== 'right'), content.filter((line) => line.column === 'right')]
     const firstPage = content.filter((line) => line.page === 1)
     const nameLine = firstPage.length > 0 ? firstPage.reduce((a, b) => (b.size > a.size ? b : a)) : undefined
+
+    // The column with the name is the main one, read first, even when it is on the right.
+    if (nameLine?.column === 'right') {
+        streams.reverse()
+    }
     const nameStream = streams.find((stream) => nameLine && stream.includes(nameLine)) ?? []
     // A headline in capitals can look like a heading; under the name, it's the headline.
     const afterName = nameStream[nameStream.indexOf(nameLine!) + 1]
@@ -477,7 +564,7 @@ export function cvFromLayout(layout: PdfLayout): ImportedCv {
                 }
             }
         } else if (kind === 'entries') {
-            cvSections.push({...base, kind: 'entries', entries: entriesOf(section.lines, body, linesBeforeDates)})
+            cvSections.push({...base, kind: 'entries', entries: entriesOf(section.lines, body, linesBeforeDates, JOBS.test(section.title))})
         } else if (kind === 'tags') {
             cvSections.push({...base, kind: 'tags', groups: tagGroupsOf(section.lines)})
         } else if (kind === 'details') {
