@@ -231,7 +231,10 @@ export const useDocumentStore = create<DocumentStore>((set, get) => {
         }
 
         try {
-            await writeDocument(id, textOf(state, name, extras), null)
+            // A picture that can't be made only costs the library its preview.
+            const picture = (await documentType.thumbnail?.(state.content).catch(() => null)) ?? null
+
+            await writeDocument(id, textOf(state, name, extras), picture)
 
             set({currentId: id, name, extras, toast: {message: `Saved "${name}"`, undoable: false}})
             markSaved(state.content)

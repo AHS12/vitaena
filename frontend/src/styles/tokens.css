@@ -1,9 +1,9 @@
 /**
  * Design tokens: neutral graphite, one accent.
  *
- * Surfaces stay neutral so the colours
- * of a tree are judged fairly. Moss is for primary actions only, and amber is for
- * selection only, in the viewport and the outliner alike.
+ * Surfaces stay neutral so the CV on the page is judged fairly. The accent is the
+ * brand teal (the variables keep the template's "moss" name) for primary actions,
+ * and amber is for selection only.
  *
  * HeroUI is themed from here too, at the bottom, so nothing reads as a stock page.
  */
@@ -27,11 +27,11 @@
     --text-tertiary: #65676e;
     --text-on-accent: #ffffff;
 
-    --accent-moss: #4e7d3e;
+    --accent-moss: #2a7f7c;
     --brand-teal: #3b9a97;
-    --accent-moss-hover: #456f37;
-    --accent-moss-text: #3f6b2f;
-    --accent-moss-soft: rgba(78, 125, 62, 0.14);
+    --accent-moss-hover: #236c69;
+    --accent-moss-text: #1f6b68;
+    --accent-moss-soft: rgba(42, 127, 124, 0.14);
 
     --selection: #b86a0c;
     --danger: #b3261e;
@@ -40,7 +40,7 @@
     --warning: #8a5a00;
     --success: #2e6b3e;
 
-    --focus-ring: 0 0 0 2px var(--surface-panel), 0 0 0 4px #5c8c4a;
+    --focus-ring: 0 0 0 2px var(--surface-panel), 0 0 0 4px #3b9a97;
     --scrollbar-thumb: #c1c3c8;
     --scrollbar-thumb-hover: #a2a4aa;
 
@@ -99,7 +99,7 @@
     --muted: var(--text-secondary);
     --border: var(--border-subtle);
     --separator: var(--border-subtle);
-    --focus: #5c8c4a;
+    --focus: #3b9a97;
     --radius: 0.25rem;
     --field-radius: 0.25rem;
 }
@@ -122,11 +122,11 @@ html[data-theme='dark'] {
     --text-secondary: #abacb2;
     --text-tertiary: #94959c;
 
-    --accent-moss: #4e7d3e;
+    --accent-moss: #2a7f7c;
     --brand-teal: #5cb4b2;
-    --accent-moss-hover: #5a8e48;
-    --accent-moss-text: #93c777;
-    --accent-moss-soft: rgba(127, 177, 99, 0.16);
+    --accent-moss-hover: #33918d;
+    --accent-moss-text: #7fcfcc;
+    --accent-moss-soft: rgba(92, 180, 178, 0.16);
 
     --selection: #f5a63a;
     --danger: #c9372c;
@@ -135,7 +135,7 @@ html[data-theme='dark'] {
     --warning: #e8b96a;
     --success: #8fd19e;
 
-    --focus-ring: 0 0 0 2px var(--surface-panel), 0 0 0 4px #7fb163;
+    --focus-ring: 0 0 0 2px var(--surface-panel), 0 0 0 4px #5cb4b2;
     --scrollbar-thumb: #414247;
     --scrollbar-thumb-hover: #5b5c63;
 

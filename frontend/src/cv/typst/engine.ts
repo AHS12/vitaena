@@ -156,6 +156,19 @@ export function preview(model: RenderModel, template: string): Promise<Preview |
     })
 }
 
+/** All pages as SVG, waiting its turn rather than giving way to newer previews. */
+export function svg(model: RenderModel, template: string): Promise<string> {
+    return serial(async () => {
+        const vector = await compile(model, template, 0)
+        const {renderer} = await warmUp()
+
+        return renderer.runWithSession(async (session) => {
+            renderer.manipulateData({renderSession: session, action: 'reset', data: vector})
+            return renderer.renderSvg({renderSession: session})
+        })
+    })
+}
+
 /** The CV as a PDF, the same layout the preview shows. */
 export function pdf(model: RenderModel, template: string): Promise<Uint8Array> {
     return serial(() => compile(model, template, 1))

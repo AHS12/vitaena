@@ -121,4 +121,6 @@ export const cvType: DocumentType<Cv> = {
     version: 1,
     content: cvSchema,
     empty: emptyCv,
+    // Loaded on use, so tests and the library list never pull in the layout engine.
+    thumbnail: async (cv) => (await import('./thumbnail')).cvThumbnail(cv),
 }

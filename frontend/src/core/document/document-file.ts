@@ -27,6 +27,8 @@ export interface DocumentType<T> {
     empty(): T
     /** Each entry turns a file's content at version `n` into version `n + 1`. */
     readonly migrations?: Readonly<Record<number, (content: unknown) => unknown>>
+    /** A small picture of the content for the library, as a PNG data URL, or null for none. */
+    thumbnail?(content: T): Promise<string | null>
 }
 
 /** What loading a document gives back. */
