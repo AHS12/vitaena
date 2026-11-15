@@ -1,0 +1,189 @@
+/* The CV editor: a scrolling form on the left, the pages on a sunken desk to the right. */
+
+.cv-editor {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(340px, 440px) 1fr;
+    min-width: 0;
+    min-height: 0;
+    background: var(--surface-page);
+}
+
+.cv-form {
+    overflow-y: auto;
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    background: var(--surface-panel);
+    border-right: 1px solid var(--border-subtle);
+}
+
+.cv-group {
+    margin: 0;
+    padding: 0;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.cv-group__title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    width: 100%;
+    padding: 0 0 var(--space-1);
+    margin-bottom: var(--space-1);
+    border-bottom: 1px solid var(--border-subtle);
+    font: var(--text-title);
+    color: var(--text-primary);
+}
+
+.cv-group__heading {
+    flex: 1;
+    min-width: 0;
+    padding: 2px 4px;
+    margin-left: -4px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+}
+
+.cv-group__heading:hover {
+    border-color: var(--border-subtle);
+}
+
+.cv-group__heading:focus {
+    outline: none;
+    border-color: var(--border-strong);
+    background: var(--surface-raised);
+}
+
+.cv-row {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.cv-row > * {
+    flex: 1;
+    min-width: 0;
+}
+
+.cv-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.cv-field__label {
+    font: var(--text-label);
+    color: var(--text-secondary);
+}
+
+.cv-field__input {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    font: var(--text-body);
+}
+
+.cv-field__input:focus {
+    outline: none;
+    border-color: var(--border-strong);
+    box-shadow: var(--focus-ring);
+}
+
+.cv-field__area {
+    resize: vertical;
+}
+
+.cv-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font: var(--text-label);
+    color: var(--text-secondary);
+}
+
+.cv-entry {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-sunken);
+}
+
+.cv-entry__actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.cv-preview {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.cv-preview__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--surface-panel);
+    font: var(--text-label);
+    color: var(--text-secondary);
+}
+
+.cv-preview__zoom {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.cv-preview__zoom-value {
+    min-width: 3.2em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.cv-preview__problem {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    background: var(--danger-soft);
+    color: var(--danger);
+    font: var(--text-label);
+}
+
+.cv-preview__scroll {
+    flex: 1;
+    overflow: auto;
+    padding: var(--space-6);
+}
+
+.cv-preview__pages {
+    margin: 0 auto;
+}
+
+/* Typst draws every page in one SVG; it scales with the width set on the wrapper. */
+.cv-preview__pages > svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* Each page is white paper on the desk, whatever the theme. */
+.cv-preview__pages .typst-page {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
+}

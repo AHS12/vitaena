@@ -1,0 +1,129 @@
+// @vitest-environment node
+
+/**
+ * What an applicant tracking system reads from each template's PDF.
+ *
+ * Lays the sample CV out with the real compiler and fonts, then pulls the text back out
+ * of the PDF the way a parser does. If a template change puts the dates in a column of
+ * their own, joins letters into a ligature or drops the email, this fails.
+ */
+
+import {readFileSync} from 'node:fs'
+import {createRequire} from 'node:module'
+import {fileURLToPath, pathToFileURL} from 'node:url'
+import {beforeAll, describe, expect, it} from 'vitest'
+import {createTypstCompiler, initOptions, loadFonts, type TypstCompiler} from '@myriaddreamin/typst.ts'
+import {getDocument, GlobalWorkerOptions} from 'pdfjs-dist/legacy/build/pdf.mjs'
+import type {Cv} from '../cv'
+import {renderModel} from '../render-model'
+import {sampleCv} from '../sample'
+
+const require = createRequire(import.meta.url)
+const bytes = (path: string) => new Uint8Array(readFileSync(require.resolve(path)))
+const TEMPLATES = ['classic']
+
+GlobalWorkerOptions.workerSrc = pathToFileURL(require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs')).href
+
+let compiler: TypstCompiler
+
+beforeAll(async () => {
+    compiler = createTypstCompiler()
+    await compiler.init({
+        beforeBuild: [
+            initOptions.disableDefaultFontAssets(),
+            loadFonts(['400Regular/Inter_400Regular', '400Regular_Italic/Inter_400Regular_Italic', '700Bold/Inter_700Bold', '700Bold_Italic/Inter_700Bold_Italic'].map((name) => bytes(`@expo-google-fonts/inter/${name}.ttf`))),
+        ],
+        getModule: () => bytes('@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm'),
+    })
+}, 60_000)
+
+/** The sample with earlier jobs added, so it's sure to run onto more than one page. */
+function longCv(): Cv {
+    const cv = sampleCv()
+
+    return {
+        ...cv,
+        sections: cv.sections.map((section) =>
+            section.kind === 'entries' && section.id === 'experience'
+                ? {...section, entries: [...section.entries, ...section.entries.map((entry, index) => ({...entry, id: `older-${index}`, org: `Earlier Company ${index + 1}`}))]}
+                : section,
+        ),
+    }
+}
+
+async function pdfOf(template: string): Promise<Uint8Array> {
+    compiler.addSource('/main.typ', readFileSync(fileURLToPath(new URL(`./${template}.typ`, import.meta.url)), 'utf8'))
+    compiler.mapShadow('/cv.json', new TextEncoder().encode(JSON.stringify(renderModel(longCv()))))
+
+    const result = await compiler.compile({mainFilePath: '/main.typ', format: 1, diagnostics: 'full'})
+
+    expect(result.diagnostics?.filter((item) => item.severity === 'error') ?? []).toEqual([])
+    return result.result!
+}
+
+/** Each page's text in reading order, one line per run of text, as a parser sees it. */
+async function textOf(pdf: Uint8Array): Promise<{pages: number; text: string; info: Record<string, unknown>}> {
+    const document = await getDocument({data: pdf.slice(), useSystemFonts: false}).promise
+    const lines: string[] = []
+
+    for (let number = 1; number <= document.numPages; number += 1) {
+        const content = await (await document.getPage(number)).getTextContent()
+
+        lines.push(content.items.map((item) => ('str' in item ? item.str + (item.hasEOL ? '\n' : '') : '')).join(''))
+    }
+
+    const {info} = await document.getMetadata()
+
+    return {pages: document.numPages, text: lines.join('\n'), info: info as Record<string, unknown>}
+}
+
+describe.each(TEMPLATES)('the %s template, as an ATS reads it', (template) => {
+    let read: Awaited<ReturnType<typeof textOf>>
+
+    beforeAll(async () => {
+        read = await textOf(await pdfOf(template))
+    }, 60_000)
+
+    it('runs onto a second page without losing anything', () => {
+        expect(read.pages).toBeGreaterThanOrEqual(2)
+        expect(read.text).toContain('Earlier Company 4')
+        expect(read.text).toContain('Mentoring')
+    })
+
+    it('starts with the name, and keeps the contact details whole', () => {
+        expect(read.text.trimStart().startsWith('Nadia Rahman')).toBe(true)
+        expect(read.text).toContain('nadia.rahman@example.com')
+        expect(read.text).toContain('+880 1700 000000')
+        expect(read.text).toContain('linkedin.com/in/nadia-rahman-example')
+    })
+
+    it('keeps the sections in order, under headings parsers know', () => {
+        const at = (heading: string) => read.text.indexOf(heading)
+
+        expect(at('SUMMARY')).toBeGreaterThan(-1)
+        expect(at('SUMMARY')).toBeLessThan(at('EXPERIENCE'))
+        expect(at('EXPERIENCE')).toBeLessThan(at('EDUCATION'))
+        expect(at('EDUCATION')).toBeLessThan(at('PROJECTS'))
+        expect(at('PROJECTS')).toBeLessThan(at('SKILLS'))
+    })
+
+    it('puts each job\'s dates with that job, not in a column of their own', () => {
+        const job = read.text.indexOf('Pathao')
+        const next = read.text.indexOf('Kaz Software')
+        const dates = read.text.indexOf('Jan 2019 – Feb 2022')
+
+        expect(dates).toBeGreaterThan(job)
+        expect(dates).toBeLessThan(next)
+    })
+
+    it('keeps letters apart, so "fi" and "ff" match keywords', () => {
+        expect(read.text).toContain('fraud-flagging')
+        expect(read.text).toContain('offline')
+        expect(read.text).not.toMatch(/[ﬀ-ﬆ]/)
+    })
+
+    it('names the document after the person', () => {
+        expect(read.info.Title).toBe('Nadia Rahman – CV')
+        expect(read.info.Author).toBe('Nadia Rahman')
+    })
+})

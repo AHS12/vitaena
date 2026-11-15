@@ -1,50 +1,31 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Wails build output
+/bin
+build/bin
+build/dist
+build/darwin/icons.icns
+build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
+*.syso
+.task
+/vitaena.exe
+frontend/package.json.md5
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# Dependencies
+node_modules
 
-# testing
-/coverage
+# Frontend build output
+frontend/dist
 
-# next.js
-/.next/
-/out/
+# Private design notes
+/specs
 
-# production
-/build
+# Personal Claude Code files. Project skills in .claude/skills are shared.
+.claude/launch.json
+.claude/settings.local.json
+.claude/worktrees
+.commandcode
 
-# misc
-.DS_Store
-*.pem
+# Local knowledge graph from graphify
+/graphify-out
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# PWA files
-public/sw.js
-public/sw.js.map
-public/workbox-*.js
-public/workbox-*.js.map
-
-# docker security scan
-/security-scans
+# Made by the build alongside the Mac icon; the real one is build/windows/icon.ico.
+/build/windows/unused-generated.ico
