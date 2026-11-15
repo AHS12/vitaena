@@ -70,6 +70,8 @@ const designSchema = z.object({
     paper: z.enum(['a4', 'us-letter']),
     margins: z.enum(['narrow', 'normal', 'wide']),
     spacing: z.enum(['compact', 'normal', 'relaxed']),
+    /** One column whatever the template, for screening systems that read columns badly. */
+    atsMode: z.boolean(),
 })
 
 const cvSchema = z.object({
@@ -103,7 +105,7 @@ export const emptyEntry = (): CvEntry => ({
     bullets: [],
 })
 
-export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', font: 'inter', fontSize: 10, paper: 'a4', margins: 'normal', spacing: 'normal'}
+export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', font: 'inter', fontSize: 10, paper: 'a4', margins: 'normal', spacing: 'normal', atsMode: false}
 
 /** A new CV: the sections most people need, empty, under the headings ATS parsers look for. */
 export function emptyCv(): Cv {
@@ -122,7 +124,7 @@ export function emptyCv(): Cv {
 export const cvType: DocumentType<Cv> = {
     kind: 'cv',
     noun: 'CV',
-    version: 2,
+    version: 3,
     content: cvSchema,
     empty: emptyCv,
     migrations: {
@@ -131,6 +133,12 @@ export const cvType: DocumentType<Cv> = {
             const cv = content as {design?: Record<string, unknown>}
 
             return {...cv, design: {font: 'inter', margins: 'normal', spacing: 'normal', ...cv.design}}
+        },
+        // Version 3 added ATS mode.
+        2: (content) => {
+            const cv = content as {design?: Record<string, unknown>}
+
+            return {...cv, design: {atsMode: false, ...cv.design}}
         },
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.

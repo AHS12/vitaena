@@ -45,6 +45,7 @@ export interface RenderModel {
         readonly margin: number
         /** How much room between blocks, around 1. */
         readonly spacing: number
+        readonly atsMode: boolean
     }
 }
 
@@ -141,6 +142,7 @@ export function renderModel(cv: Cv): RenderModel {
             paper: cv.design.paper,
             margin: MARGINS[cv.design.margins],
             spacing: SPACING[cv.design.spacing],
+            atsMode: cv.design.atsMode,
         },
     }
 }

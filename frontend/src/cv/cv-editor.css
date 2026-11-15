@@ -409,6 +409,36 @@ input.panel__title:focus {
     gap: 6px;
 }
 
+.template-choices {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--space-2);
+}
+
+.template-choice__picture {
+    display: block;
+    width: 100%;
+    aspect-ratio: 210 / 297;
+    margin-bottom: var(--space-1);
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: #ffffff;
+    box-shadow: var(--shadow-1);
+}
+
+.template-choice__picture img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.design-row--switch {
+    grid-template-columns: 70px auto;
+}
+
+.design-row--switch .design-panel__tip {
+    grid-column: 1 / -1;
+}
+
 .font-choices {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
 }

@@ -16,12 +16,13 @@ import {createTypstCompiler, initOptions, loadFonts, type TypstCompiler} from '@
 import {getDocument, GlobalWorkerOptions} from 'pdfjs-dist/legacy/build/pdf.mjs'
 import type {Cv} from '../cv'
 import {CV_FONTS} from '../fonts'
+import {CV_TEMPLATES} from './templates'
 import {renderModel} from '../render-model'
 import {sampleCv} from '../sample'
 
 const require = createRequire(import.meta.url)
 const bytes = (path: string) => new Uint8Array(readFileSync(require.resolve(path)))
-const TEMPLATES = ['classic']
+const TEMPLATES = CV_TEMPLATES.map((template) => template.id)
 
 GlobalWorkerOptions.workerSrc = pathToFileURL(require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs')).href
 
@@ -46,7 +47,7 @@ function longCv(): Cv {
         ...cv,
         sections: cv.sections.map((section) =>
             section.kind === 'entries' && section.id === 'experience'
-                ? {...section, entries: [...section.entries, ...section.entries.map((entry, index) => ({...entry, id: `older-${index}`, org: `Earlier Company ${index + 1}`}))]}
+                ? {...section, entries: [...section.entries, ...[0, 1].flatMap((round) => section.entries.map((entry, index) => ({...entry, id: `older-${round}-${index}`, org: `Earlier Company ${round * 4 + index + 1}`})))]}
                 : section,
         ),
     }
@@ -78,16 +79,20 @@ async function textOf(pdf: Uint8Array): Promise<{pages: number; text: string; in
     return {pages: document.numPages, text: lines.join('\n'), info: info as Record<string, unknown>}
 }
 
-describe.each(TEMPLATES)('the %s template, as an ATS reads it', (template) => {
+const CASES = [...TEMPLATES.map((template) => ({template, atsMode: false})), {template: 'modern', atsMode: true}]
+
+describe.each(CASES)('the $template template (ATS mode $atsMode), as an ATS reads it', ({template, atsMode}) => {
     let read: Awaited<ReturnType<typeof textOf>>
 
     beforeAll(async () => {
-        read = await textOf(await pdfOf(template))
+        const cv = longCv()
+
+        read = await textOf(await pdfOf(template, {...cv, design: {...cv.design, atsMode}}))
     }, 60_000)
 
     it('runs onto a second page without losing anything', () => {
         expect(read.pages).toBeGreaterThanOrEqual(2)
-        expect(read.text).toContain('Earlier Company 4')
+        expect(read.text).toContain('Earlier Company 8')
         expect(read.text).toContain('Mentoring')
     })
 
@@ -100,12 +105,22 @@ describe.each(TEMPLATES)('the %s template, as an ATS reads it', (template) => {
 
     it('keeps the sections in order, under headings parsers know', () => {
         const at = (heading: string) => read.text.indexOf(heading)
+        // In two columns the side column is read where it sits, page by page, so only the
+        // main column's order is promised. ATS mode gives one column and the full order.
+        const twoColumns = template === 'modern' && !atsMode
+        const order = twoColumns ? ['SUMMARY', 'EXPERIENCE', 'EDUCATION', 'PROJECTS'] : ['SUMMARY', 'EXPERIENCE', 'EDUCATION', 'PROJECTS', 'SKILLS']
 
-        expect(at('SUMMARY')).toBeGreaterThan(-1)
-        expect(at('SUMMARY')).toBeLessThan(at('EXPERIENCE'))
-        expect(at('EXPERIENCE')).toBeLessThan(at('EDUCATION'))
-        expect(at('EDUCATION')).toBeLessThan(at('PROJECTS'))
-        expect(at('PROJECTS')).toBeLessThan(at('SKILLS'))
+        for (const heading of [...order, 'SKILLS']) {
+            expect(at(heading), heading).toBeGreaterThan(-1)
+        }
+
+        for (let index = 1; index < order.length; index += 1) {
+            expect(at(order[index - 1]), `${order[index - 1]} before ${order[index]}`).toBeLessThan(at(order[index]))
+        }
+    })
+
+    it('keeps each skill group whole, beside its label', () => {
+        expect(read.text.replace(/\s+/g, ' ')).toMatch(/Systems:? ?PostgreSQL, Kafka, Redis, Kubernetes, AWS/)
     })
 
     it('puts each job\'s dates with that job, not in a column of their own', () => {

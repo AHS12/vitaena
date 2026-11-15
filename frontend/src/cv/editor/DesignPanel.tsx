@@ -5,12 +5,14 @@
 
 import {useEffect} from 'react'
 import {ColourRow} from '../../components/ColourRow'
+import {Switch} from '../../components/controls'
 import {Segmented} from '../../components/Segmented'
 import type {Cv, CvDesign} from '../cv'
 import {CV_FONTS} from '../fonts'
 import {CV_TEMPLATES} from '../templates/templates'
 import {fontUrl} from '../typst/font-urls'
 import type {useCvEdit} from '../use-cv-edit'
+import {useTemplatePreviews} from './use-template-previews'
 
 type Edit = ReturnType<typeof useCvEdit>
 
@@ -56,6 +58,9 @@ export function DesignPanel({cv, edit}: {cv: Cv; edit: Edit}) {
     const design = cv.design
     const set = <K extends keyof CvDesign>(key: K, value: CvDesign[K], label: string) => edit.act(label, (current) => ({...current, design: {...current.design, [key]: value}}))
 
+    const previews = useTemplatePreviews(cv)
+    const twoColumns = design.template === 'modern'
+
     useEffect(loadFaces, [])
 
     return (
@@ -71,12 +76,24 @@ export function DesignPanel({cv, edit}: {cv: Cv; edit: Edit}) {
                             className="template-choice"
                             onClick={() => set('template', template.id, 'template')}
                         >
+                            <span className="template-choice__picture" aria-hidden="true">
+                                {previews[template.id] ? <img src={previews[template.id]} alt="" draggable={false} /> : null}
+                            </span>
                             <span className="template-choice__name">{template.name}</span>
                             <span className="template-choice__about">{template.about}</span>
                             <span className="template-choice__facts">{template.facts}</span>
                         </button>
                     ))}
                 </div>
+                {twoColumns ? (
+                    <div className="design-row design-row--switch">
+                        <span className="design-row__label">ATS mode</span>
+                        <Switch label="ATS mode" value={design.atsMode} onChange={(atsMode) => set('atsMode', atsMode, 'ATS mode')} />
+                        <p className="design-panel__tip">
+                            One column, for screening systems that read columns badly. Turn it on when you apply through an online form.
+                        </p>
+                    </div>
+                ) : null}
             </Group>
 
             <Group title="Colour">

@@ -22,6 +22,7 @@ describe('CV files from version 1', () => {
         const loaded = parseDocument(file, cvType)
 
         expect(loaded.content.design).toEqual({...DEFAULT_DESIGN, accent: '#7a1f4b'})
+        expect(loaded.content.design.atsMode).toBe(false)
     })
 })
 
