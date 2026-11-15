@@ -202,7 +202,9 @@ jobs:
       - name: Build DMG
         env:
           VERSION: ${{ needs.resolve.outputs.version }}
-        run: ./build/darwin/make_dmg.sh vitaena "$VERSION"
+        # Through bash, so it runs whether or not git kept the file executable: a commit
+        # made on Windows doesn't.
+        run: bash ./build/darwin/make_dmg.sh vitaena "$VERSION"
 
       # The app updates itself from this zip, which must hold the app alone: no
       # __MACOSX folder (so no --sequesterRsrc) and no extended attributes.
