@@ -47,7 +47,9 @@ function Choice({icon: Icon, title, help}: {icon: typeof Download; title: string
 }
 
 export function ExportTitleButton() {
-    const formats = useExportStore((state) => state.formats)
+    const all = useExportStore((state) => state.formats)
+    const content = useDocumentStore((state) => state.content)
+    const formats = all.filter((format) => format.available?.(content) ?? true)
     const [open, setOpen] = useState(false)
     const [busy, setBusy] = useState<string | null>(null)
 

@@ -10,6 +10,7 @@
 
 import {Minus, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Plus} from 'lucide-react'
 import {useEffect, useMemo, useRef, useState} from 'react'
+import {Segmented} from '../components/Segmented'
 import type {SplitPaneHandle} from '../components/SplitPane'
 import {useDocumentStore} from '../store/document-store'
 import type {Cv} from './cv'
@@ -29,7 +30,14 @@ type State =
     | {readonly kind: 'ready'; readonly pages: number}
     | {readonly kind: 'failed'; readonly message: string}
 
-export function CvPreview({left, right, onExample}: {left: SplitPaneHandle; right: SplitPaneHandle; onExample(cv: Cv): void}) {
+/** ATS mode, for templates with two columns: whether it's on, and how to turn it on or off. */
+export interface AtsModeControl {
+    readonly available: boolean
+    readonly on: boolean
+    set(on: boolean): void
+}
+
+export function CvPreview({left, right, ats, onExample}: {left: SplitPaneHandle; right: SplitPaneHandle; ats: AtsModeControl; onExample(cv: Cv): void}) {
     const content = useDocumentStore((state) => state.content)
     const model = useMemo(() => renderModel(content), [content])
     const template = content.design.template
@@ -107,6 +115,19 @@ export function CvPreview({left, right, onExample}: {left: SplitPaneHandle; righ
                     {state.kind === 'starting' ? 'Laying out…' : state.kind === 'failed' ? "Couldn't lay out the pages" : `${state.pages} ${state.pages === 1 ? 'page' : 'pages'}`}
                     {state.kind === 'ready' ? ` · ${content.design.paper === 'a4' ? 'A4' : 'US Letter'}` : null}
                 </span>
+                {ats.available ? (
+                    <span className="cv-preview__ats" title="One column is read in order by every screening system. Use it when you apply through an online form.">
+                        <Segmented
+                            label="Layout"
+                            value={ats.on ? 'one' : 'two'}
+                            options={[
+                                {value: 'two', label: 'Two columns'},
+                                {value: 'one', label: 'One column (ATS)'},
+                            ]}
+                            onChange={(value) => ats.set(value === 'one')}
+                        />
+                    </span>
+                ) : null}
                 <span className="cv-preview__zoom">
                     <button type="button" className="icon-button" aria-label="Zoom out" onClick={() => step(-1)}>
                         <Minus size={13} aria-hidden="true" />

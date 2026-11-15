@@ -69,14 +69,28 @@ describe('the design panel', () => {
         expect(useDocumentStore.getState().content.design.font).toBe('inter')
     })
 
-    it('offers ATS mode for every two-column template, and only those', () => {
+    it('offers ATS mode in the preview bar for two-column templates, and only those', () => {
         render(<CvEditor />)
-        fireEvent.click(screen.getByRole('button', {name: 'Show the design'}))
-        fireEvent.click(screen.getByRole('tab', {name: 'Templates'}))
 
-        expect(screen.queryByRole('switch', {name: 'ATS mode'})).toBeNull()
+        expect(screen.queryByRole('radiogroup', {name: 'Layout'})).toBeNull()
+
+        fireEvent.click(screen.getByRole('button', {name: 'Show the design'}))
         fireEvent.click(screen.getByRole('radio', {name: /^Professional/}))
-        expect(screen.getByRole('switch', {name: 'ATS mode'})).toBeInTheDocument()
+        fireEvent.click(screen.getByRole('radio', {name: 'One column (ATS)'}))
+
+        expect(useDocumentStore.getState().content.design).toMatchObject({template: 'professional', atsMode: true})
+        expect(screen.getByRole('radio', {name: 'One column (ATS)'})).toHaveAttribute('aria-checked', 'true')
+    })
+
+    it('turns ATS mode on from the Check tab\'s warning about columns', () => {
+        useDocumentStore.getState().previewEdit({...sampleCv(), design: {...sampleCv().design, template: 'modern'}})
+        render(<CvEditor />)
+
+        fireEvent.click(screen.getByRole('tab', {name: 'Check'}))
+        fireEvent.click(screen.getByRole('button', {name: 'Turn on ATS mode'}))
+
+        expect(useDocumentStore.getState().content.design.atsMode).toBe(true)
+        useEditorStore.setState({tab: 'content'})
     })
 
     it('shows templates with example content while the CV has only a name', () => {

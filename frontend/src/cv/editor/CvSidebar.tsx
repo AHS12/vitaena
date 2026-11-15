@@ -145,7 +145,7 @@ function AddSection({cv, edit}: {cv: Cv; edit: Edit}) {
     )
 }
 
-export function CvSidebar({cv, edit}: {cv: Cv; edit: Edit}) {
+export function CvSidebar({cv, edit, onAtsMode}: {cv: Cv; edit: Edit; onAtsMode(): void}) {
     const tab = useEditorStore((state) => state.tab)
     const setTab = useEditorStore((state) => state.setTab)
 
@@ -159,7 +159,7 @@ export function CvSidebar({cv, edit}: {cv: Cv; edit: Edit}) {
                 ))}
             </div>
             <div className="cv-sidebar" id="cv-tab-panel" role="tabpanel" aria-labelledby={`cv-tab-${tab}`} data-coach="editor">
-                {tab === 'content' ? <ContentPanel cv={cv} edit={edit} /> : <CheckPanel cv={cv} />}
+                {tab === 'content' ? <ContentPanel cv={cv} edit={edit} /> : <CheckPanel cv={cv} onAtsMode={onAtsMode} />}
             </div>
         </div>
     )

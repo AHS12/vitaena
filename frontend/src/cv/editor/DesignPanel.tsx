@@ -5,7 +5,6 @@
 
 import {useEffect, useMemo} from 'react'
 import {ColourRow} from '../../components/ColourRow'
-import {Switch} from '../../components/controls'
 import {Segmented} from '../../components/Segmented'
 import type {Cv, CvDesign} from '../cv'
 import {CV_FONTS} from '../fonts'
@@ -97,7 +96,7 @@ const setter =
     <K extends keyof CvDesign>(key: K, value: CvDesign[K], label: string) =>
         edit.act(label, (current) => ({...current, design: {...current.design, [key]: value}}))
 
-/** The template gallery: the CV in every template, and ATS mode for two-column ones. */
+/** The template gallery: the CV in every template. */
 export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
     const design = cv.design
     const set = setter(edit)
@@ -117,7 +116,6 @@ export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
         return {...example, person: {...person, photo: cv.person.photo || silhouettePhoto()}, design: cv.design}
     }, [blank, cv, model.name])
     const previews = useTemplatePreviews(shown)
-    const twoColumns = CV_TEMPLATES.find((template) => template.id === design.template)?.twoColumns === true
 
     return (
         <div className="design-panel">
@@ -147,15 +145,6 @@ export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
                         </button>
                     ))}
                 </div>
-                {twoColumns ? (
-                    <div className="design-row design-row--switch">
-                        <span className="design-row__label">ATS mode</span>
-                        <Switch label="ATS mode" value={design.atsMode} onChange={(atsMode) => set('atsMode', atsMode, 'ATS mode')} />
-                        <p className="design-panel__tip">
-                            One column, for screening systems that read columns badly. Turn it on when you apply through an online form.
-                        </p>
-                    </div>
-                ) : null}
             </Group>
         </div>
     )

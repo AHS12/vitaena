@@ -3,7 +3,7 @@
  * there are named, and replaced only when the person says so.
  */
 
-import {useEffect, useState} from 'react'
+import {useEffect, useMemo, useState} from 'react'
 import {Dialog} from '../../components/controls'
 import {chooseFolder} from '../../platform/desktop'
 import {documentType, useDocumentStore} from '../../store/document-store'
@@ -15,7 +15,9 @@ import {loadExportPreferences, saveExportPreferences, type ExportPreferences} fr
 
 export function ExportDialog() {
     const open = useExportStore((state) => state.dialog === 'one')
-    const formats = useExportStore((state) => state.formats)
+    const all = useExportStore((state) => state.formats)
+    const content = useDocumentStore((state) => state.content)
+    const formats = useMemo(() => all.filter((format) => format.available?.(content) ?? true), [all, content])
     const close = useExportStore((state) => state.close)
     const name = useDocumentStore((state) => state.name)
     const notify = useDocumentStore((state) => state.notify)

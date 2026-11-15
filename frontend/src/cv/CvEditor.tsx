@@ -10,12 +10,18 @@ import {SplitPane} from '../components/SplitPane'
 import {APP} from '../core/app'
 import {useDocumentStore} from '../store/document-store'
 import {CvPreview} from './CvPreview'
+import {CV_TEMPLATES} from './templates/templates'
 import {CvSidebar, DesignSidebar} from './editor/CvSidebar'
 import {useCvEdit} from './use-cv-edit'
 
 export function CvEditor() {
     const cv = useDocumentStore((state) => state.content)
     const edit = useCvEdit()
+    const ats = {
+        available: CV_TEMPLATES.find((template) => template.id === cv.design.template)?.twoColumns === true,
+        on: cv.design.atsMode,
+        set: (on: boolean) => edit.act(on ? 'ATS mode on' : 'ATS mode off', (current) => ({...current, design: {...current.design, atsMode: on}})),
+    }
 
     // The document's history, not a field's own, which knows nothing of saving or of
     // changes made elsewhere. Finishing the step first means Undo takes back the typing.
@@ -40,7 +46,7 @@ export function CvEditor() {
 
     return (
         <main className="cv-editor" onKeyDown={onKeyDown}>
-            <SplitPane storageKey={`${APP.id}.editor.layout`} label="Editor" defaultWidth={440} minWidth={340} side={() => <CvSidebar cv={cv} edit={edit} />}>
+            <SplitPane storageKey={`${APP.id}.editor.layout`} label="Editor" defaultWidth={440} minWidth={340} side={() => <CvSidebar cv={cv} edit={edit} onAtsMode={() => ats.set(true)} />}>
                 {(left) => (
                     <SplitPane
                         storageKey={`${APP.id}.design.layout`}
@@ -53,7 +59,7 @@ export function CvEditor() {
                         defaultCollapsed={window.innerWidth < 1200}
                         side={() => <DesignSidebar cv={cv} edit={edit} />}
                     >
-                        {(right) => <CvPreview left={left} right={right} onExample={(example) => edit.act('example', (current) => ({...example, design: current.design}))} />}
+                        {(right) => <CvPreview left={left} right={right} ats={ats} onExample={(example) => edit.act('example', (current) => ({...example, design: current.design}))} />}
                     </SplitPane>
                 )}
             </SplitPane>

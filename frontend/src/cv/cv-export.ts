@@ -1,9 +1,10 @@
 /** What a CV can be exported as. */
 
-import {FileCode2, FileText, FileType2, TextQuote} from 'lucide-react'
+import {FileCheck2, FileCode2, FileText, FileType2, TextQuote} from 'lucide-react'
 import {serializeDocument} from '../core/document/document-file'
 import type {ExportFormat} from '../features/export/formats'
 import {cvType, type Cv} from './cv'
+import {CV_TEMPLATES} from './templates/templates'
 import {renderModel, type RenderModel} from './render-model'
 import {plainOf} from './rich'
 
@@ -65,6 +66,21 @@ export const CV_FORMATS: readonly ExportFormat<Cv>[] = [
             const {pdf} = await import('./typst/engine')
 
             return pdf(renderModel(cv), cv.design.template)
+        },
+    },
+    {
+        id: 'pdf-ats',
+        label: 'PDF for online forms',
+        extension: 'pdf',
+        suffix: ' (ATS)',
+        mimeType: 'application/pdf',
+        icon: FileCheck2,
+        help: 'The same CV in one column, which every screening system reads in order. Your design stays as it is.',
+        available: (cv) => !cv.design.atsMode && CV_TEMPLATES.some((template) => template.id === cv.design.template && template.twoColumns),
+        make: async (cv) => {
+            const {pdf} = await import('./typst/engine')
+
+            return pdf(renderModel({...cv, design: {...cv.design, atsMode: true}}), cv.design.template)
         },
     },
     {

@@ -16,6 +16,8 @@ export interface CheckResult {
     readonly level: CheckLevel
     readonly title: string
     readonly detail?: string
+    /** Something the Check can do about it with one click. */
+    readonly fix?: 'ats-mode'
 }
 
 /** Headings most parsers look for, and other words that mean the same. */
@@ -88,7 +90,7 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
         results.push(
             cv.design.atsMode
                 ? {id: 'columns', level: 'good', title: 'One column, in ATS mode'}
-                : {id: 'columns', level: 'warning', title: 'Two columns can be read out of order', detail: 'Some systems read across both columns line by line. Turn on ATS mode in Design when you apply through an online form.'},
+                : {id: 'columns', level: 'warning', title: 'Two columns can be read out of order', detail: 'Some systems read across both columns line by line. ATS mode puts everything in one column; Export also offers a one-column PDF for online forms.', fix: 'ats-mode'},
         )
     } else {
         results.push({id: 'columns', level: 'good', title: 'One column, read top to bottom'})

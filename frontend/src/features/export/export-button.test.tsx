@@ -55,3 +55,34 @@ describe('the Export button', () => {
         expect(useDocumentStore.getState().toast?.message).toBe('Exported Jane CV.json')
     })
 })
+
+describe('the one-column PDF for online forms', () => {
+    it('is offered with a two-column template, and not with a one-column one', async () => {
+        const cv = sampleCv()
+
+        useDocumentStore.getState().previewEdit({...cv, design: {...cv.design, template: 'professional'}})
+        const {unmount} = render(<ExportTitleButton />)
+
+        fireEvent.click(screen.getByRole('button', {name: /^Export/}))
+        expect(await screen.findByRole('menuitem', {name: /^PDF for online forms/})).toBeInTheDocument()
+        unmount()
+
+        useDocumentStore.getState().previewEdit({...cv, design: {...cv.design, template: 'classic'}})
+        render(<ExportTitleButton />)
+        fireEvent.click(screen.getByRole('button', {name: /^Export/}))
+        await screen.findAllByRole('menuitem')
+        expect(screen.queryByRole('menuitem', {name: /^PDF for online forms/})).toBeNull()
+    })
+
+    it('is saved with (ATS) in its name, beside the usual PDF', async () => {
+        const cv = sampleCv()
+
+        useDocumentStore.getState().previewEdit({...cv, design: {...cv.design, template: 'modern'}})
+        render(<ExportTitleButton />)
+
+        fireEvent.click(screen.getByRole('button', {name: /^Export/}))
+        await act(async () => fireEvent.click(await screen.findByRole('menuitem', {name: /^PDF for online forms/})))
+
+        await waitFor(() => expect(written?.path).toBe('C:/CVs/Jane CV (ATS).pdf'))
+    })
+})

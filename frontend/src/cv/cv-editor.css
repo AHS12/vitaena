@@ -748,3 +748,19 @@ input.panel__title:focus {
     background: color-mix(in srgb, var(--brand-teal) 22%, transparent);
     color: var(--text-primary);
 }
+
+/* The layout switch for two-column templates, in the preview bar. */
+.cv-preview__ats .segmented__option {
+    height: 24px;
+    padding: 0 9px;
+}
+
+.cv-preview__ats .segmented__option[aria-checked='true'] {
+    background: var(--accent-moss);
+    color: var(--text-on-accent);
+}
+
+.check__fix.button {
+    align-self: flex-start;
+    margin-top: var(--space-2);
+}

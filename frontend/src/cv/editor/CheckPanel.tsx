@@ -17,7 +17,7 @@ const ORDER: Record<CheckLevel, number> = {warning: 0, tip: 1, good: 2}
 
 type Read = {readonly kind: 'reading'} | {readonly kind: 'read'; readonly pages: number; readonly text: string} | {readonly kind: 'failed'; readonly message: string}
 
-export function CheckPanel({cv}: {cv: Cv}) {
+export function CheckPanel({cv, onAtsMode}: {cv: Cv; onAtsMode(): void}) {
     const [read, setRead] = useState<Read>({kind: 'reading'})
 
     useEffect(() => {
@@ -62,6 +62,11 @@ export function CheckPanel({cv}: {cv: Cv}) {
                                 <span className="check__body">
                                     <span className="check__title">{result.title}</span>
                                     {result.detail ? <span className="check__detail">{result.detail}</span> : null}
+                                    {result.fix === 'ats-mode' ? (
+                                        <button type="button" className="button button--primary check__fix" onClick={onAtsMode}>
+                                            Turn on ATS mode
+                                        </button>
+                                    ) : null}
                                 </span>
                             </li>
                         )

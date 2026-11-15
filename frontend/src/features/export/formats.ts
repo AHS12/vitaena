@@ -19,6 +19,10 @@ export interface ExportFormat<T> {
     readonly mimeType?: string
     /** Drawn beside the format in the Export menu. */
     readonly icon?: LucideIcon
+    /** Added to the file name, so two formats with one extension don't clash: " (ATS)". */
+    readonly suffix?: string
+    /** Whether to offer it for this content. Offered always when left out. */
+    available?(content: T): boolean
     /** One line on what it's good for. */
     readonly help?: string
     /** The file's contents. Text is written as UTF-8. A format that has to lay pages out may take its time. */
@@ -41,7 +45,7 @@ export async function exportFiles<T>(formats: readonly ExportFormat<T>[], name: 
         formats.map(async (format) => {
             const made = await format.make(content, name)
 
-            return {name: `${base}.${format.extension}`, bytes: typeof made === 'string' ? new TextEncoder().encode(made) : made}
+            return {name: `${base}${format.suffix ?? ''}.${format.extension}`, bytes: typeof made === 'string' ? new TextEncoder().encode(made) : made}
         }),
     )
 }
