@@ -10,7 +10,7 @@ info:
   description: "A starter for desktop apps that feel like desktop apps."
   copyright: "© 2026 AHS12"
   comments: "A starter for desktop apps that feel like desktop apps."
-  version: "0.1.0"
+  version: "0.1.5"
 
 dev_mode:
   root_path: .

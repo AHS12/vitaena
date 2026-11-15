@@ -2,6 +2,54 @@
 
 What's new in each version.
 
+## 0.1.5 (November 15, 2026)
+
+**Six new templates**
+
+- Professional: a bold name, contact icons and a round photo, with skills and projects
+  in a side column.
+- Academic: dates in the margin and publications as a numbered list, for a full research
+  and teaching record.
+- Executive, Bold, Timeline and Sidebar: centred and formal, a band of colour across the
+  top, jobs along a timeline, and a full-height coloured column.
+- Each template says whether it suits a resume, an academic CV or either.
+- Modern's side column has more room around its edges.
+
+**Photos and levels**
+
+- Add a photo. Templates that suit one show it, and Show on the CV hides it without
+  removing it.
+- Show a level beside languages or skills: turn on Show levels in a group and click the
+  dots, in half steps if you like. The word beside it, such as Native, fills in for you.
+- Draw levels as dots, a bar or squares from Style, or leave it to the template.
+
+**A roomier editor**
+
+- Content and Check sit on the left, the page in the middle, and Design on the right, with
+  its own Templates and Style tabs.
+- Every template shows your own CV, or an example while yours is still empty.
+- Template pictures appear quickly, with a placeholder while they're drawn, and the page
+  you're editing always comes first.
+
+**A new Home**
+
+- Your recent CVs come first, then ways to start, including any template, then every CV
+  with a search.
+- See all, beside Recent, opens the page of every CV.
+
+**Screening systems**
+
+- Two-column templates have a Two columns or One column (ATS) switch above the page.
+- Check's warning about columns turns on ATS mode in one click, and Check tells you when a
+  level has no word a screening system can read.
+- Export offers a one-column PDF for online forms beside the usual one, without changing
+  your design.
+
+**Export**
+
+- One Export button opens a menu of every format, with a line on what each is for.
+- Export a Vitaena file, to move a CV to another computer or keep a copy.
+
 ## 0.1.0 (November 15, 2026)
 
 **Vitaena is now a desktop app**
@@ -17,11 +65,10 @@ What's new in each version.
 - Pick months from a calendar, type skills as chips, and press Enter for the next bullet.
 - Make words bold or italic with Ctrl+B and Ctrl+I, and add links.
 - Keep a detail but leave it off the page with Show on the CV.
-- Show a level beside languages or skills: turn on Show levels in a group and click the dots, in half steps if you like. Draw them as dots, a bar or squares from Style.
 
 **Make it look right**
 
-- Ten templates, each shown with your own CV: Classic, Modern, Minimal, Compact, Professional, Academic, Executive, Bold, Timeline and Sidebar.
+- Four templates: Classic, Modern, Minimal and Compact, each shown with your own CV.
 - Five fonts, any colour, and your choice of text size, margins, spacing and paper.
 
 **Send it with confidence**
