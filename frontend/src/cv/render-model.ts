@@ -8,6 +8,7 @@
  */
 
 import type {Cv, CvEntry} from './cv'
+import {fontById} from './fonts'
 
 export interface RenderEntry {
     readonly title: string
@@ -36,10 +37,19 @@ export interface RenderModel {
     readonly sections: readonly RenderSection[]
     readonly design: {
         readonly accent: string
+        /** The font's family name, as Typst knows it. */
+        readonly font: string
         readonly fontSize: number
         readonly paper: string
+        /** Page margins, in centimetres. */
+        readonly margin: number
+        /** How much room between blocks, around 1. */
+        readonly spacing: number
     }
 }
+
+const MARGINS = {narrow: 1.3, normal: 1.8, wide: 2.4} as const
+const SPACING = {compact: 0.8, normal: 1, relaxed: 1.2} as const
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -124,6 +134,13 @@ export function renderModel(cv: Cv): RenderModel {
         headline: person.headline.trim(),
         contact,
         sections,
-        design: {accent: cv.design.accent, fontSize: cv.design.fontSize, paper: cv.design.paper},
+        design: {
+            accent: cv.design.accent,
+            font: fontById(cv.design.font).family,
+            fontSize: cv.design.fontSize,
+            paper: cv.design.paper,
+            margin: MARGINS[cv.design.margins],
+            spacing: SPACING[cv.design.spacing],
+        },
     }
 }

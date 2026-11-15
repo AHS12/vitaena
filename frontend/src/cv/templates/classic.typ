@@ -1,22 +1,32 @@
 // Classic: one column, name on top, accent-coloured section rules.
 //
 // Reads the render model from /cv.json. Everything is written in reading order and as
-// real text, so the PDF reads correctly in an ATS: no columns, no tables, no text in
-// the page header, and ligatures off so "fi" stays two letters.
+// real text, so the PDF reads correctly in an ATS: no columns, no tables, nothing only
+// in the page header (from page 2 it repeats the name, which the body already has), and
+// ligatures off so "fi" stays two letters.
 
 #let cv = json("/cv.json")
 #let accent = rgb(cv.design.accent)
 #let muted = luma(90)
+// Every gap scales with the chosen spacing.
+#let gap(n) = n * cv.design.spacing * 1em
 
 #set document(title: if cv.name != "" { cv.name + " – CV" } else { "CV" }, author: cv.name)
-#set text(font: "Inter", size: cv.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(20))
-#set par(leading: 0.55em, spacing: 0.7em, justify: false)
-#set list(marker: [•], indent: 0.2em, body-indent: 0.6em, spacing: 0.45em)
+#set text(font: (cv.design.font, "Inter"), size: cv.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(20))
+#set par(leading: 0.55em, spacing: gap(0.7), justify: false)
+#set list(marker: [•], indent: 0.2em, body-indent: 0.6em, spacing: gap(0.45))
 #set page(
   paper: cv.design.paper,
   // Said outright: the preview's SVG leaves an unfilled page see-through.
   fill: white,
-  margin: (x: 1.8cm, top: 1.6cm, bottom: 1.8cm),
+  margin: (x: cv.design.margin * 1cm, top: cv.design.margin * 0.9cm, bottom: cv.design.margin * 1cm),
+  // From page 2, the name sits small at the top, so a loose page still says whose it is.
+  header: context {
+    if counter(page).get().first() > 1 and cv.name != "" {
+      set text(size: 0.8em, fill: muted)
+      align(right, cv.name)
+    }
+  },
   footer: context {
     let total = counter(page).final().first()
     if total > 1 {
@@ -28,7 +38,7 @@
 
 #show heading.where(level: 2): it => {
   set text(size: 1.1em, weight: "bold", fill: accent)
-  block(above: 1.3em, below: 0.6em, sticky: true)[
+  block(above: gap(1.3), below: gap(0.6), sticky: true)[
     #upper(it.body)
     #v(-0.55em)
     #line(length: 100%, stroke: 0.6pt + accent)
@@ -66,7 +76,7 @@
   let meta = (e.location, e.dates).filter(x => x != "")
 
   // The heading lines stay with what follows them, but a long entry may still break.
-  block(sticky: true, above: 0.9em, below: 0.35em, {
+  block(sticky: true, above: gap(0.9), below: gap(0.35), {
     head.join([, ])
     if meta.len() > 0 {
       linebreak()
@@ -93,7 +103,7 @@
     }
   } else if s.kind == "tags" {
     for g in s.groups {
-      block(above: 0.5em, below: 0.5em)[
+      block(above: gap(0.5), below: gap(0.5))[
         #if g.label != "" [#text(weight: "bold")[#g.label:] ]
         #g.items
       ]

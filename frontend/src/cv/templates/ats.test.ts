@@ -15,6 +15,7 @@ import {beforeAll, describe, expect, it} from 'vitest'
 import {createTypstCompiler, initOptions, loadFonts, type TypstCompiler} from '@myriaddreamin/typst.ts'
 import {getDocument, GlobalWorkerOptions} from 'pdfjs-dist/legacy/build/pdf.mjs'
 import type {Cv} from '../cv'
+import {CV_FONTS} from '../fonts'
 import {renderModel} from '../render-model'
 import {sampleCv} from '../sample'
 
@@ -31,7 +32,7 @@ beforeAll(async () => {
     await compiler.init({
         beforeBuild: [
             initOptions.disableDefaultFontAssets(),
-            loadFonts(['400Regular/Inter_400Regular', '400Regular_Italic/Inter_400Regular_Italic', '700Bold/Inter_700Bold', '700Bold_Italic/Inter_700Bold_Italic'].map((name) => bytes(`@expo-google-fonts/inter/${name}.ttf`))),
+            loadFonts(CV_FONTS.flatMap((font) => font.files.map(bytes))),
         ],
         getModule: () => bytes('@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm'),
     })
@@ -51,9 +52,9 @@ function longCv(): Cv {
     }
 }
 
-async function pdfOf(template: string): Promise<Uint8Array> {
+async function pdfOf(template: string, cv: Cv = longCv()): Promise<Uint8Array> {
     compiler.addSource('/main.typ', readFileSync(fileURLToPath(new URL(`./${template}.typ`, import.meta.url)), 'utf8'))
-    compiler.mapShadow('/cv.json', new TextEncoder().encode(JSON.stringify(renderModel(longCv()))))
+    compiler.mapShadow('/cv.json', new TextEncoder().encode(JSON.stringify(renderModel(cv))))
 
     const result = await compiler.compile({mainFilePath: '/main.typ', format: 1, diagnostics: 'full'})
 
@@ -125,5 +126,20 @@ describe.each(TEMPLATES)('the %s template, as an ATS reads it', (template) => {
     it('names the document after the person', () => {
         expect(read.info.Title).toBe('Nadia Rahman – CV')
         expect(read.info.Author).toBe('Nadia Rahman')
+    })
+})
+
+describe.each(CV_FONTS.map((font) => font.id))('the %s font, as an ATS reads it', (fontId) => {
+    it('embeds itself and keeps every letter readable', async () => {
+        const cv = sampleCv()
+        const pdf = await pdfOf('classic', {...cv, design: {...cv.design, font: fontId}})
+        const read = await textOf(pdf)
+        const family = CV_FONTS.find((font) => font.id === fontId)!.family.replace(/ /g, '')
+
+        expect(new TextDecoder('latin1').decode(pdf)).toContain(family)
+        expect(read.text).toContain('nadia.rahman@example.com')
+        expect(read.text).toContain('fraud-flagging')
+        expect(read.text).toContain('Mar 2022 – Present')
+        expect(read.text).not.toMatch(/[ﬀ-ﬆ]/)
     })
 })

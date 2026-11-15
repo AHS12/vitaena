@@ -20,9 +20,21 @@ importers:
       '@dnd-kit/utilities':
         specifier: 3.2.2
         version: 3.2.2(react@19.3.1)
+      '@expo-google-fonts/eb-garamond':
+        specifier: 0.4.3
+        version: 0.4.3
+      '@expo-google-fonts/ibm-plex-sans':
+        specifier: 0.4.1
+        version: 0.4.1
       '@expo-google-fonts/inter':
         specifier: 0.4.1
         version: 0.4.1
+      '@expo-google-fonts/lato':
+        specifier: 0.4.1
+        version: 0.4.1
+      '@expo-google-fonts/source-serif-4':
+        specifier: 0.4.2
+        version: 0.4.2
       '@heroui/react':
         specifier: ^3.2.7
         version: 3.2.7(@internationalized/date@3.12.4)(@react-aria/ssr@3.10.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-aria/utils@3.34.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-spectrum/provider@3.11.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-aria-components@1.22.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-aria@3.53.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)
@@ -532,8 +544,20 @@ packages:
       '@noble/hashes':
         optional: true
 
+  '@expo-google-fonts/eb-garamond@0.4.3':
+    resolution: {integrity: sha512-8HsDPKN6vDlzxZLgo3UFcyr4uvtY33TBpM65owySnF8cy8hq0ss8AWmBvT/lMRJ/wfcoaPP8gFQsizPRvr0nqg==}
+
+  '@expo-google-fonts/ibm-plex-sans@0.4.1':
+    resolution: {integrity: sha512-allsuhZbvKoKDTB/U8creFVYYzhI97Nw9MgyyNjFzqISNc/sURpA7ZY37Rr+IRI567OV9BWQ/ioUCjAQrVGRbw==}
+
   '@expo-google-fonts/inter@0.4.1':
     resolution: {integrity: sha512-ypL+XokTHEG+ie/nxNj/mS38afMrY4Li4oKvTJf9k9XvH7I21qfTGCsDtlZ6nIUWEAy1odoUZISdXT1nfMh4kA==}
+
+  '@expo-google-fonts/lato@0.4.1':
+    resolution: {integrity: sha512-U2g1sOBFSNgmxhh/Ywgyi7Hx6T3UielX2nmZuP55wqndrIEyNX3HeUQIhhQDe2vZ+nvZI0Z2vTcVjmOn/BM9ow==}
+
+  '@expo-google-fonts/source-serif-4@0.4.2':
+    resolution: {integrity: sha512-7X2w5KT0n/pxRXr5Ogv6W35D004IbCXUouTCr9VCh9bSlSWbryyvk8/ovXNOaJLOJV8QeIDnX0hIppgH0UZ8sA==}
 
   '@heroui/react@3.2.7':
     resolution: {integrity: sha512-cFYqzjgkuni+UD8mKOzbUloi99DCFEt1bE7YLE/3/RpahdRsjzp10zjbNgDn7CJC0oES2AX81Siu/EeLk7bsVg==}
@@ -2578,7 +2602,15 @@ snapshots:
 
   '@exodus/bytes@1.16.0': {}
 
+  '@expo-google-fonts/eb-garamond@0.4.3': {}
+
+  '@expo-google-fonts/ibm-plex-sans@0.4.1': {}
+
   '@expo-google-fonts/inter@0.4.1': {}
+
+  '@expo-google-fonts/lato@0.4.1': {}
+
+  '@expo-google-fonts/source-serif-4@0.4.2': {}
 
   '@heroui/react@3.2.7(@internationalized/date@3.12.4)(@react-aria/ssr@3.10.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-aria/utils@3.34.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-spectrum/provider@3.11.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-aria-components@1.22.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-aria@3.53.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)':
     dependencies:

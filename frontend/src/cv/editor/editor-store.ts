@@ -7,7 +7,12 @@
 
 import {create} from 'zustand'
 
+export type EditorTab = 'content' | 'design'
+
 interface EditorStore {
+    /** What the side pane shows: what the CV says, or how it looks. */
+    tab: EditorTab
+    setTab(tab: EditorTab): void
     /** Sections someone folded away. */
     closedSections: ReadonlySet<string>
     /** Entries someone opened. */
@@ -28,6 +33,8 @@ const toggled = (set: ReadonlySet<string>, id: string): Set<string> => {
 }
 
 export const useEditorStore = create<EditorStore>((set) => ({
+    tab: 'content',
+    setTab: (tab) => set({tab}),
     closedSections: new Set(),
     openEntries: new Set(),
     toggleSection: (id) => set((state) => ({closedSections: toggled(state.closedSections, id)})),

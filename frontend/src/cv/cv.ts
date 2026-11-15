@@ -64,8 +64,12 @@ const sectionSchema = z.discriminatedUnion('kind', [
 const designSchema = z.object({
     template: z.string().min(1),
     accent: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+    /** An id from CV_FONTS. An unknown one falls back to the first. */
+    font: z.string().min(1),
     fontSize: z.number().min(8).max(13),
     paper: z.enum(['a4', 'us-letter']),
+    margins: z.enum(['narrow', 'normal', 'wide']),
+    spacing: z.enum(['compact', 'normal', 'relaxed']),
 })
 
 const cvSchema = z.object({
@@ -99,7 +103,7 @@ export const emptyEntry = (): CvEntry => ({
     bullets: [],
 })
 
-export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', fontSize: 10, paper: 'a4'}
+export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', font: 'inter', fontSize: 10, paper: 'a4', margins: 'normal', spacing: 'normal'}
 
 /** A new CV: the sections most people need, empty, under the headings ATS parsers look for. */
 export function emptyCv(): Cv {
@@ -118,9 +122,17 @@ export function emptyCv(): Cv {
 export const cvType: DocumentType<Cv> = {
     kind: 'cv',
     noun: 'CV',
-    version: 1,
+    version: 2,
     content: cvSchema,
     empty: emptyCv,
+    migrations: {
+        // Version 2 added the font, margins and spacing to the design.
+        1: (content) => {
+            const cv = content as {design?: Record<string, unknown>}
+
+            return {...cv, design: {font: 'inter', margins: 'normal', spacing: 'normal', ...cv.design}}
+        },
+    },
     // Loaded on use, so tests and the library list never pull in the layout engine.
     thumbnail: async (cv) => (await import('./thumbnail')).cvThumbnail(cv),
 }

@@ -12,14 +12,12 @@
 import type {TypstCompiler, TypstRenderer} from '@myriaddreamin/typst.ts'
 import compilerWasm from '@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url'
 import rendererWasm from '@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url'
-import interRegular from '@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf?url'
-import interItalic from '@expo-google-fonts/inter/400Regular_Italic/Inter_400Regular_Italic.ttf?url'
-import interBold from '@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf?url'
-import interBoldItalic from '@expo-google-fonts/inter/700Bold_Italic/Inter_700Bold_Italic.ttf?url'
 import classic from '../templates/classic.typ?raw'
+import {CV_FONTS} from '../fonts'
+import {fontUrl} from './font-urls'
 import type {RenderModel} from '../render-model'
 
-const FONTS = [interRegular, interItalic, interBold, interBoldItalic]
+const FONTS = CV_FONTS.flatMap((font) => font.files.map(fontUrl))
 
 export const TEMPLATES: Readonly<Record<string, string>> = {classic}
 

@@ -8,6 +8,7 @@ import {newId, type Cv, type CvPerson} from '../cv'
 import type {useCvEdit} from '../use-cv-edit'
 import {emailWarning, linkWarning, moveSection, newSection, SECTION_CHOICES, updatePerson} from './edit-ops'
 import {useEditorStore} from './editor-store'
+import {DesignPanel} from './DesignPanel'
 import {SectionPanel} from './SectionPanel'
 
 type Edit = ReturnType<typeof useCvEdit>
@@ -127,8 +128,28 @@ function AddSection({cv, edit}: {cv: Cv; edit: Edit}) {
 }
 
 export function CvSidebar({cv, edit}: {cv: Cv; edit: Edit}) {
+    const tab = useEditorStore((state) => state.tab)
+    const setTab = useEditorStore((state) => state.setTab)
+
     return (
-        <div className="cv-sidebar" data-coach="editor">
+        <div className="cv-side">
+            <div className="cv-tabs" role="tablist" aria-label="Edit">
+                {(['content', 'design'] as const).map((id) => (
+                    <button key={id} type="button" role="tab" id={`cv-tab-${id}`} aria-selected={tab === id} aria-controls="cv-tab-panel" className="cv-tabs__tab" onClick={() => setTab(id)}>
+                        {id === 'content' ? 'Content' : 'Design'}
+                    </button>
+                ))}
+            </div>
+            <div className="cv-sidebar" id="cv-tab-panel" role="tabpanel" aria-labelledby={`cv-tab-${tab}`} data-coach="editor">
+                {tab === 'content' ? <ContentPanel cv={cv} edit={edit} /> : <DesignPanel cv={cv} edit={edit} />}
+            </div>
+        </div>
+    )
+}
+
+function ContentPanel({cv, edit}: {cv: Cv; edit: Edit}) {
+    return (
+        <>
             <PersonPanel person={cv.person} edit={edit} />
             <SortableList
                 items={cv.sections}
@@ -141,6 +162,6 @@ export function CvSidebar({cv, edit}: {cv: Cv; edit: Edit}) {
             </SortableList>
             <AddSection cv={cv} edit={edit} />
             <p className="cv-sidebar__tip">Drag the grips, or press Alt+↑/↓, to change the order. Undo with Ctrl+Z.</p>
-        </div>
+        </>
     )
 }
