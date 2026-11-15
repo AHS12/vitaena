@@ -16,6 +16,7 @@ import {joinItem, levelOfWords, withWordLevels} from '../levels'
 import {findDates, withoutDates, type DateRange} from './dates'
 import {knownHeading, type HeadingKind} from './headings'
 import type {PdfLine} from './layout'
+import {NOT_SORTED} from './not-sorted'
 import type {PdfLayout} from './read-pdf'
 
 export interface ImportedCv {
@@ -24,8 +25,7 @@ export interface ImportedCv {
     readonly unsorted: number
 }
 
-/** The hidden section for what couldn't be placed. */
-export const NOT_SORTED = 'Not sorted'
+export {NOT_SORTED}
 
 const BULLET = /^(?:[•▪◦‣●■○◆►✓➢]\s*|[*–-]\s+)/
 const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/

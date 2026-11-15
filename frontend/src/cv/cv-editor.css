@@ -1047,3 +1047,14 @@ input.panel__title:focus {
 .member-row__note {
     grid-column: 3 / -1;
 }
+
+/* Above Content after an import, while lines from the PDF wait in Not sorted. */
+.import-note {
+    margin: 0 0 var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--warning) 12%, var(--surface-sunken));
+    font: var(--text-label);
+    line-height: 1.5;
+    color: var(--text-primary);
+}

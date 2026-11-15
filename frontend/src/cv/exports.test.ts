@@ -51,6 +51,15 @@ describe('the check', () => {
         expect(results.find((result) => result.id === 'contact')?.title).toBe('Add an email address and a phone number')
     })
 
+    it('warns while lines from an imported PDF wait in Not sorted', () => {
+        const cv = sampleCv()
+        const withUnsorted = (text: string): Cv => ({...cv, sections: [...cv.sections, {id: 'not-sorted', kind: 'text', title: 'Not sorted', visible: false, text}]})
+
+        expect(checkCv(withUnsorted(['Available from May', 'Driving licence'].join('\n')), 2).find((result) => result.id === 'not-sorted')).toMatchObject({level: 'warning', title: "2 lines from your PDF aren't sorted yet"})
+        expect(levelOf(withUnsorted(''), 'not-sorted')).toBeUndefined()
+        expect(levelOf(cv, 'not-sorted')).toBeUndefined()
+    })
+
     it('warns about two columns unless ATS mode is on', () => {
         const cv = sampleCv()
 

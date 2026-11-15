@@ -8,7 +8,7 @@
 
 import type {LucideIcon} from 'lucide-react'
 import {
-    Check, FilePlus, FolderOpen, Home, Keyboard, Library, LogOut, Redo2, RefreshCw, Save, Search, Settings, Sparkles, SunMoon, Trash2, Undo2,
+    Check, FileInput, FilePlus, FolderOpen, Home, Keyboard, Library, LogOut, Redo2, RefreshCw, Save, Search, Settings, Sparkles, SunMoon, Trash2, Undo2,
 } from 'lucide-react'
 import {APP} from '../core/app'
 import {canRedo, canUndo} from '../core/history/history'
@@ -125,6 +125,15 @@ const SHELL_COMMANDS: readonly Command[] = [
         global: true,
         keywords: 'load read disk json dialog',
         run: (state) => guardUnsaved(state, 'Open a file', () => void state.openFromFile()),
+    },
+    {
+        id: 'import-pdf',
+        label: 'Import a CV from a PDF…',
+        group: 'File',
+        icon: FileInput,
+        global: true,
+        keywords: 'pdf import existing resume convert read upload bring in',
+        run: (state) => guardUnsaved(state, 'Import a PDF', () => void state.importFromPdf()),
     },
     {
         id: 'save',

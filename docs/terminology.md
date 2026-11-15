@@ -23,7 +23,8 @@ by what a person does with them, not by how they work.
 | Draft, autosave, crash recovery | **You left some work unsaved** / **Pick up where I left off** | |
 | Dirty, unsaved changes | **Unsaved** | A dot beside the name in the title bar |
 | Backup archive, zip | **Backup** | "A backup is one .zip file…" is fine where the file is the point |
-| Restore, import | **Restore** / **Bring back** | |
+| Restore, import | **Restore** / **Bring back** | For a backup. A PDF is **imported** |
+| Parse, convert, extract a PDF | **Import a PDF** / **Make a CV from** | Lines it can't place go to **Not sorted** |
 | S3, bucket, endpoint | **Cloud backup**, **Bucket**, **Storage address** | Only in cloud setup, where people bring these words with them |
 | Credentials, secret key | **Keys** | The secret is never shown again once saved |
 | Command palette | **Search or run** | |

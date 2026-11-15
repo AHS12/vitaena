@@ -9,10 +9,13 @@
  * failures into plain sentences.
  */
 
-import {textFromBinding} from './bytes'
+import {bytesFromBinding, textFromBinding} from './bytes'
 import {desktopApp} from './shell'
 
 const DOCUMENT_FILTERS = ['*.json']
+/** Opening offers documents and PDFs together; a PDF is imported rather than opened. */
+const OPEN_FILTERS = ['*.json;*.pdf', '*.json', '*.pdf']
+const PDF_FILTERS = ['*.pdf']
 const BROWSER_DOWNLOADS = 'Downloads'
 
 interface WailsApp {
@@ -46,15 +49,30 @@ export async function downloadInBrowser(name: string, bytes: Uint8Array, type: s
     URL.revokeObjectURL(url)
 }
 
-/** Asks for a document file and returns its path and contents, or null. */
-export async function openDocumentFile(title: string): Promise<{path: string; text: string} | null> {
+export interface OpenedFile {
+    readonly path: string
+    readonly text: string
+    readonly bytes: Uint8Array
+}
+
+/** Asks for a document file, or a PDF to import, and returns its path and contents, or null. */
+export async function openDocumentFile(title: string): Promise<OpenedFile | null> {
+    return openFile(title, OPEN_FILTERS, '.json,application/json,.pdf,application/pdf')
+}
+
+/** Asks for a PDF and returns its path and contents, or null. */
+export async function openPdfFile(title: string): Promise<OpenedFile | null> {
+    return openFile(title, PDF_FILTERS, '.pdf,application/pdf')
+}
+
+async function openFile(title: string, filters: string[], accept: string): Promise<OpenedFile | null> {
     const app = desktop()
 
     if (!app) {
-        return openWithBrowser()
+        return openWithBrowser(accept)
     }
 
-    const path = await app.OpenFileDialog(title, DOCUMENT_FILTERS)
+    const path = await app.OpenFileDialog(title, filters)
 
     if (!path) {
         return null
@@ -62,7 +80,7 @@ export async function openDocumentFile(title: string): Promise<{path: string; te
 
     const bytes = await app.ReadFile(path)
 
-    return {path, text: textFromBinding(bytes)}
+    return {path, text: textFromBinding(bytes), bytes: bytesFromBinding(bytes)}
 }
 
 /** Asks where to save, then writes. Returns the path, or null if cancelled. */
@@ -148,11 +166,11 @@ export async function showFolder(folder: string): Promise<void> {
     await desktop()?.ShowFolder(folder)
 }
 
-function openWithBrowser(): Promise<{path: string; text: string} | null> {
+function openWithBrowser(accept: string): Promise<OpenedFile | null> {
     return new Promise((resolve) => {
         const input = document.createElement('input')
         input.type = 'file'
-        input.accept = '.json,application/json'
+        input.accept = accept
         input.addEventListener('change', async () => {
             const file = input.files?.[0]
 
@@ -161,7 +179,9 @@ function openWithBrowser(): Promise<{path: string; text: string} | null> {
                 return
             }
 
-            resolve({path: file.name, text: await file.text()})
+            const bytes = new Uint8Array(await file.arrayBuffer())
+
+            resolve({path: file.name, text: new TextDecoder().decode(bytes), bytes})
         })
         input.addEventListener('cancel', () => resolve(null))
         input.click()

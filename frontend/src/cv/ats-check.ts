@@ -9,6 +9,7 @@ import type {Cv} from './cv'
 import {emailWarning} from './editor/edit-ops'
 import {CV_TEMPLATES} from './templates/templates'
 import {splitItem} from './levels'
+import {notSortedLines} from './pdf-import/not-sorted'
 
 export type CheckLevel = 'good' | 'tip' | 'warning'
 
@@ -41,6 +42,17 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
     const results: CheckResult[] = []
     const {person} = cv
     const shown = cv.sections.filter((section) => section.visible)
+    const unsorted = notSortedLines(cv)
+
+    // Lines an import couldn't place are hidden, so nothing else would point them out.
+    if (unsorted > 0) {
+        results.push({
+            id: 'not-sorted',
+            level: 'warning',
+            title: unsorted === 1 ? "One line from your PDF isn't sorted yet" : `${unsorted} lines from your PDF aren't sorted yet`,
+            detail: 'They wait in Not sorted, which is hidden from the page. Move each where it belongs, then remove that section.',
+        })
+    }
 
     results.push(
         person.name.trim()

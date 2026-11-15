@@ -9,6 +9,7 @@ import type {DocumentEdit} from '../use-cv-edit'
 import {CV_SECTION_CHOICES, emailWarning, linkWarning, toggled, updatePerson} from './edit-ops'
 import {useEditorStore} from './editor-store'
 import {CheckPanel} from './CheckPanel'
+import {notSortedLines} from '../pdf-import/not-sorted'
 import {StylePanel, TemplatesPanel} from './DesignPanel'
 import {SectionList} from './SectionList'
 import {ShowParts} from './ShowParts'
@@ -104,8 +105,15 @@ export function CvSidebar({cv, edit, onAtsMode}: {cv: Cv; edit: Edit; onAtsMode(
 }
 
 function ContentPanel({cv, edit}: {cv: Cv; edit: Edit}) {
+    const unsorted = notSortedLines(cv)
+
     return (
         <>
+            {unsorted > 0 ? (
+                <p className="import-note" role="note">
+                    {unsorted === 1 ? 'One line' : `${unsorted} lines`} from your PDF had no clear place, so {unsorted === 1 ? 'it waits' : 'they wait'} in Not sorted at the end, hidden from the page. Move each where it belongs, then remove that section.
+                </p>
+            ) : null}
             <PersonPanel person={cv.person} edit={edit} />
             <SectionList doc={cv} edit={edit as DocumentEdit<Sectioned>} choices={CV_SECTION_CHOICES} />
         </>

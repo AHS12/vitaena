@@ -4,7 +4,7 @@
  * templates), then every document as a list to search.
  */
 
-import {ChevronRight, FilePlus, FolderOpen, Pencil, RotateCcw, Search, Trash2} from 'lucide-react'
+import {ChevronRight, FileInput, FilePlus, FolderOpen, Pencil, RotateCcw, Search, Trash2} from 'lucide-react'
 import {useEffect, useLayoutEffect, useRef, useState, type ReactNode} from 'react'
 import {APP} from '../../core/app'
 import {guardUnsaved} from '../commands'
@@ -204,6 +204,10 @@ export function HomePage({start}: {start?: ReactNode}) {
                         <button type="button" className="button button--large" onClick={() => guardUnsaved(store(), 'Open a file', () => void store().openFromFile())}>
                             <FolderOpen size={15} aria-hidden="true" />
                             Open a file…
+                        </button>
+                        <button type="button" className="button button--large" onClick={() => guardUnsaved(store(), 'Import a PDF', () => void store().importFromPdf())}>
+                            <FileInput size={15} aria-hidden="true" />
+                            Import a PDF…
                         </button>
                         <button
                             type="button"

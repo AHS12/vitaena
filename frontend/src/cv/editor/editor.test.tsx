@@ -182,6 +182,15 @@ describe('the CV editor', () => {
         expect(useDocumentStore.getState().content.sections[0].title).toBe('Summary')
     })
 
+    it('says when lines from an imported PDF wait in Not sorted', () => {
+        const cv = sampleCv()
+
+        useDocumentStore.getState().previewEdit({...cv, sections: [...cv.sections, {id: 'not-sorted', kind: 'text', title: 'Not sorted', visible: false, text: 'Available from May'}]})
+        render(<CvEditor />)
+
+        expect(screen.getByRole('note')).toHaveTextContent(/One line from your PDF had no clear place/)
+    })
+
     it('shows each entry folded, with its name and dates', () => {
         render(<CvEditor />)
 

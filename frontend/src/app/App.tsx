@@ -8,6 +8,7 @@ import {StartFromTemplate} from '../cv/StartFromTemplate'
 import {CloseDialog} from '../shell/CloseDialog'
 import {CommandPalette} from '../shell/CommandPalette'
 import {ConfirmDialog} from '../shell/ConfirmDialog'
+import {ImportPdfDialog} from '../cv/pdf-import/ImportPdfDialog'
 import {features} from '../shell/feature'
 import {MenuBar} from '../shell/MenuBar'
 import {SaveDialog} from '../shell/SaveDialog'
@@ -257,6 +258,7 @@ export function App() {
             <SaveDialog />
             <SettingsDialog />
             <ConfirmDialog />
+            <ImportPdfDialog />
             <WhatsNewDialog />
             {closeRequested ? (
                 <CloseDialog
