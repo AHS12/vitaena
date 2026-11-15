@@ -148,7 +148,7 @@ export function CvSidebar({cv, edit}: {cv: Cv; edit: Edit}) {
 
     return (
         <div className="cv-side">
-            <div className="cv-tabs" role="tablist" aria-label="Edit">
+            <div className="cv-tabs" role="tablist" aria-label="Edit" data-coach="editor-tabs">
                 {(['content', 'design', 'check'] as const).map((id) => (
                     <button key={id} type="button" role="tab" id={`cv-tab-${id}`} aria-selected={tab === id} aria-controls="cv-tab-panel" className="cv-tabs__tab" onClick={() => setTab(id)}>
                         {TAB_LABELS[id]}

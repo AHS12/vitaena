@@ -27,7 +27,7 @@ endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: icons help install hooks dev web build build-frontend build-check installer mac dmg release run test test-go test-frontend test-watch typecheck lint lint-go lint-frontend check check-app version rename clean
+.PHONY: icons previews help install hooks dev web build build-frontend build-check installer mac dmg release run test test-go test-frontend test-watch typecheck lint lint-go lint-frontend check check-app version rename clean
 
 help: ## List the tasks
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
@@ -116,6 +116,9 @@ check-app: ## Check that every build file agrees with appconfig/app.config.json
 
 icons: ## Make the app icon files from the SVGs in build/ and frontend/public
 	cd $(FRONTEND) && node scripts/icons.mjs
+
+previews: ## Make pictures of the sample CV in every template, into docs/assets/templates
+	cd $(FRONTEND) && pnpm dlx node@22 scripts/template-previews.mjs
 
 version: ## Set the version everywhere, as in: make version V=1.2.3
 	@test -n "$(V)" || { echo "Say which version, as in: make version V=1.2.3"; exit 1; }

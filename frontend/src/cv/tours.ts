@@ -56,6 +56,18 @@ export const TOURS: Tours = {
                 side: 'over',
             },
             {
+                target: 'editor-tabs',
+                title: 'Change how it looks, then check it',
+                text: 'Design picks the template, colour and font. Check shows what a screening system reads from your PDF, and what might trip it up.',
+                side: 'below',
+            },
+            {
+                target: 'export',
+                title: 'Send it',
+                text: 'Export PDF makes the file to send. The arrow beside it offers Word and plain text, for forms that ask for them.',
+                side: 'below',
+            },
+            {
                 target: 'save',
                 title: 'Save it',
                 text: 'Save keeps it with your other work. The arrow beside it saves a copy, or saves to a file of your own.',
