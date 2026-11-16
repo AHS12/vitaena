@@ -20,9 +20,10 @@ var tools = []ToolSpec{
 
 // page stands in for the interface: it answers every call by echoing it.
 type page struct {
-	mu    sync.Mutex
-	calls []string
-	svc   *Service
+	mu     sync.Mutex
+	calls  []string
+	client string
+	svc    *Service
 }
 
 func (p *page) emit(name string, data ...any) {
@@ -30,10 +31,11 @@ func (p *page) emit(name string, data ...any) {
 		return
 	}
 
-	id, tool, arguments := data[0].(string), data[1].(string), data[2].(string)
+	id, tool, arguments, client := data[0].(string), data[1].(string), data[2].(string), data[3].(string)
 
 	p.mu.Lock()
 	p.calls = append(p.calls, tool+" "+arguments)
+	p.client = client
 	p.mu.Unlock()
 
 	reply := Reply{Text: "ran " + tool, Structured: json.RawMessage(`{"documents":[]}`)}
@@ -67,7 +69,7 @@ func connect(t *testing.T, svc *Service) *mcp.ClientSession {
 		t.Fatal(err)
 	}
 
-	session, err := mcp.NewClient(&mcp.Implementation{Name: "test"}, nil).Connect(context.Background(), clientEnd, nil)
+	session, err := mcp.NewClient(&mcp.Implementation{Name: "test-client", Title: "Test Assistant"}, nil).Connect(context.Background(), clientEnd, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,6 +148,10 @@ func TestSendsACallToThePageAndAnswersWithItsReply(t *testing.T) {
 
 	if len(p.calls) != 1 || p.calls[0] != `list_documents {"kind":"cv"}` {
 		t.Errorf("the page got %v", p.calls)
+	}
+
+	if p.client != "Test Assistant" {
+		t.Errorf("the page was told the client is %q", p.client)
 	}
 
 	call(t, connect(t, svc), "list_documents", nil)

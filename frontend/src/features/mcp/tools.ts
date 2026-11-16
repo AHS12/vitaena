@@ -5,5 +5,6 @@
 
 import {READ_TOOLS} from './read-tools'
 import type {McpTool} from './tool'
+import {WRITE_TOOLS} from './write-tools'
 
-export const TOOLS: readonly McpTool[] = [...READ_TOOLS]
+export const TOOLS: readonly McpTool[] = [...READ_TOOLS, ...WRITE_TOOLS]

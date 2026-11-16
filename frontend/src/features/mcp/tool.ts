@@ -33,7 +33,13 @@ export interface McpTool<Input extends z.ZodObject = z.ZodObject> {
     readonly readOnly: boolean
     readonly destructive?: boolean
     readonly idempotent?: boolean
-    run(input: z.infer<Input>): Promise<ToolAnswer>
+    run(input: z.infer<Input>, context: ToolContext): Promise<ToolAnswer>
+}
+
+/** Who's calling. */
+export interface ToolContext {
+    /** What the assistant calls itself, such as "Claude". */
+    readonly client: string
 }
 
 /** The same, as Go's `ToolSpec`. */

@@ -26,7 +26,7 @@ interface McpBindings {
 const accessNow = (): string => String(useSettingsStore.getState().values.assistants ?? 'off')
 
 /** Runs one call, and never throws: a failure is an answer the model can read. */
-export async function answer(tools: readonly McpTool[], name: string, argumentsText: string): Promise<Reply> {
+export async function answer(tools: readonly McpTool[], name: string, argumentsText: string, client = 'An assistant'): Promise<Reply> {
     const tool = tools.find((found) => found.name === name)
 
     if (!tool) {
@@ -48,7 +48,7 @@ export async function answer(tools: readonly McpTool[], name: string, argumentsT
     }
 
     try {
-        const result = await tool.run(input.data)
+        const result = await tool.run(input.data, {client})
         return {text: result.text, structured: result.structured, images: result.images, isError: false}
     } catch (error) {
         return {text: error instanceof Error ? error.message : String(error), isError: true}
@@ -66,9 +66,9 @@ export function startBridge(tools: readonly McpTool[]): (() => void) | void {
 
     const specs = tools.map(specOf)
     const stopCalls = runtime.EventsOn(CALL_EVENT, (...data: never[]) => {
-        const [id, name, argumentsText] = data as unknown as [string, string, string]
+        const [id, name, argumentsText, client] = data as unknown as [string, string, string, string | undefined]
 
-        void answer(tools, name, argumentsText).then((reply) => bindings.Reply(id, reply))
+        void answer(tools, name, argumentsText, client || undefined).then((reply) => bindings.Reply(id, reply))
     })
 
     let access = accessNow()

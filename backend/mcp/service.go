@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -215,7 +216,7 @@ func (s *Service) handler(spec ToolSpec) mcp.ToolHandler {
 			arguments = json.RawMessage("{}")
 		}
 
-		reply, err := s.call(ctx, spec.Name, arguments)
+		reply, err := s.call(ctx, spec.Name, arguments, clientName(request))
 		if err != nil {
 			return failure(err.Error()), nil
 		}
@@ -259,8 +260,41 @@ func (s *Service) refusal(spec ToolSpec) string {
 	return ""
 }
 
+// clientName is what the assistant calls itself, such as "Claude", for messages
+// like "Claude changed Experience".
+func clientName(request *mcp.CallToolRequest) string {
+	var info *mcp.Implementation
+
+	if request.Session != nil {
+		if params := request.Session.InitializeParams(); params != nil {
+			info = params.ClientInfo
+		}
+	}
+
+	// From 2026-07-28 there's no handshake, and each request says who it's from.
+	if info == nil && request.Params != nil {
+		if raw, ok := request.Params.GetMeta()[mcp.MetaKeyClientInfo]; ok {
+			var fromMeta mcp.Implementation
+			if data, err := json.Marshal(raw); err == nil && json.Unmarshal(data, &fromMeta) == nil {
+				info = &fromMeta
+			}
+		}
+	}
+
+	switch {
+	case info == nil:
+		return "An assistant"
+	case strings.TrimSpace(info.Title) != "":
+		return strings.TrimSpace(info.Title)
+	case strings.TrimSpace(info.Name) != "":
+		return strings.TrimSpace(info.Name)
+	}
+
+	return "An assistant"
+}
+
 // call sends a call to the page and waits for its answer.
-func (s *Service) call(ctx context.Context, tool string, arguments json.RawMessage) (Reply, error) {
+func (s *Service) call(ctx context.Context, tool string, arguments json.RawMessage, client string) (Reply, error) {
 	answer := make(chan Reply, 1)
 
 	s.mu.Lock()
@@ -275,7 +309,7 @@ func (s *Service) call(ctx context.Context, tool string, arguments json.RawMessa
 		s.mu.Unlock()
 	}()
 
-	s.shell.Emit(CallEvent, id, tool, string(arguments))
+	s.shell.Emit(CallEvent, id, tool, string(arguments), client)
 
 	timer := time.NewTimer(callTimeout)
 	defer timer.Stop()
