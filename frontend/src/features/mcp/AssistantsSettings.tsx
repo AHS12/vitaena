@@ -147,9 +147,10 @@ export function AssistantsSettings() {
     return (
         <>
             <p className="settings__intro">
-                Let an AI assistant you already use, such as Claude, Cursor or Copilot, read your CVs and biodata, check them and
-                help change them. {APP.name} has no AI of its own: the assistant is yours, and it only reaches your documents
-                through {APP.name}, on this computer, when you allow it here.
+                Let an AI assistant you already use read your CVs and biodata, check them and help change them: Claude, Cursor
+                or Copilot, an open-source one such as OpenCode, Cline or Goose, or a model running on your own computer in an
+                app such as LM Studio. Any assistant that supports MCP works. {APP.name} has no AI of its own: the assistant is
+                yours, and it only reaches your documents through {APP.name}, on this computer, when you allow it here.
             </p>
             <SettingRow label={ACCESS.label} help={ACCESS.options.find((option) => option.value === access)?.help ?? ACCESS.help}>
                 <Select<string> label={ACCESS.label} value={access} options={ACCESS.options} onChange={(value) => setValue('assistants', value)} />

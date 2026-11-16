@@ -2,6 +2,27 @@
 
 What's new in each version.
 
+## 0.2.0 (November 16, 2026)
+
+**Use it with your AI assistant**
+
+- Let an AI assistant you already use read, check and change your CVs and biodata through
+  Vitaena: Claude, Cursor or Copilot, an open-source one such as OpenCode, Cline or Goose,
+  or a model running on your own computer in an app such as LM Studio. Vitaena itself
+  still has no AI.
+- It's off until you allow it, in Settings, AI assistants, as Read only or Read and edit.
+  Nothing outside your computer can reach your documents.
+- An assistant can look at your pages, run Check, make a new CV or biodata, copy one to fit
+  a job, change the content and the design, export any format, and import a CV from a PDF
+  or Word file.
+- A change to the document you have open arrives unsaved, as a step you can undo, with a
+  message saying which assistant made it.
+- Before an assistant changes a saved document, a copy is kept, and Settings lists what
+  each assistant did, with Put back.
+- Settings gives the lines to paste into each assistant, with Vitaena's place on your
+  computer filled in. Two ready-made requests, Fit a CV to a job and Review a CV or
+  biodata, appear where your assistant offers them.
+
 ## 0.1.9 (November 16, 2026)
 
 **Start from the CV you have**

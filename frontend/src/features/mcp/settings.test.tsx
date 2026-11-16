@@ -22,6 +22,21 @@ describe('what to paste into each assistant', () => {
         expect(JSON.parse(of('vscode'))).toEqual({servers: {vitaena: {type: 'stdio', command: WINDOWS, args: ['mcp']}}})
         expect(of('claude-code')).toBe(`claude mcp add --scope user vitaena -- "${WINDOWS}" mcp`)
         expect(of('codex')).toBe(`[mcp_servers.vitaena]\ncommand = '${WINDOWS}'\nargs = ["mcp"]`)
+        expect(of('opencode')).toBe(`opencode mcp add vitaena --global -- "${WINDOWS}" mcp`)
+        expect(JSON.parse(of('zed'))).toEqual({context_servers: {vitaena: {command: WINDOWS, args: ['mcp'], env: {}}}})
+        expect(of('continue')).toBe(`mcpServers:\n  - name: Vitaena\n    type: stdio\n    command: '${WINDOWS}'\n    args:\n      - mcp`)
+    })
+
+    it('offers the open-source and local ones, and every one names the program', () => {
+        const labels = setups.map((setup) => setup.label)
+
+        expect(labels).toEqual(expect.arrayContaining(['OpenCode', 'Qwen Code', 'Zed', 'Cline, Roo Code or Kilo Code', 'Continue', 'Goose', 'LM Studio', 'Another assistant']))
+        expect(new Set(setups.map((setup) => setup.id)).size).toBe(setups.length)
+
+        for (const setup of setups) {
+            // JSON writes each backslash twice.
+            expect(setup.snippet.replaceAll('\\\\', '\\'), setup.id).toContain(WINDOWS)
+        }
     })
 
     it('keeps a path with an apostrophe a valid TOML string', () => {

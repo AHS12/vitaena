@@ -89,8 +89,15 @@ photos on their servers; Vitaena keeps them on your computer.
 ## Use it with your AI assistant
 
 Vitaena has no AI of its own, but an assistant you already use can work with your CVs and
-biodata through it: Claude Desktop, Claude Code, Cursor, VS Code with Copilot, Codex,
-Gemini CLI, Windsurf, or any other that runs MCP servers on your computer.
+biodata through it, over MCP:
+
+- **Apps and editors:** Claude Desktop, Cursor, VS Code with Copilot, Windsurf and Zed.
+- **In the terminal:** Claude Code, Codex, Gemini CLI, Qwen Code and OpenCode.
+- **Open source:** OpenCode, Cline, Roo Code, Kilo Code, Continue and Goose.
+- **Models on your own computer:** LM Studio, or any local AI app that runs MCP servers,
+  so nothing at all leaves your computer.
+
+Any other assistant that runs MCP servers on your computer (over stdio) works the same way.
 
 - **Off until you allow it.** In Settings, AI assistants, choose Read only or Read and
   edit. Nothing is reachable from outside your computer, and only your assistant sees

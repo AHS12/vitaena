@@ -19,6 +19,9 @@ const json = (value: unknown): string => JSON.stringify(value, null, 2)
 /** A TOML string: literal, so a Windows path's backslashes stay as they are. */
 const tomlString = (text: string): string => (text.includes("'") ? JSON.stringify(text) : `'${text}'`)
 
+/** A YAML string in single quotes, where a backslash is just a backslash. */
+const yamlString = (text: string): string => `'${text.replace(/'/g, "''")}'`
+
 /**
  * A path in double quotes, which a path with spaces needs. A backslash before a letter
  * stays as it is in every shell's double quotes, so a Windows path needs nothing more.
@@ -35,7 +38,7 @@ export function clientSetups(program: string): readonly ClientSetup[] {
         {
             id: 'claude-desktop',
             label: 'Claude Desktop',
-            where: `In Claude Desktop, open Settings, then Developer, then Edit Config. Add this to the file, inside any "mcpServers" already there. ${restart}`,
+            where: `In Claude Desktop, open the menu at the top left, then Developer, then Open App Config File (in older versions, Settings, then Developer, then Edit Config). Add this inside any "mcpServers" already there, save, and choose Developer, then Reload MCP Configuration.`,
             snippet: mcpServers,
         },
         {
@@ -69,15 +72,57 @@ export function clientSetups(program: string): readonly ClientSetup[] {
             snippet: mcpServers,
         },
         {
+            id: 'qwen',
+            label: 'Qwen Code',
+            where: `Add this to settings.json in the .qwen folder in your home folder, inside any "mcpServers" already there. ${restart}`,
+            snippet: mcpServers,
+        },
+        {
+            id: 'opencode',
+            label: 'OpenCode',
+            where: 'Run this once in a terminal. It adds the server for every project.',
+            snippet: `opencode mcp add ${name} --global -- ${shellQuoted(program)} mcp`,
+        },
+        {
             id: 'windsurf',
             label: 'Windsurf',
             where: `Open Windsurf Settings, then Cascade, then Manage MCPs, then View raw config, and add this. ${restart}`,
             snippet: mcpServers,
         },
         {
+            id: 'zed',
+            label: 'Zed',
+            where: 'In Zed, run zed: open settings file from the Command Palette, and add this inside the outer braces, beside any "context_servers" already there.',
+            snippet: json({context_servers: {[name]: {...server, env: {}}}}),
+        },
+        {
+            id: 'cline',
+            label: 'Cline, Roo Code or Kilo Code',
+            where: `In the extension, open MCP Servers, then Configure MCP Servers, and add this inside any "mcpServers" already there. ${APP.name} appears among its tools when you save.`,
+            snippet: mcpServers,
+        },
+        {
+            id: 'continue',
+            label: 'Continue',
+            where: 'Add this to config.yaml in the .continue folder in your home folder, beside any "mcpServers" already there.',
+            snippet: `mcpServers:\n  - name: ${APP.name}\n    type: stdio\n    command: ${yamlString(program)}\n    args:\n      - mcp`,
+        },
+        {
+            id: 'goose',
+            label: 'Goose',
+            where: 'Run goose configure, choose Add Extension, then Command-line Extension, name it, and give it this command.',
+            snippet: `${shellQuoted(program)} mcp`,
+        },
+        {
+            id: 'lm-studio',
+            label: 'LM Studio',
+            where: `For models running on your own computer. In LM Studio, open the Program tab on the right, then Install, then Edit mcp.json, and add this inside any "mcpServers" already there. ${APP.name} appears among its tools when you save.`,
+            snippet: mcpServers,
+        },
+        {
             id: 'other',
             label: 'Another assistant',
-            where: 'Any assistant that runs MCP servers on your computer (over stdio) can start this command.',
+            where: 'Any other assistant or local AI app that runs MCP servers on your computer, over stdio, can start this command. Most ask for the command and its arguments separately: the program, then mcp.',
             snippet: `${shellQuoted(program)} mcp`,
         },
     ]

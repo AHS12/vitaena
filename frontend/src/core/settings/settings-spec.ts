@@ -149,9 +149,9 @@ export const SETTING_SPECS = [
         page: 'General',
         kind: 'choice',
         label: 'AI assistants',
-        help: `Whether an AI assistant you use, such as Claude, Cursor or Copilot, can use your documents through ${APP.name}. Everything stays on this computer, apart from what your assistant reads.`,
+        help: `Whether an AI assistant you use can use your documents through ${APP.name}: Claude, Cursor or Copilot, an open-source one such as OpenCode or Cline, or a model running on your own computer. Everything stays on this computer, apart from what your assistant reads.`,
         needsFeature: 'mcp',
-        keywords: 'ai mcp claude chatgpt copilot cursor codex gemini agent assistant',
+        keywords: 'ai mcp claude chatgpt copilot cursor codex gemini qwen opencode cline roo kilo continue goose zed windsurf lm studio ollama local model open source agent assistant',
         default: 'off',
         options: [
             {value: 'off', label: 'Not allowed', help: 'No assistant can read or change your documents.'},

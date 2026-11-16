@@ -23,7 +23,7 @@ export const assistants = (formats: FormatsByKind): Feature => ({
             group: 'Help',
             icon: Bot,
             global: true,
-            keywords: 'ai mcp claude chatgpt copilot cursor codex gemini agent assistant',
+            keywords: 'ai mcp claude chatgpt copilot cursor codex gemini qwen opencode cline roo kilo continue goose zed windsurf lm studio ollama local model open source agent assistant',
             run: () => useUiStore.getState().openSettings('AI assistants'),
         },
     ],
