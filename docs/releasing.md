@@ -35,9 +35,18 @@ the app's version.
 Run `make check`, then build an installer and try it with `make release` (a Windows
 installer on Windows, a DMG on a Mac).
 
-For Linux, run the **Linux Test Build** workflow under Actions. It builds the four Linux
-files, installs each on a clean Ubuntu, Debian, Fedora and Arch system, starts the app,
-and keeps a screenshot and the log from each. Look at the screenshots before releasing.
+Each system has a test build under Actions, which also runs on a pull request that
+touches its build files or the Go side. Look at their screenshots before releasing.
+
+- **Windows Test Build** builds the installer, installs it silently on a clean Windows,
+  starts the app, checks an AI assistant can reach it over `vitaena mcp`, and uninstalls it.
+- **macOS Test Build** builds the universal app, its disk image and update zip, then
+  installs from the disk image on Apple silicon and on Intel, starts the app and checks an
+  assistant can reach it.
+- **Linux Test Build** builds the four Linux files, installs each on a clean Ubuntu,
+  Debian, Fedora and Arch system, and starts the app.
+
+Each keeps a screenshot and the logs as the run's artifacts.
 
 ## 4. Publish
 

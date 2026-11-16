@@ -17,6 +17,12 @@
   <a href="https://github.com/AHS12/vitaena/actions/workflows/release.yml">
     <img src="https://github.com/AHS12/vitaena/actions/workflows/release.yml/badge.svg" alt="Release Installers">
   </a>
+  <a href="https://github.com/AHS12/vitaena/actions/workflows/windows.yml">
+    <img src="https://github.com/AHS12/vitaena/actions/workflows/windows.yml/badge.svg" alt="Windows Test Build">
+  </a>
+  <a href="https://github.com/AHS12/vitaena/actions/workflows/macos.yml">
+    <img src="https://github.com/AHS12/vitaena/actions/workflows/macos.yml/badge.svg" alt="macOS Test Build">
+  </a>
   <a href="https://github.com/AHS12/vitaena/actions/workflows/linux.yml">
     <img src="https://github.com/AHS12/vitaena/actions/workflows/linux.yml/badge.svg" alt="Linux Test Build">
   </a>

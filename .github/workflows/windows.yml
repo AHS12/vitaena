@@ -1,0 +1,162 @@
+name: Windows Test Build
+
+# Builds the Windows installer, installs it silently on a clean runner, starts the app,
+# takes a screenshot, checks an AI assistant can reach it over `vitaena mcp`, then
+# uninstalls it. Nothing is released: the installer, screenshot and logs are this run's
+# artifacts. It runs on a pull request that touches the Windows build or the Go side, or
+# by hand from Actions. Not on a merge: the pull request already showed the result.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "build/windows/**"
+      - ".github/workflows/windows.yml"
+      - ".github/scripts/mcp-smoke.sh"
+      - "main.go"
+      - "backend/**"
+      - "go.mod"
+      - "go.sum"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the version
+        id: version
+        shell: bash
+        run: echo "version=$(jq -r .version appconfig/app.config.json)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-go@v5
+        with:
+          # Go 1.26.10 and later carry a security fix that Wails 3 asks for.
+          go-version: "1.26.11"
+          cache: true
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install Wails CLI
+        shell: pwsh
+        run: |
+          go install github.com/wailsapp/wails/v3/cmd/wails3@v3.1.0
+          "$(go env GOPATH)\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Install NSIS
+        shell: pwsh
+        run: |
+          choco install nsis --no-progress -y
+          "${env:ProgramFiles(x86)}\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Check the build files agree with the app config
+        run: go run ./tools/appinfo check
+
+      - name: Go tests
+        shell: bash
+        # The frontend is embedded, so it has to exist before Go compiles. The Windows
+        # side of the AI assistants' pipe is tested here, on Windows.
+        run: |
+          (cd frontend && pnpm build)
+          go test ./...
+
+      - name: Build the installer
+        run: wails3 task windows:package
+
+      - name: Name the file as a release would
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item bin/vitaena-amd64-installer.exe "dist/vitaena-$env:VERSION-windows-amd64-setup.exe"
+          Get-ChildItem dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/
+          if-no-files-found: error
+
+  # The installer on a clean runner: install, start, screenshot, reach it as an
+  # assistant does, and uninstall.
+  install:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          path: dist
+
+      - name: Install silently
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem dist/*-setup.exe | Select-Object -First 1
+          Start-Process -FilePath $installer.FullName -ArgumentList '/S' -Wait
+          $app = Get-ChildItem -Path "$env:ProgramFiles", "$env:LOCALAPPDATA\Programs" -Filter vitaena.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $app) { throw 'vitaena.exe was not installed' }
+          "Installed at $($app.FullName)"
+          "APP=$($app.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $shortcut = Get-ChildItem -Path "$env:ProgramData\Microsoft\Windows\Start Menu", "$env:APPDATA\Microsoft\Windows\Start Menu" -Filter *.lnk -Recurse -ErrorAction SilentlyContinue | Where-Object Name -like 'Vitaena*'
+          if (-not $shortcut) { throw 'No Start menu shortcut' }
+
+      - name: Start the app and take a screenshot
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          $process = Start-Process -FilePath $env:APP -PassThru
+          Start-Sleep -Seconds 20
+          Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
+          $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+          $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+          $bitmap.Save("out/screenshot.png")
+          if ($process.HasExited) { throw "The app exited with code $($process.ExitCode)" }
+          "running" | Out-File out/status -Encoding utf8
+
+      - name: Reach the app as an AI assistant does
+        shell: bash
+        run: bash .github/scripts/mcp-smoke.sh "$APP" out/mcp.log
+
+      - name: Uninstall silently
+        shell: pwsh
+        run: |
+          Get-Process vitaena -ErrorAction SilentlyContinue | Stop-Process -Force
+          $folder = Split-Path $env:APP
+          $uninstaller = Get-ChildItem $folder -Filter 'uninstall*.exe' | Select-Object -First 1
+          if (-not $uninstaller) { throw 'No uninstaller beside the app' }
+          Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' -Wait
+          Start-Sleep -Seconds 5
+          if (Test-Path $env:APP) { throw 'The app is still there after uninstalling' }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshot-windows
+          path: out/
