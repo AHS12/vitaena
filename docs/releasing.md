@@ -35,8 +35,11 @@ the app's version.
 Run `make check`, then build an installer and try it with `make release` (a Windows
 installer on Windows, a DMG on a Mac).
 
-Each system has a test build under Actions, which also runs on a pull request that
-touches its build files or the Go side. Look at their screenshots before releasing.
+The **CI** workflow runs on every pull request that changes more than documentation. It
+runs the tests first: the frontend's types, lint and tests, and the Go tests on Windows,
+macOS and Linux. Once they pass, it starts each system's test build, which only builds,
+installs and starts the app. Each test build can also be run by hand under Actions. Look
+at their screenshots before releasing.
 
 - **Windows Test Build** builds the installer, installs it silently on a clean Windows,
   starts the app, checks an AI assistant can reach it over `vitaena mcp`, and uninstalls it.

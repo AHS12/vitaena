@@ -2,34 +2,20 @@ name: macOS Test Build
 
 # Builds the universal Mac app, its disk image and its update zip, then on Apple silicon
 # and on Intel installs it from the disk image, starts it, takes a screenshot and checks
-# an AI assistant can reach it over `vitaena mcp`. Nothing is released: the files,
-# screenshots and logs are this run's artifacts. It runs on a pull request that touches
-# the Mac build or the Go side, or by hand from Actions. Not on a merge: the pull request
-# already showed the result.
+# an AI assistant can reach it over `vitaena mcp`. It only builds and tries the build: the
+# tests run before it, in ci.yml, which starts it once they pass. It can also be run by
+# hand from Actions. Nothing is released: the files, screenshots and logs are this run's
+# artifacts.
 on:
+  workflow_call:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "build/darwin/**"
-      - ".github/workflows/macos.yml"
-      - ".github/scripts/mcp-smoke.sh"
-      - "main.go"
-      - "backend/**"
-      - "go.mod"
-      - "go.sum"
 
 permissions:
   contents: read
 
-concurrency:
-  group: macos-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build:
     runs-on: macos-15
-    outputs:
-      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
@@ -61,16 +47,6 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
-
-      - name: Check the build files agree with the app config
-        run: go run ./tools/appinfo check
-
-      - name: Go tests
-        # The frontend is embedded, so it has to exist before Go compiles. The Unix side
-        # of the AI assistants' socket is tested here.
-        run: |
-          (cd frontend && pnpm build)
-          go test ./...
 
       # This also signs the app for running on the Mac it was built on, and checks it.
       - name: Build the universal app
@@ -104,6 +80,7 @@ jobs:
           - system: intel
             runner: macos-15-intel
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:

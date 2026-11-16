@@ -1,34 +1,20 @@
 name: Windows Test Build
 
-# Builds the Windows installer, installs it silently on a clean runner, starts the app,
-# takes a screenshot, checks an AI assistant can reach it over `vitaena mcp`, then
-# uninstalls it. Nothing is released: the installer, screenshot and logs are this run's
-# artifacts. It runs on a pull request that touches the Windows build or the Go side, or
-# by hand from Actions. Not on a merge: the pull request already showed the result.
+# Builds the Windows installer, installs it silently on a clean runner, checks the app
+# starts, takes a screenshot, checks an AI assistant can reach it over `vitaena mcp`,
+# then uninstalls it. It only builds and tries the build: the tests run before it, in
+# ci.yml, which starts it once they pass. It can also be run by hand from Actions.
+# Nothing is released: the installer, screenshot and logs are this run's artifacts.
 on:
+  workflow_call:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "build/windows/**"
-      - ".github/workflows/windows.yml"
-      - ".github/scripts/mcp-smoke.sh"
-      - "main.go"
-      - "backend/**"
-      - "go.mod"
-      - "go.sum"
 
 permissions:
   contents: read
 
-concurrency:
-  group: windows-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build:
     runs-on: windows-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
@@ -69,17 +55,6 @@ jobs:
         working-directory: frontend
         run: pnpm install --frozen-lockfile
 
-      - name: Check the build files agree with the app config
-        run: go run ./tools/appinfo check
-
-      - name: Go tests
-        shell: bash
-        # The frontend is embedded, so it has to exist before Go compiles. The Windows
-        # side of the AI assistants' pipe is tested here, on Windows.
-        run: |
-          (cd frontend && pnpm build)
-          go test ./...
-
       - name: Build the installer
         run: wails3 task windows:package
 
@@ -103,6 +78,7 @@ jobs:
   install:
     needs: build
     runs-on: windows-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -113,11 +89,14 @@ jobs:
           name: windows-installer
           path: dist
 
+      # A silent install starts the app when it's done, as the app's own updates rely on.
+      # So wait for the installer alone: Start-Process -Wait would wait for the app too.
       - name: Install silently
         shell: pwsh
         run: |
           $installer = Get-ChildItem dist/*-setup.exe | Select-Object -First 1
-          Start-Process -FilePath $installer.FullName -ArgumentList '/S' -Wait
+          $setup = Start-Process -FilePath $installer.FullName -ArgumentList '/S' -PassThru
+          if (-not $setup.WaitForExit(300000)) { throw 'The installer took over 5 minutes' }
           $app = Get-ChildItem -Path "$env:ProgramFiles", "$env:LOCALAPPDATA\Programs" -Filter vitaena.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $app) { throw 'vitaena.exe was not installed' }
           "Installed at $($app.FullName)"
@@ -125,11 +104,12 @@ jobs:
           $shortcut = Get-ChildItem -Path "$env:ProgramData\Microsoft\Windows\Start Menu", "$env:APPDATA\Microsoft\Windows\Start Menu" -Filter *.lnk -Recurse -ErrorAction SilentlyContinue | Where-Object Name -like 'Vitaena*'
           if (-not $shortcut) { throw 'No Start menu shortcut' }
 
-      - name: Start the app and take a screenshot
+      - name: Check the app started and take a screenshot
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path out | Out-Null
-          $process = Start-Process -FilePath $env:APP -PassThru
+          # The installer started it; start it here only if it didn't.
+          if (-not (Get-Process vitaena -ErrorAction SilentlyContinue)) { Start-Process -FilePath $env:APP }
           Start-Sleep -Seconds 20
           Add-Type -AssemblyName System.Windows.Forms, System.Drawing
           $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
@@ -137,23 +117,27 @@ jobs:
           $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
           $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
           $bitmap.Save("out/screenshot.png")
-          if ($process.HasExited) { throw "The app exited with code $($process.ExitCode)" }
+          if (-not (Get-Process vitaena -ErrorAction SilentlyContinue)) { throw 'The app is not running' }
           "running" | Out-File out/status -Encoding utf8
 
       - name: Reach the app as an AI assistant does
         shell: bash
         run: bash .github/scripts/mcp-smoke.sh "$APP" out/mcp.log
 
+      # The uninstaller copies itself to a temporary folder and runs from there, so its
+      # own process ends at once; wait for the app's files to go instead.
       - name: Uninstall silently
         shell: pwsh
         run: |
           Get-Process vitaena -ErrorAction SilentlyContinue | Stop-Process -Force
-          $folder = Split-Path $env:APP
-          $uninstaller = Get-ChildItem $folder -Filter 'uninstall*.exe' | Select-Object -First 1
+          $uninstaller = Get-ChildItem (Split-Path $env:APP) -Filter 'uninstall*.exe' | Select-Object -First 1
           if (-not $uninstaller) { throw 'No uninstaller beside the app' }
-          Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' -Wait
-          Start-Sleep -Seconds 5
-          if (Test-Path $env:APP) { throw 'The app is still there after uninstalling' }
+          Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' | Out-Null
+          foreach ($second in 1..60) {
+            if (-not (Test-Path $env:APP)) { 'Uninstalled'; exit 0 }
+            Start-Sleep -Seconds 1
+          }
+          throw 'The app is still there a minute after uninstalling'
 
       - uses: actions/upload-artifact@v4
         if: always()
