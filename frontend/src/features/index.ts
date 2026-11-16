@@ -13,6 +13,7 @@ import {TOURS} from '../cv/tours'
 import type {Feature} from '../shell/feature'
 import {backup} from './backup'
 import {exporting} from './export'
+import {assistants} from './mcp'
 import {report} from './report'
 import {tour} from './tour'
 
@@ -21,4 +22,5 @@ export const FEATURES: readonly Feature[] = [
     backup,
     report,
     tour(TOURS),
+    assistants,
 ]

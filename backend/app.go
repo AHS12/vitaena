@@ -75,6 +75,11 @@ type App struct {
 	minimiseToTray bool
 	trayIcon
 
+	// background records that the app was started for an AI assistant, with no
+	// window, and hasn't been shown since. The tray shows it's running. See
+	// background.go.
+	background bool
+
 	// updateAPI, updateRoot and appFolder override where updates are looked for,
 	// downloaded and installed, and startInstaller overrides how one is started.
 	// All are empty in the running app; tests set them.
@@ -135,6 +140,10 @@ func (a *App) attach(app *application.App, window *application.WebviewWindow) {
 	// a screen that is gone comes back, and one too big for its screen shrinks.
 	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
 		a.checkWindowPlace()
+
+		if a.inBackground() {
+			a.updateTray()
+		}
 	})
 }
 

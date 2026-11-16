@@ -2,18 +2,23 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
 	"runtime"
+	"slices"
 	"strings"
+	"sync"
+	"time"
 
 	"vitaena/appconfig"
 	"vitaena/backend"
 	"vitaena/backend/backup"
 	"vitaena/backend/documents"
 	"vitaena/backend/export"
+	"vitaena/backend/mcp"
 	"vitaena/backend/secrets"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -26,6 +31,18 @@ func main() {
 	identity := appconfig.Current()
 	service := backend.NewApp()
 	shell := backend.ShellOf(service)
+
+	// An AI assistant starts `vitaena mcp` and talks to it over stdin and stdout.
+	// It only relays to the running app, so it never opens a window of its own.
+	if len(os.Args) > 1 && os.Args[1] == mcp.Arg {
+		os.Exit(relay(shell))
+	}
+
+	background := slices.Contains(os.Args[1:], backend.BackgroundArg) || mcp.StartedForAssistant()
+	if background {
+		backend.StartInBackground(service)
+	}
+
 	library := documents.New(shell)
 
 	// Each optional feature is a service of its own, in its own folder. Leaving
@@ -33,6 +50,7 @@ func main() {
 	// docs/removing-features.md.
 	backups := backup.New(shell, library, secrets.Keychain{})
 	exports := export.New()
+	assistants := mcp.New(shell)
 
 	// Pictures are served from disk, not from the build, longest address first.
 	pictures := []pictureRoute{
@@ -53,6 +71,7 @@ func main() {
 			application.NewService(library),
 			application.NewService(backups),
 			application.NewService(exports),
+			application.NewService(assistants),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(dist),
@@ -105,6 +124,10 @@ func main() {
 		},
 	})
 
+	if background && !backend.HasTray() {
+		quitWhenIdle(service, assistants, app)
+	}
+
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}
@@ -125,4 +148,48 @@ func singleInstanceID(identity appconfig.Config) string {
 type pictureRoute struct {
 	prefix  string
 	handler http.Handler
+}
+
+// relay runs `vitaena mcp`, and returns the exit code.
+func relay(shell backend.Shell) int {
+	folder, err := shell.DataFolder()
+	if err == nil {
+		err = mcp.Relay(folder, os.Stdin, os.Stdout, func() (func(), error) { return mcp.StartApp(backend.BackgroundArg) })
+	}
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+
+	return 0
+}
+
+// idleQuit is how long an app started only for assistants waits, with none
+// connected, before quitting.
+const idleQuit = 5 * time.Minute
+
+// quitWhenIdle quits an app started for assistants once none has been connected
+// for a while, where there's no tray icon to quit it from. Showing the window
+// makes it an ordinary open app, which stays.
+func quitWhenIdle(service *backend.App, assistants *mcp.Service, app *application.App) {
+	var mu sync.Mutex
+
+	quit := func() {
+		if backend.InBackground(service) {
+			app.Quit()
+		}
+	}
+	timer := time.AfterFunc(idleQuit, quit)
+
+	assistants.OnIdle(func(connections int) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		timer.Stop()
+
+		if connections == 0 {
+			timer = time.AfterFunc(idleQuit, quit)
+		}
+	})
 }

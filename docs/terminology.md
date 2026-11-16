@@ -28,6 +28,7 @@ by what a person does with them, not by how they work.
 | S3, bucket, endpoint | **Cloud backup**, **Bucket**, **Storage address** | Only in cloud setup, where people bring these words with them |
 | Credentials, secret key | **Keys** | The secret is never shown again once saved |
 | Command palette | **Search or run** | |
+| MCP, MCP server, agent, LLM, tool call | **AI assistants** | The setting. An assistant is the person's own, such as Claude or Copilot; the app itself has no AI |
 | Keybinding, hotkey | **Shortcut** / **Keys** | |
 | JSON, schema, version mismatch | *(never shown)* | "Made by a newer version of the app. Update it to open this." |
 | Bindings, service, IPC | *(never shown)* | |

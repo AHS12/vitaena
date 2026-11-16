@@ -3,6 +3,7 @@ package backend
 import (
 	_ "embed"
 	"runtime"
+	"slices"
 	"sync"
 
 	"vitaena/appconfig"
@@ -59,7 +60,7 @@ func hasTray() bool {
 // there is always a way back, and removes it otherwise.
 func (a *App) updateTray() {
 	a.mu.Lock()
-	wanted := a.closeToTray || a.minimiseToTray
+	wanted := a.closeToTray || a.minimiseToTray || a.background
 	a.mu.Unlock()
 
 	if a.wails == nil || !a.started() {
@@ -144,6 +145,7 @@ func (a *App) showWindow() {
 	}
 
 	a.window.Show()
+	a.leaveBackground()
 
 	if a.window.IsMinimised() {
 		a.window.UnMinimise()
@@ -157,7 +159,12 @@ func (a *App) showWindow() {
 // which would share and overwrite the same draft and documents. It is a function
 // rather than a method so Wails doesn't offer it to the interface.
 func SecondLaunch(a *App) func(application.SecondInstanceData) {
-	return func(application.SecondInstanceData) {
+	return func(data application.SecondInstanceData) {
+		// An assistant starting the app finds it running, and leaves the window be.
+		if slices.Contains(data.Args, BackgroundArg) {
+			return
+		}
+
 		a.showWindow()
 	}
 }

@@ -67,6 +67,14 @@ Commit or push only when asked. Work on `dev`, and don't touch `main`.
   readers (`read-pdf.ts`, `read-docx.ts`) give lines with their look, and `parse.ts` and
   `biodata-parse.ts` make the document. It's tested on every template's own PDF and on
   CVs from other apps in `fixtures/` (`make import-fixtures` rebuilds them).
+- AI assistants reach the app over MCP. An assistant starts `vitaena mcp`, which only
+  relays stdin and stdout to the running app (a named pipe on Windows, a socket in the
+  data folder elsewhere), starting it in the background if it's closed. `backend/mcp`
+  speaks the protocol; the tools themselves are in `frontend/src/features/mcp` and run
+  the app's own code. On Windows, assistants installed as packages (Claude Desktop) see
+  a private copy of AppData, which is why the pipe and the start through Explorer exist:
+  read `backend/mcp/socket_windows.go` before changing either. Set
+  `VITAENA_MCP_BINARY` to a built app to run its end-to-end test.
 - A test that lays pages out with Typst is named `*.typst.test.ts`: each starts a
   compiler with every font, so `vitest.config.ts` runs only two of them at a time.
 - `build/` holds each system's build files; [build/README.md](build/README.md) says which
