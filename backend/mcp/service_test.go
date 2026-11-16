@@ -283,3 +283,24 @@ func relayed(t *testing.T, folder string, start func() (func(), error)) *mcp.Cli
 
 	return session
 }
+
+func TestOffersPromptsThatNameTheTools(t *testing.T) {
+	svc, _ := newService(t)
+	_ = svc.Ready(tools, AccessRead)
+	session := connect(t, svc)
+
+	listed, err := session.ListPrompts(context.Background(), nil)
+	if err != nil || len(listed.Prompts) != 2 {
+		t.Fatalf("got %v, %v", listed, err)
+	}
+
+	got, err := session.GetPrompt(context.Background(), &mcp.GetPromptParams{Name: "tailor_to_job", Arguments: map[string]string{"job_ad": "Product designer at Northwind"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	text := got.Messages[0].Content.(*mcp.TextContent).Text
+	if !strings.Contains(text, "duplicate_document") || !strings.HasSuffix(text, "Product designer at Northwind") {
+		t.Errorf("got %s", text)
+	}
+}

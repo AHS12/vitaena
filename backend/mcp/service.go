@@ -102,7 +102,10 @@ func New(shell backend.Shell) *Service {
 		Instructions: instructions(),
 	})
 
-	return &Service{shell: shell, server: server, access: AccessOff, pending: map[string]chan Reply{}}
+	s := &Service{shell: shell, server: server, access: AccessOff, pending: map[string]chan Reply{}}
+	s.addPrompts()
+
+	return s
 }
 
 func instructions() string {

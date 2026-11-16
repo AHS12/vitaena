@@ -22,6 +22,7 @@ describe('an app with every optional feature left out', () => {
         expect(ids).not.toEqual(expect.arrayContaining(['back-up']))
         expect(ids).not.toContain('report-problem')
         expect(ids).not.toContain('tour')
+        expect(ids).not.toContain('connect-assistant')
     })
 
     it('opens Settings without the features\' pages', () => {
@@ -32,7 +33,10 @@ describe('an app with every optional feature left out', () => {
 
         expect(pages.getByRole('button', {name: /About/})).toBeInTheDocument()
         expect(pages.queryByRole('button', {name: /Backup/})).toBeNull()
+        expect(pages.queryByRole('button', {name: /AI assistants/})).toBeNull()
         expect(screen.queryByText('Show the tour')).toBeNull()
+        // A setting that belongs to a feature goes with it.
+        expect(screen.queryByText('AI assistants')).toBeNull()
     })
 })
 

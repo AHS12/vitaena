@@ -1,0 +1,24 @@
+/* Settings, AI assistants: the lines to paste into an assistant, with a Copy button. */
+
+.assistants__snippet {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-2) 0 var(--space-3);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.assistants__code {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    overflow-x: auto;
+    background: var(--surface-sunken);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font: 400 12px/1.5 var(--font-mono);
+    white-space: pre;
+    user-select: text;
+}

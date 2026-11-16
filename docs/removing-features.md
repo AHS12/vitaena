@@ -1,7 +1,7 @@
 # Removing a feature
 
-Four features are optional: **Export**, **Backup** (to a file, a folder and the cloud),
-**Report a problem** and the **Tour**. Each lives in a folder of its own on each side, and
+Five features are optional: **Export**, **Backup** (to a file, a folder and the cloud),
+**Report a problem**, the **Tour** and **AI assistants**. Each lives in a folder of its own on each side, and
 nothing outside those folders imports it: ESLint fails if the shell, the stores, `core/` or
 `platform/` ever do. So taking one out is deleting folders and a few named lines.
 
@@ -64,6 +64,25 @@ changes.
 
 What's new waits for nothing then, and opens after an update as soon as the app starts.
 The settings `tourSeen` and `homeTourSeen` stay, unused, in the settings file.
+
+## AI assistants
+
+The MCP server, which lets an assistant such as Claude use the documents.
+
+1. Delete `frontend/src/features/mcp` and `backend/mcp`.
+2. In `frontend/src/features/index.ts`, delete the `assistants` import and the
+   `assistants({…}),` line.
+3. In `frontend/src/platform/shell.ts`, delete `mcp: 'backend/mcp.Service',` from
+   `SERVICES`.
+4. In `main.go`, delete the `backend/mcp` import, the `if … os.Args[1] == mcp.Arg` block,
+   `|| mcp.StartedForAssistant()`, `assistants := mcp.New(shell)`,
+   `application.NewService(assistants),` and the `if background && !backend.HasTray()`
+   block.
+5. Run `go mod tidy`. It drops the MCP SDK and go-winio, which only this used.
+
+The AI assistants setting is offered only while the feature is there, so it hides
+itself; its value stays, unused, in the settings file. `--background`, in `backend`,
+stays: it opens the app with no window, which nothing asks for any more.
 
 ## Adding one
 

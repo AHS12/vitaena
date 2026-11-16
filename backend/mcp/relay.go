@@ -2,12 +2,15 @@ package mcp
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net"
+	"os"
 	"sync"
 	"time"
 
 	"vitaena/appconfig"
+	"vitaena/backend"
 )
 
 // Arg is the argument an assistant starts the app with: `vitaena mcp`.
@@ -75,4 +78,20 @@ func reach(dataFolder string, start func() (func(), error)) (net.Conn, error) {
 	}
 
 	return nil, errors.New(appconfig.Current().Name + " didn't start in time. Open it, then try again.")
+}
+
+// RunRelay runs `vitaena mcp` with the app's shell, and returns the exit code. A
+// problem goes to stderr, which assistants show in their logs.
+func RunRelay(shell backend.Shell, backgroundArg string) int {
+	folder, err := shell.DataFolder()
+	if err == nil {
+		err = Relay(folder, os.Stdin, os.Stdout, func() (func(), error) { return StartApp(backgroundArg) })
+	}
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+
+	return 0
 }

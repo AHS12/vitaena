@@ -6,14 +6,15 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-// OnIdle calls idle with the number of assistants connected whenever one connects
-// or leaves. main.go uses it to quit an app started only for assistants, where
-// there's no tray to quit it from.
-func (s *Service) OnIdle(idle func(connections int)) {
+// onIdle calls idle with the number of assistants connected whenever one connects
+// or leaves.
+func (s *Service) onIdle(idle func(connections int)) {
 	s.mu.Lock()
 	s.idle = idle
 	s.mu.Unlock()
@@ -96,4 +97,33 @@ func (s *Service) connected(change int) {
 	if idle != nil {
 		idle(connections)
 	}
+}
+
+// idleQuit is how long an app started only for assistants waits, with none
+// connected, before quitting.
+const idleQuit = 5 * time.Minute
+
+// QuitWhenIdle calls quit once no assistant has been connected for a while, as long
+// as stillBackground says the window was never shown. It is a function rather than
+// a method so Wails doesn't offer it to the interface.
+func QuitWhenIdle(s *Service, stillBackground func() bool, quit func()) {
+	var mu sync.Mutex
+
+	check := func() {
+		if stillBackground() {
+			quit()
+		}
+	}
+	timer := time.AfterFunc(idleQuit, check)
+
+	s.onIdle(func(connections int) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		timer.Stop()
+
+		if connections == 0 {
+			timer = time.AfterFunc(idleQuit, check)
+		}
+	})
 }

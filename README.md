@@ -86,6 +86,38 @@ photos on their servers; Vitaena keeps them on your computer.
   problem, which fills in a GitHub issue with what the app knows, for you to check and
   send.
 
+## Use it with your AI assistant
+
+Vitaena has no AI of its own, but an assistant you already use can work with your CVs and
+biodata through it: Claude Desktop, Claude Code, Cursor, VS Code with Copilot, Codex,
+Gemini CLI, Windsurf, or any other that runs MCP servers on your computer.
+
+- **Off until you allow it.** In Settings, AI assistants, choose Read only or Read and
+  edit. Nothing is reachable from outside your computer, and only your assistant sees
+  what it reads.
+- **What it can do:** list, read and check your documents, look at their pages, make new
+  ones, copy one to fit a job, change the content and the design, export any format, and
+  import a CV from a PDF or Word file.
+- **You stay in charge.** A change to the document you have open arrives unsaved, as a
+  step you can undo. Before a saved document is changed, a copy is kept, and Settings
+  lists what each assistant did, with Put back.
+- **Ready-made requests:** "Fit a CV to a job" and "Review a CV or biodata", where your
+  assistant shows prompts.
+
+Settings, AI assistants gives the lines to paste for each assistant, with the path
+filled in. For most, it looks like this:
+
+```json
+{
+  "mcpServers": {
+    "vitaena": {"command": "C:\\Program Files\\Vitaena\\vitaena.exe", "args": ["mcp"]}
+  }
+}
+```
+
+The assistant starts `vitaena mcp`, which reaches the running app, or starts it in the
+background if it's closed.
+
 ## Templates
 
 | Classic | Modern | Professional | Sidebar | Bold |
