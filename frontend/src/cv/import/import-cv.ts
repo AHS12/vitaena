@@ -8,7 +8,7 @@ import {create} from 'zustand'
 import {squarePhoto} from '../../components/square-photo'
 import {afterPaint} from '../../core/yield'
 import {useDocumentStore} from '../../store/document-store'
-import {biodataType} from '../../biodata/biodata'
+import {biodataType, type Biodata} from '../../biodata/biodata'
 import {cvType, type Cv} from '../cv'
 import type {PdfPhoto} from './photo'
 
@@ -92,6 +92,59 @@ function stepFor(error: unknown): ImportStep {
     return {kind: 'failed', reason: error instanceof Error ? error.message : String(error)}
 }
 
+/** What reading a file made: a CV or a biodata, its name, and how many lines wait in Not sorted. */
+export interface MadeFromFile {
+    readonly kind: string
+    readonly content: Cv | Biodata
+    readonly name: string
+    readonly unsorted: number
+}
+
+/** True for a Word file from before 2007, which only Word itself reads. */
+export const isOldWord = (file: string): boolean => /\.doc$/i.test(file)
+
+/**
+ * Reads a PDF or Word file into a CV or a biodata, or gives null when it has no text,
+ * as a scan has none. A locked or damaged PDF throws, as pdf.js does.
+ */
+export async function documentFromFile(
+    bytes: Uint8Array,
+    path: string,
+    options: {readonly signal?: AbortSignal; onPage?(page: number, pages: number): void; onMaking?(): Promise<void>} = {},
+): Promise<MadeFromFile | null> {
+    const file = fileNameOf(path)
+    const word = /\.docx$/i.test(file)
+    const [{readPdfLayout}, {readDocxLayout}, {cvFromLayout, documentParts}, {biodataFromLayout, isBiodata}] = await Promise.all([
+        import('./read-pdf'),
+        import('./read-docx'),
+        import('./parse'),
+        import('./biodata-parse'),
+    ])
+    const layout = word ? await readDocxLayout(bytes) : await readPdfLayout(bytes, {signal: options.signal, onPage: options.onPage})
+
+    if (layout.lines.length === 0) {
+        return null
+    }
+
+    await options.onMaking?.()
+
+    const parts = documentParts(layout)
+    // A browser draws the photo; elsewhere, as in tests, there's no canvas to.
+    const photo = typeof document === 'undefined' ? '' : photoOf(layout.photo)
+    const made = isBiodata(layout, parts) ? biodataFromLayout(layout, parts) : cvFromLayout(layout)
+    const fallback = file.replace(/\.(?:pdf|docx)$/i, '')
+
+    if ('biodata' in made) {
+        const content = biodataType.content.parse({...made.biodata, person: {...made.biodata.person, photo}})
+
+        return {kind: biodataType.kind, content, name: content.person.name || fallback, unsorted: made.unsorted}
+    }
+
+    const cv = cvType.content.parse(withPhoto(made.cv, photo))
+
+    return {kind: cvType.kind, content: cv, name: cv.person.name || fallback, unsorted: made.unsorted}
+}
+
 /**
  * Makes a CV from a PDF or Word file and opens it. Asking about unsaved changes first is
  * the caller's job, as it is for opening a file.
@@ -109,7 +162,7 @@ export async function importCv(bytes: Uint8Array, path: string): Promise<void> {
     running = controller
     useCvImport.setState({file, step: {kind: 'reading', page: 0, pages: 0}})
 
-    if (/\.doc$/i.test(file)) {
+    if (isOldWord(file)) {
         set({kind: 'old-word'})
         return
     }
@@ -117,51 +170,31 @@ export async function importCv(bytes: Uint8Array, path: string): Promise<void> {
     try {
         await afterPaint()
 
-        const word = /\.docx$/i.test(file)
-        const [{readPdfLayout}, {readDocxLayout}, {cvFromLayout, documentParts}, {biodataFromLayout, isBiodata}] = await Promise.all([
-            import('./read-pdf'),
-            import('./read-docx'),
-            import('./parse'),
-            import('./biodata-parse'),
-        ])
-        const layout = word ? await readDocxLayout(bytes) : await readPdfLayout(bytes, {signal: controller.signal, onPage: (page, pages) => set({kind: 'reading', page, pages})})
+        const made = await documentFromFile(bytes, path, {
+            signal: controller.signal,
+            onPage: (page, pages) => set({kind: 'reading', page, pages}),
+            onMaking: async () => {
+                set({kind: 'making'})
+                await afterPaint()
+            },
+        })
 
-        if (layout.lines.length === 0) {
+        if (!made) {
             set({kind: 'no-text'})
             return
         }
-
-        set({kind: 'making'})
-        await afterPaint()
-
-        const parts = documentParts(layout)
-        // A browser draws the photo; elsewhere, as in tests, there's no canvas to.
-        const photo = typeof document === 'undefined' ? '' : photoOf(layout.photo)
-        const biodata = isBiodata(layout, parts)
-        const made = biodata ? biodataFromLayout(layout, parts) : cvFromLayout(layout)
 
         if (controller.signal.aborted) {
             return
         }
 
         const store = useDocumentStore.getState()
-        const {unsorted} = made
-        const sorted = unsorted === 0 ? '' : ` ${unsorted === 1 ? 'One line is' : `${unsorted} lines are`} in Not sorted.`
-        const original = word ? 'Word file' : 'PDF'
+        const sorted = made.unsorted === 0 ? '' : ` ${made.unsorted === 1 ? 'One line is' : `${made.unsorted} lines are`} in Not sorted.`
+        const original = /\.docx$/i.test(file) ? 'Word file' : 'PDF'
 
-        if ('biodata' in made) {
-            const content = {...made.biodata, person: {...made.biodata.person, photo}}
-
-            store.startNew(biodataType.content.parse(content), biodataType.kind)
-            store.setName(content.person.name || file.replace(/\.(?:pdf|docx)$/i, ''))
-            store.notify(`Made a biodata from ${file}. Check it against your ${original}.${sorted}`)
-        } else {
-            const cv = withPhoto(made.cv, photo)
-
-            store.startNew(cvType.content.parse(cv), cvType.kind)
-            store.setName(cv.person.name || file.replace(/\.(?:pdf|docx)$/i, ''))
-            store.notify(`Made a CV from ${file}. Check it against your ${original}, the dates especially.${sorted}`)
-        }
+        store.startNew(made.content, made.kind)
+        store.setName(made.name)
+        store.notify(made.kind === biodataType.kind ? `Made a biodata from ${file}. Check it against your ${original}.${sorted}` : `Made a CV from ${file}. Check it against your ${original}, the dates especially.${sorted}`)
 
         useCvImport.setState({file: null})
     } catch (error) {

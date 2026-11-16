@@ -1,12 +1,12 @@
 {
 	"fixed": {
-		"file_version": "0.1.9",
-		"product_version": "0.1.9"
+		"file_version": "0.2.0",
+		"product_version": "0.2.0"
 	},
 	"info": {
 		"0409": {
-			"FileVersion": "0.1.9",
-			"ProductVersion": "0.1.9",
+			"FileVersion": "0.2.0",
+			"ProductVersion": "0.2.0",
 			"CompanyName": "AHS12",
 			"FileDescription": "Make a CV or resume that screening systems read correctly.",
 			"LegalCopyright": "© 2026 AHS12",

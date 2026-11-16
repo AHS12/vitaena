@@ -12,8 +12,8 @@ import {useEffect, useMemo, useRef, useState} from 'react'
 import {Dialog, Keys} from '../components/controls'
 import {allCommands, findCommand, guardUnsaved, runCommand, shortcutFor, type Command} from './commands'
 import {parsePrefix, rankEntries, type PaletteSection} from '../core/commands/palette-search'
+import {offered} from './setting-offered'
 import {SETTING_SPECS} from '../core/settings/settings-spec'
-import {hasTray} from '../platform/window'
 import {isHomePage, useDocumentStore, type DocumentStore} from '../store/document-store'
 import {libraryWords, nounOfKind} from '../store/document-types'
 import {settingValue, useSettingsStore} from '../store/settings-store'
@@ -67,7 +67,7 @@ function commandEntry(command: Command, state: DocumentStore, section: Section):
 function settingEntries(): readonly Entry[] {
     const settings = useSettingsStore.getState()
 
-    return SETTING_SPECS.filter((spec) => !('needsTray' in spec) || hasTray()).map((spec): Entry => {
+    return SETTING_SPECS.filter((spec) => offered(spec)).map((spec): Entry => {
         const shared = {
             id: `setting-${spec.key}`,
             label: spec.label,

@@ -10,7 +10,7 @@ import type {PageModel} from '../cv/typst/images'
 const DPI = 200
 const POINTS_PER_INCH = 72
 /** A4 is 595 points wide, so its picture is 1654 pixels across. */
-const pixelsAcross = (points: number) => Math.round((points * DPI) / POINTS_PER_INCH)
+const pixelsAcross = (points: number, dpi: number) => Math.round((points * dpi) / POINTS_PER_INCH)
 const JPEG_QUALITY = 0.9
 
 async function draw(page: string, type: 'png' | 'jpeg'): Promise<Uint8Array> {
@@ -50,14 +50,14 @@ async function draw(page: string, type: 'png' | 'jpeg'): Promise<Uint8Array> {
     }
 }
 
-/** Every page as a PNG or JPEG, in order. */
-export async function pagePictures(model: PageModel, template: string, type: 'png' | 'jpeg'): Promise<Uint8Array[]> {
+/** Every page as a PNG or JPEG, in order, at 200 dots an inch unless told otherwise. */
+export async function pagePictures(model: PageModel, template: string, type: 'png' | 'jpeg', dpi: number = DPI): Promise<Uint8Array[]> {
     const {svg} = await import('../cv/typst/engine')
     const laidOut = await svg(model, template)
     const width = Number(/data-page-width="([\d.]+)"/.exec(laidOut)?.[1] ?? 595)
     const pictures: Uint8Array[] = []
 
-    for (const page of eachPage(laidOut, pixelsAcross(width))) {
+    for (const page of eachPage(laidOut, pixelsAcross(width, dpi))) {
         pictures.push(await draw(page, type))
     }
 

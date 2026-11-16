@@ -15,11 +15,12 @@ import {PropertyRow} from '../components/PropertyRow'
 import {allCommands, commandForKeys, findCommand, runCommand, shortcutFor, shortcutOf} from './commands'
 import {APP} from '../core/app'
 import {APP_VERSION} from '../core/version'
+import {offered} from './setting-offered'
 import {SETTING_SPECS, type SettingPage, type SettingSpec} from '../core/settings/settings-spec'
 import {chooseFolder} from '../platform/desktop'
 import {hasDesktopStorage, libraryInfo, openLibraryFolder, type LibraryInfo} from '../platform/settings'
 import {canCheckForUpdates, type ManualReason} from '../platform/update'
-import {hasTray, openLink} from '../platform/window'
+import {openLink} from '../platform/window'
 import {useDocumentStore} from '../store/document-store'
 import {libraryCount, libraryWords} from '../store/document-types'
 import {useSettingsStore} from '../store/settings-store'
@@ -427,7 +428,7 @@ export function SettingsDialog() {
     }, [page === null])
 
     const found = useMemo(
-        () => SETTING_SPECS.filter((spec) => (!('needsTray' in spec) || hasTray()) && matches(needle, spec.label, spec.help, 'keywords' in spec ? spec.keywords : undefined, spec.page)),
+        () => SETTING_SPECS.filter((spec) => offered(spec) && matches(needle, spec.label, spec.help, 'keywords' in spec ? spec.keywords : undefined, spec.page)),
         [needle],
     )
 
@@ -508,7 +509,7 @@ export function SettingsDialog() {
                         <AboutPage />
                     ) : (
                         (SETTING_SPECS as readonly SettingSpec[])
-                            .filter((spec) => spec.page === page && (!('needsTray' in spec) || hasTray()))
+                            .filter((spec) => spec.page === page && offered(spec))
                             .map((spec) => <SpecRow key={spec.key} spec={spec} />)
                     )}
                     {needle ? null : rows.map(({Row}, index) => <Row key={index} />)}

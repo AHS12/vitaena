@@ -65,6 +65,7 @@ func OpenWindow(service *App, app *application.App, options application.WebviewW
 	// whole maximised window there. So it opens at its normal size and place, and
 	// checkWindowPlace maximises it, which also makes un-maximising go back there.
 	service.openMaximised = state.Maximised
+	options.Hidden = options.Hidden || service.inBackground()
 
 	window := app.Window.NewWithOptions(options)
 	service.attach(app, window)
@@ -116,7 +117,8 @@ func (a *App) checkWindowPlace() {
 
 	a.fitWindowToDesktop()
 
-	if a.openMaximised {
+	// Maximising shows a window, so one started hidden waits until it's shown.
+	if a.openMaximised && !a.inBackground() {
 		a.window.Maximise()
 	}
 }

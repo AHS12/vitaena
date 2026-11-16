@@ -22,6 +22,8 @@ interface Common {
     readonly keywords?: string
     /** Only offered where the system shows tray icons, which GNOME doesn't. */
     readonly needsTray?: boolean
+    /** Only offered when this optional feature is in the app. */
+    readonly needsFeature?: string
 }
 
 export interface ToggleSetting extends Common {
@@ -140,6 +142,21 @@ export const SETTING_SPECS = [
                 label: 'Hides it in the tray',
                 help: `Minimising hides the window, off the taskbar, and ${APP.name} waits in the tray, or in the menu bar at the top of the screen on a Mac. Click its icon there to bring it back.`,
             },
+        ],
+    },
+    {
+        key: 'assistants',
+        page: 'General',
+        kind: 'choice',
+        label: 'AI assistants',
+        help: `Whether an AI assistant you use can use your documents through ${APP.name}: Claude, Cursor or Copilot, an open-source one such as OpenCode or Cline, or a model running on your own computer. Everything stays on this computer, apart from what your assistant reads.`,
+        needsFeature: 'mcp',
+        keywords: 'ai mcp claude chatgpt copilot cursor codex gemini qwen opencode cline roo kilo continue goose zed windsurf lm studio ollama local model open source agent assistant',
+        default: 'off',
+        options: [
+            {value: 'off', label: 'Not allowed', help: 'No assistant can read or change your documents.'},
+            {value: 'read', label: 'Read only', help: 'An assistant can list, read and check your documents, but not change them or save files.'},
+            {value: 'edit', label: 'Read and edit', help: 'An assistant can also make, change, import and export documents. A change to the one you have open arrives unsaved, as a step you can undo.'},
         ],
     },
     {

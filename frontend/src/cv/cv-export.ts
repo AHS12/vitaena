@@ -5,7 +5,7 @@ import {serializeDocument} from '../core/document/document-file'
 import type {ExportFormat} from '../features/export/formats'
 import {cvType, type Cv} from './cv'
 import {CV_TEMPLATES} from './templates/templates'
-import {renderModel, type RenderModel} from './render-model'
+import {renderModel, type RenderModel, type SectionBody} from './render-model'
 import {plainOf} from './rich'
 
 /** The CV as plain text, in reading order: about what an ATS keeps of it. */
@@ -25,34 +25,41 @@ export function plainText(model: RenderModel): string {
     }
 
     for (const section of model.sections) {
-        lines.push('', section.title.toUpperCase())
-
-        if (section.kind === 'text') {
-            lines.push(...section.paragraphs.map(plainOf))
-        } else if (section.kind === 'entries') {
-            for (const entry of section.entries) {
-                lines.push('', [entry.title, entry.org].filter(Boolean).join(', '))
-
-                const meta = [entry.location, entry.dates].filter(Boolean).join(' | ')
-
-                if (meta) {
-                    lines.push(meta)
-                }
-
-                if (entry.summary.length > 0) {
-                    lines.push(plainOf(entry.summary))
-                }
-
-                lines.push(...entry.bullets.map((bullet) => `• ${plainOf(bullet)}`))
-            }
-        } else if (section.kind === 'details') {
-            lines.push(...section.rows.map((row) => (row.label ? `${row.label}: ${row.value}` : row.value)))
-        } else {
-            lines.push(...section.groups.map((group) => (group.label ? `${group.label}: ${group.items}` : group.items)))
-        }
+        lines.push(...sectionLines(section))
     }
 
     return `${lines.join('\n')}\n`
+}
+
+/** One section as plain text: a blank line, its heading in capitals, then what's in it. */
+export function sectionLines(section: SectionBody): string[] {
+    const lines = ['', section.title.toUpperCase()]
+
+    if (section.kind === 'text') {
+        lines.push(...section.paragraphs.map(plainOf))
+    } else if (section.kind === 'entries') {
+        for (const entry of section.entries) {
+            lines.push('', [entry.title, entry.org].filter(Boolean).join(', '))
+
+            const meta = [entry.location, entry.dates].filter(Boolean).join(' | ')
+
+            if (meta) {
+                lines.push(meta)
+            }
+
+            if (entry.summary.length > 0) {
+                lines.push(plainOf(entry.summary))
+            }
+
+            lines.push(...entry.bullets.map((bullet) => `• ${plainOf(bullet)}`))
+        }
+    } else if (section.kind === 'details') {
+        lines.push(...section.rows.map((row) => (row.label ? `${row.label}: ${row.value}` : row.value)))
+    } else {
+        lines.push(...section.groups.map((group) => (group.label ? `${group.label}: ${group.items}` : group.items)))
+    }
+
+    return lines
 }
 
 export const CV_FORMATS: readonly ExportFormat<Cv>[] = [

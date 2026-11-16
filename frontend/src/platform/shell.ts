@@ -35,6 +35,7 @@ export const SERVICES = {
     documents: 'backend/documents.Library',
     backup: 'backend/backup.Service',
     export: 'backend/export.Files',
+    mcp: 'backend/mcp.Service',
 } as const
 
 export type ServiceName = keyof typeof SERVICES
