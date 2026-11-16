@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"strings"
 	"sync"
@@ -57,6 +58,16 @@ func newService(t *testing.T) (*Service, *page) {
 	t.Cleanup(func() { _ = svc.ServiceShutdown() })
 
 	return svc, p
+}
+
+// ready gives the service its tools and opens its socket, failing the test at once if
+// the socket can't open, rather than leaving an assistant to wait for it.
+func ready(t *testing.T, svc *Service, specs []ToolSpec, access string) {
+	t.Helper()
+
+	if err := svc.Ready(specs, access); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // connect is an assistant talking to the service directly.
@@ -134,7 +145,7 @@ func TestOffersThePagesToolsWithTheirAnnotations(t *testing.T) {
 
 func TestSendsACallToThePageAndAnswersWithItsReply(t *testing.T) {
 	svc, p := newService(t)
-	_ = svc.Ready(tools, AccessRead)
+	ready(t, svc, tools, AccessRead)
 
 	result := call(t, connect(t, svc), "list_documents", map[string]any{"kind": "cv"})
 
@@ -163,7 +174,7 @@ func TestSendsACallToThePageAndAnswersWithItsReply(t *testing.T) {
 
 func TestAnswersWithWhereToTurnItOnWhileTheSettingIsOff(t *testing.T) {
 	svc, p := newService(t)
-	_ = svc.Ready(tools, AccessOff)
+	ready(t, svc, tools, AccessOff)
 
 	result := call(t, connect(t, svc), "list_documents", nil)
 
@@ -178,14 +189,14 @@ func TestAnswersWithWhereToTurnItOnWhileTheSettingIsOff(t *testing.T) {
 
 func TestKeepsChangesBackWithReadOnlyAccess(t *testing.T) {
 	svc, p := newService(t)
-	_ = svc.Ready(tools, AccessRead)
+	ready(t, svc, tools, AccessRead)
 	session := connect(t, svc)
 
 	if result := call(t, session, "edit_document", nil); !result.IsError || !strings.Contains(textOf(result), "Read and edit") {
 		t.Fatalf("got %s", textOf(result))
 	}
 
-	_ = svc.Ready(tools, AccessEdit)
+	ready(t, svc, tools, AccessEdit)
 
 	result := call(t, session, "edit_document", nil)
 	if result.IsError {
@@ -213,7 +224,7 @@ func TestRefusesAToolWhoseSchemaIsntAnObject(t *testing.T) {
 func TestRelaysAnAssistantToTheAppOverTheSocket(t *testing.T) {
 	svc, _ := newService(t)
 	folder, _ := svc.shell.DataFolder()
-	_ = svc.Ready(tools, AccessRead)
+	ready(t, svc, tools, AccessRead)
 
 	session := relayed(t, folder, func() (func(), error) {
 		t.Error("the app is running, so the relay shouldn't start it")
@@ -249,7 +260,7 @@ func TestStartsTheAppWhenNothingIsListening(t *testing.T) {
 func TestLeavesTheSocketToACopyAlreadyListening(t *testing.T) {
 	first, _ := newService(t)
 	folder, _ := first.shell.DataFolder()
-	_ = first.Ready(tools, AccessRead)
+	ready(t, first, tools, AccessRead)
 
 	second := New(backend.Shell{DataFolder: func() (string, error) { return folder, nil }, Emit: func(string, ...any) {}})
 
@@ -266,7 +277,13 @@ func relayed(t *testing.T, folder string, start func() (func(), error)) *mcp.Cli
 	toAssistant, fromRelay := io.Pipe()
 	done := make(chan error, 1)
 
-	go func() { done <- Relay(folder, toRelay, fromRelay, start) }()
+	go func() {
+		err := Relay(folder, toRelay, fromRelay, start)
+		// A relay that gave up closes its ends, so the assistant sees it fail rather than wait.
+		_ = fromRelay.CloseWithError(errors.New("the relay stopped"))
+		_ = toRelay.Close()
+		done <- err
+	}()
 
 	session, err := mcp.NewClient(&mcp.Implementation{Name: "test"}, nil).Connect(context.Background(), &mcp.IOTransport{Reader: toAssistant, Writer: fromAssistant}, nil)
 	if err != nil {
@@ -286,7 +303,7 @@ func relayed(t *testing.T, folder string, start func() (func(), error)) *mcp.Cli
 
 func TestOffersPromptsThatNameTheTools(t *testing.T) {
 	svc, _ := newService(t)
-	_ = svc.Ready(tools, AccessRead)
+	ready(t, svc, tools, AccessRead)
 	session := connect(t, svc)
 
 	listed, err := session.ListPrompts(context.Background(), nil)

@@ -65,7 +65,21 @@ func (s *Service) KeepCopy(id string, contents []byte) (string, error) {
 
 	s.pruneCopies(dir)
 
-	name := id + "~" + strconv.FormatInt(time.Now().UnixMilli(), 10) + ".json"
+	// Two changes can come within one millisecond, so a name already taken gets a number,
+	// and no copy ever replaces another.
+	s.copiesMu.Lock()
+	defer s.copiesMu.Unlock()
+
+	stamp := id + "~" + strconv.FormatInt(time.Now().UnixMilli(), 10)
+	name := stamp + ".json"
+
+	for count := 2; ; count++ {
+		if _, err := os.Lstat(filepath.Join(dir, name)); errors.Is(err, os.ErrNotExist) {
+			break
+		}
+
+		name = stamp + "-" + strconv.Itoa(count) + ".json"
+	}
 
 	if err := fsutil.WriteAtomic(filepath.Join(dir, name), contents); err != nil {
 		return "", err

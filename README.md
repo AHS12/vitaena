@@ -1,8 +1,65 @@
-# Vitaena
+<div align="center">
+  <img src="build/appicon.svg" alt="Vitaena logo" width="96" height="96">
+  <h1>Vitaena</h1>
+  <p><strong>A private, offline CV, resume and biodata builder for the desktop.</strong></p>
+</div>
 
-**A private, offline CV, resume and biodata builder for the desktop.** Your work stays on your
-computer: no account and no tracking, and nothing leaves it unless you back it up to
-storage of your own. Vitaena runs on Windows, macOS and Linux.
+<p align="center">
+  <a href="https://github.com/AHS12/vitaena/releases">
+    <img src="https://img.shields.io/github/downloads/AHS12/vitaena/total?label=downloads" alt="Downloads">
+  </a>
+  <a href="https://github.com/AHS12/vitaena/releases/latest">
+    <img src="https://img.shields.io/github/v/release/AHS12/vitaena?label=version" alt="Latest version">
+  </a>
+  <a href="https://github.com/AHS12/vitaena/stargazers">
+    <img src="https://img.shields.io/github/stars/AHS12/vitaena" alt="Stars">
+  </a>
+  <a href="https://github.com/AHS12/vitaena/actions/workflows/release.yml">
+    <img src="https://github.com/AHS12/vitaena/actions/workflows/release.yml/badge.svg" alt="Release Installers">
+  </a>
+  <a href="https://github.com/AHS12/vitaena/actions/workflows/windows.yml">
+    <img src="https://github.com/AHS12/vitaena/actions/workflows/windows.yml/badge.svg" alt="Windows Test Build">
+  </a>
+  <a href="https://github.com/AHS12/vitaena/actions/workflows/macos.yml">
+    <img src="https://github.com/AHS12/vitaena/actions/workflows/macos.yml/badge.svg" alt="macOS Test Build">
+  </a>
+  <a href="https://github.com/AHS12/vitaena/actions/workflows/linux.yml">
+    <img src="https://github.com/AHS12/vitaena/actions/workflows/linux.yml/badge.svg" alt="Linux Test Build">
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/AHS12/vitaena" alt="MIT licence">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/AHS12/vitaena/releases/latest">
+    <img src="https://img.shields.io/badge/Windows-10%20and%2011-0078D6?logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0zIDNoOC41djguNUgzek0xMi41IDNIMjF2OC41aC04LjV6TTMgMTIuNWg4LjVWMjFIM3pNMTIuNSAxMi41SDIxVjIxaC04LjV6Ii8+PC9zdmc+" alt="Windows 10 and 11">
+  </a>
+  <a href="https://github.com/AHS12/vitaena/releases/latest">
+    <img src="https://img.shields.io/badge/macOS-Apple%20silicon%20and%20Intel-000000?logo=apple&logoColor=white" alt="macOS, Apple silicon and Intel">
+  </a>
+  <a href="https://github.com/AHS12/vitaena/releases/latest">
+    <img src="https://img.shields.io/badge/Linux-deb%20·%20rpm%20·%20Arch%20·%20AppImage-FCC624?logo=linux&logoColor=black" alt="Linux: deb, rpm, Arch and AppImage">
+  </a>
+</p>
+
+<p align="center">
+  <a href="#use-it-with-your-ai-assistant">
+    <img src="https://img.shields.io/badge/AI%20assistants-MCP-1f6b68?logo=modelcontextprotocol&logoColor=white" alt="Works with AI assistants over MCP">
+  </a>
+  <img src="https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white" alt="Go">
+  <img src="https://img.shields.io/badge/Wails%203-DF0000?logo=wails&logoColor=white" alt="Wails 3">
+  <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" alt="React">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Typst-239DAD?logo=typst&logoColor=white" alt="Typst">
+</p>
+
+<p align="center">
+  <strong><a href="https://github.com/AHS12/vitaena/releases/latest">Download for Windows, macOS or Linux</a></strong> · <a href="CHANGELOG.md">What's new</a>
+</p>
+
+Your work stays on your computer: no account and no tracking, and nothing leaves it
+unless you back it up to storage of your own.
 
 ![Vitaena's editor: the form on the left, the CV's real pages in the middle, and the design on the right](docs/assets/screens/editor.png)
 

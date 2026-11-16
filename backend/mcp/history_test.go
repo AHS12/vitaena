@@ -21,6 +21,32 @@ func TestKeepsACopyAndReadsItBack(t *testing.T) {
 	}
 }
 
+func TestKeepsEveryCopyEvenWithinOneMillisecond(t *testing.T) {
+	svc, _ := newService(t)
+	names := map[string]string{}
+
+	for i := range 20 {
+		contents := string(rune('a' + i))
+
+		name, err := svc.KeepCopy("cv-1", []byte(contents))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		names[name] = contents
+	}
+
+	if len(names) != 20 {
+		t.Fatalf("20 copies took %d names", len(names))
+	}
+
+	for name, contents := range names {
+		if got, err := svc.ReadCopy(name); err != nil || string(got) != contents {
+			t.Errorf("%s holds %q, %v; want %q", name, got, err, contents)
+		}
+	}
+}
+
 func TestRefusesNamesThatReachOutsideTheFolder(t *testing.T) {
 	svc, _ := newService(t)
 

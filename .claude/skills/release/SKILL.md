@@ -48,5 +48,5 @@ Run `make check`, then build and open the installer on whatever you can, with `m
 4. When the run ends, check that every file is attached: the Windows installer, the Mac DMG
    and zip, and the Linux .deb, .rpm, Arch package and AppImage. The app finds updates by
    those file names; a test fails if the workflow and the backend disagree.
-5. Before releasing Linux changes, run the **Linux Test Build** workflow and look at its
-   screenshots: nobody on the project runs Linux day to day.
+5. Before releasing changes to a system's build, run its **Windows**, **macOS** or **Linux
+   Test Build** workflow and look at its screenshots: only Windows is used day to day.

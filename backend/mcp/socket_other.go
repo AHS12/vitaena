@@ -3,6 +3,8 @@
 package mcp
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
@@ -11,14 +13,35 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
+
+	"vitaena/appconfig"
 )
 
 // SocketName is the file, in the app's data folder, assistants reach the app by.
 // The data folder is the user's own, and the socket is for them alone.
 const SocketName = "mcp.sock"
 
+// mostSocketPath is the longest path a Unix socket can have: macOS allows 104 bytes
+// with the ending zero, Linux 108.
+const mostSocketPath = 103
+
+// socketPath is the socket in the data folder, or, where that path is too long for a
+// socket, one in the user's own runtime or temporary folder, named after the data
+// folder so the app and the relay agree on it.
 func socketPath(dataFolder string) string {
-	return filepath.Join(dataFolder, SocketName)
+	path := filepath.Join(dataFolder, SocketName)
+	if len(path) <= mostSocketPath {
+		return path
+	}
+
+	dir := os.Getenv("XDG_RUNTIME_DIR")
+	if dir == "" {
+		dir = os.TempDir()
+	}
+
+	sum := sha256.Sum256([]byte(dataFolder))
+
+	return filepath.Join(dir, fmt.Sprintf("%s-mcp-%d-%s.sock", appconfig.Current().ID, os.Getuid(), hex.EncodeToString(sum[:6])))
 }
 
 // listenAt listens in the data folder, removing a socket left by an app that

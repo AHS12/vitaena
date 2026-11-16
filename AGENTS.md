@@ -79,8 +79,11 @@ Commit or push only when asked. Work on `dev`, and don't touch `main`.
   compiler with every font, so `vitest.config.ts` runs only two of them at a time.
 - `build/` holds each system's build files; [build/README.md](build/README.md) says which
   are written from `app.config.json`. Linux packages (deb, rpm, Arch, AppImage) come from
-  `build/linux`, and the **Linux Test Build** workflow installs and starts each one, since
-  nobody on the project runs Linux day to day.
+  `build/linux`. On a pull request, **CI** (`ci.yml`) runs the tests, the Go ones on all
+  three systems, then the **Windows**, **macOS** and **Linux Test Build** workflows,
+  which only build, install on a clean runner and start the app, since only Windows is
+  used day to day; Windows and macOS also reach it with `vitaena mcp`
+  (`.github/scripts/mcp-smoke.sh`).
 - The document store is the source of truth for the document in hand. Documents are
   immutable values: an unchanged document keeps the same object, so "unsaved" is an
   identity check.
