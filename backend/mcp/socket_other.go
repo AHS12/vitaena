@@ -70,3 +70,13 @@ func StartApp(backgroundArg string) (func(), error) {
 func StartedForAssistant() bool {
 	return false
 }
+
+// downloadsFolder is where exports go when no folder is named.
+func downloadsFolder() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(home, "Downloads"), nil
+}

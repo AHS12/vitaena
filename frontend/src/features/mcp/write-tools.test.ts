@@ -9,7 +9,11 @@ import {useDocumentStore} from '../../store/document-store'
 import {answer} from './bridge'
 import {putBack, type Activity} from './changes'
 import {heightOf} from './edit-ops'
-import {TOOLS} from './tools'
+import {BIODATA_FORMATS} from '../../biodata/biodata-export'
+import {CV_FORMATS} from '../../cv/cv-export'
+import {toolsWith} from './tools'
+
+const TOOLS = toolsWith({cv: CV_FORMATS, biodata: BIODATA_FORMATS})
 
 vi.mock('../../cv/thumbnail', () => ({cvThumbnail: async () => null, pageThumbnail: async () => null}))
 

@@ -4,7 +4,11 @@ import {useDocumentStore} from '../../store/document-store'
 import {useSettingsStore} from '../../store/settings-store'
 import {answer, CALL_EVENT, startBridge} from './bridge'
 import {specOf, unportableKeywords} from './tool'
-import {TOOLS} from './tools'
+import {BIODATA_FORMATS} from '../../biodata/biodata-export'
+import {CV_FORMATS} from '../../cv/cv-export'
+import {toolsWith} from './tools'
+
+const TOOLS = toolsWith({cv: CV_FORMATS, biodata: BIODATA_FORMATS})
 
 const base64 = (text: string) => btoa(String.fromCharCode(...new TextEncoder().encode(text)))
 const file = (kind: string, name: string) => base64(JSON.stringify({version: 1, kind, name, content: {}}))

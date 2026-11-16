@@ -253,7 +253,7 @@ func (s *Service) refusal(spec ToolSpec) string {
 		return name + " isn't letting AI assistants use your documents. To allow it, open " + name +
 			", then Settings, General, AI assistants."
 	case access == AccessRead && !spec.ReadOnly:
-		return name + " lets AI assistants read your documents but not change them. To allow changes, open " +
+		return name + " lets AI assistants read your documents but not change them or save files. To allow it, open " +
 			name + ", then Settings, General, AI assistants, and choose Read and edit."
 	}
 

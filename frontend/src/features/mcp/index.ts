@@ -6,9 +6,11 @@
 
 import type {Feature} from '../../shell/feature'
 import {startBridge} from './bridge'
-import {TOOLS} from './tools'
+import type {FormatsByKind} from './file-tools'
+import {toolsWith} from './tools'
 
-export const assistants: Feature = {
+/** The feature, given the export formats of each kind of document, by kind. */
+export const assistants = (formats: FormatsByKind): Feature => ({
     id: 'mcp',
-    start: () => startBridge(TOOLS),
-}
+    start: () => startBridge(toolsWith(formats)),
+})

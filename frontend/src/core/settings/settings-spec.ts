@@ -155,8 +155,8 @@ export const SETTING_SPECS = [
         default: 'off',
         options: [
             {value: 'off', label: 'Not allowed', help: 'No assistant can read or change your documents.'},
-            {value: 'read', label: 'Read only', help: 'An assistant can list and read your documents, and check them, but not change them.'},
-            {value: 'edit', label: 'Read and edit', help: 'An assistant can also make and change documents. A change to the one you have open arrives unsaved, as a step you can undo.'},
+            {value: 'read', label: 'Read only', help: 'An assistant can list, read and check your documents, but not change them or save files.'},
+            {value: 'edit', label: 'Read and edit', help: 'An assistant can also make, change, import and export documents. A change to the one you have open arrives unsaved, as a step you can undo.'},
         ],
     },
     {

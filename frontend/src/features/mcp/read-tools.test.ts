@@ -7,7 +7,11 @@ import {sampleCv} from '../../cv/sample'
 import {fakeDesktop} from '../../platform/shell'
 import {useDocumentStore} from '../../store/document-store'
 import {answer} from './bridge'
-import {TOOLS} from './tools'
+import {BIODATA_FORMATS} from '../../biodata/biodata-export'
+import {CV_FORMATS} from '../../cv/cv-export'
+import {toolsWith} from './tools'
+
+const TOOLS = toolsWith({cv: CV_FORMATS, biodata: BIODATA_FORMATS})
 
 vi.mock('../../cv/typst/engine', () => ({pdf: async () => new Uint8Array([1, 2, 3])}))
 vi.mock('../../cv/pdf-text', () => ({pdfText: async () => ({pages: 3, text: 'Jane Doe\nSenior Software Engineer'})}))

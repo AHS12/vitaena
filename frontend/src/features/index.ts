@@ -22,5 +22,5 @@ export const FEATURES: readonly Feature[] = [
     backup,
     report,
     tour(TOURS),
-    assistants,
+    assistants({[cvType.kind]: CV_FORMATS, [biodataType.kind]: BIODATA_FORMATS}),
 ]

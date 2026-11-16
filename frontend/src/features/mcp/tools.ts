@@ -3,8 +3,10 @@
  * same code the app's own pages do.
  */
 
+import {fileTools, type FormatsByKind} from './file-tools'
 import {READ_TOOLS} from './read-tools'
 import type {McpTool} from './tool'
 import {WRITE_TOOLS} from './write-tools'
 
-export const TOOLS: readonly McpTool[] = [...READ_TOOLS, ...WRITE_TOOLS]
+/** Every tool, with the export formats each kind of document has. */
+export const toolsWith = (formats: FormatsByKind): readonly McpTool[] => [...READ_TOOLS, ...WRITE_TOOLS, ...fileTools(formats)]

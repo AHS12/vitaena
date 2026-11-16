@@ -107,3 +107,9 @@ func StartedForAssistant() bool {
 
 	return true
 }
+
+// downloadsFolder is where exports go when no folder is named: the user's
+// Downloads, wherever they moved it.
+func downloadsFolder() (string, error) {
+	return windows.KnownFolderPath(windows.FOLDERID_Downloads, 0)
+}

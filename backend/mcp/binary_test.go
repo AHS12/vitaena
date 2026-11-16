@@ -152,6 +152,28 @@ func TestABuiltAppWritesForAnAssistant(t *testing.T) {
 		t.Errorf("the edits didn't arrive: %s", text)
 	}
 
+	out := t.TempDir()
+
+	for _, format := range []string{"pdf", "docx", "text"} {
+		exported := mustCall(ctx, t, session, "export_document", map[string]any{"id": created.ID, "format": format, "folder": out}, false)
+		t.Log(strings.ReplaceAll(textOf(exported), "\n", " "))
+
+		var saved struct {
+			Files []string `json:"files"`
+		}
+		remarshal(t, exported.StructuredContent, &saved)
+
+		if data, err := os.ReadFile(saved.Files[0]); err != nil || len(data) == 0 || (format == "pdf" && !strings.HasPrefix(string(data), "%PDF")) {
+			t.Errorf("the %s wasn't written: %v", format, err)
+		}
+	}
+
+	for _, fixture := range []string{"online-sidebar.pdf", "office-word.docx"} {
+		path, _ := filepath.Abs(filepath.Join("..", "..", "frontend", "src", "cv", "import", "fixtures", fixture))
+		imported := mustCall(ctx, t, session, "import_file", map[string]any{"path": path}, false)
+		t.Log(textOf(imported))
+	}
+
 	preview := mustCall(ctx, t, session, "preview_pages", map[string]any{"id": created.ID}, false)
 
 	if folder := os.Getenv("VITAENA_MCP_PICTURES"); folder != "" {
