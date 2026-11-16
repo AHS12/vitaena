@@ -90,6 +90,9 @@ type Service struct {
 	// connections counts assistants connected now, for an idle quit.
 	connections int
 	idle        func(connections int)
+
+	// copiesMu keeps two copies of one document from taking the same name.
+	copiesMu sync.Mutex
 }
 
 // New makes the service. It does nothing until the page calls Ready.
