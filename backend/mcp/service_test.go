@@ -36,7 +36,12 @@ func (p *page) emit(name string, data ...any) {
 	p.calls = append(p.calls, tool+" "+arguments)
 	p.mu.Unlock()
 
-	go p.svc.Reply(id, Reply{Text: "ran " + tool, Structured: json.RawMessage(`{"documents":[]}`)})
+	reply := Reply{Text: "ran " + tool, Structured: json.RawMessage(`{"documents":[]}`)}
+	if tool == "edit_document" {
+		reply.Images = []Image{{Data: "AQID", MIMEType: "image/jpeg"}}
+	}
+
+	go p.svc.Reply(id, reply)
 }
 
 func newService(t *testing.T) (*Service, *page) {
@@ -142,6 +147,12 @@ func TestSendsACallToThePageAndAnswersWithItsReply(t *testing.T) {
 	if len(p.calls) != 1 || p.calls[0] != `list_documents {"kind":"cv"}` {
 		t.Errorf("the page got %v", p.calls)
 	}
+
+	call(t, connect(t, svc), "list_documents", nil)
+
+	if len(p.calls) != 2 || p.calls[1] != `list_documents {}` {
+		t.Errorf("a call with no arguments should reach the page as {}, got %v", p.calls)
+	}
 }
 
 func TestAnswersWithWhereToTurnItOnWhileTheSettingIsOff(t *testing.T) {
@@ -170,8 +181,14 @@ func TestKeepsChangesBackWithReadOnlyAccess(t *testing.T) {
 
 	_ = svc.Ready(tools, AccessEdit)
 
-	if result := call(t, session, "edit_document", nil); result.IsError {
+	result := call(t, session, "edit_document", nil)
+	if result.IsError {
 		t.Fatalf("got %s", textOf(result))
+	}
+
+	// A picture in the page's answer reaches the assistant as an image.
+	if image, ok := result.Content[1].(*mcp.ImageContent); !ok || string(image.Data) != "\x01\x02\x03" || image.MIMEType != "image/jpeg" {
+		t.Errorf("got %+v", result.Content)
 	}
 
 	if len(p.calls) != 1 {

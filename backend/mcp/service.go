@@ -13,6 +13,7 @@ package mcp
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -60,8 +61,16 @@ type Reply struct {
 	Text string `json:"text"`
 	// Structured is the same answer as data, for clients that read it.
 	Structured json.RawMessage `json:"structured,omitempty"`
+	// Images go after the text, such as pictures of the pages.
+	Images []Image `json:"images,omitempty"`
 	// IsError says the call failed. Text then says why, so the model can fix it.
 	IsError bool `json:"isError"`
+}
+
+// Image is a picture in a reply, as base64.
+type Image struct {
+	Data     string `json:"data"`
+	MIMEType string `json:"mimeType"`
 }
 
 // Service is the Wails service the page calls.
@@ -200,8 +209,9 @@ func (s *Service) handler(spec ToolSpec) mcp.ToolHandler {
 			return failure(refusal), nil
 		}
 
+		// A call with no arguments may send none, or null.
 		arguments := request.Params.Arguments
-		if len(arguments) == 0 {
+		if len(arguments) == 0 || string(arguments) == "null" {
 			arguments = json.RawMessage("{}")
 		}
 
@@ -211,6 +221,15 @@ func (s *Service) handler(spec ToolSpec) mcp.ToolHandler {
 		}
 
 		result := &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: reply.Text}}, IsError: reply.IsError}
+
+		for _, image := range reply.Images {
+			data, err := base64.StdEncoding.DecodeString(image.Data)
+			if err != nil {
+				return failure("A picture in the answer couldn't be read."), nil
+			}
+
+			result.Content = append(result.Content, &mcp.ImageContent{Data: data, MIMEType: image.MIMEType})
+		}
 
 		if len(reply.Structured) > 0 && !reply.IsError {
 			result.StructuredContent = reply.Structured

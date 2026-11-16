@@ -13,6 +13,13 @@ import {z} from 'zod'
 export interface ToolAnswer {
     readonly text: string
     readonly structured?: unknown
+    /** Pictures after the text, as base64. */
+    readonly images?: readonly ToolImage[]
+}
+
+export interface ToolImage {
+    readonly data: string
+    readonly mimeType: string
 }
 
 export interface McpTool<Input extends z.ZodObject = z.ZodObject> {

@@ -6,7 +6,7 @@
 import {z} from 'zod'
 import {desktopApp, desktopRuntime} from '../../platform/shell'
 import {useSettingsStore} from '../../store/settings-store'
-import {specOf, type McpTool, type ToolSpec} from './tool'
+import {specOf, type McpTool, type ToolImage, type ToolSpec} from './tool'
 
 /** Go's `mcp.CallEvent`. */
 export const CALL_EVENT = 'mcp:call'
@@ -14,6 +14,7 @@ export const CALL_EVENT = 'mcp:call'
 interface Reply {
     readonly text: string
     readonly structured?: unknown
+    readonly images?: readonly ToolImage[]
     readonly isError: boolean
 }
 
@@ -40,7 +41,7 @@ export async function answer(tools: readonly McpTool[], name: string, argumentsT
         return {text: 'The arguments are not valid JSON.', isError: true}
     }
 
-    const input = tool.input.safeParse(raw)
+    const input = tool.input.safeParse(raw ?? {})
 
     if (!input.success) {
         return {text: `The arguments don't fit ${name}:\n${z.prettifyError(input.error)}`, isError: true}
@@ -48,7 +49,7 @@ export async function answer(tools: readonly McpTool[], name: string, argumentsT
 
     try {
         const result = await tool.run(input.data)
-        return {text: result.text, structured: result.structured, isError: false}
+        return {text: result.text, structured: result.structured, images: result.images, isError: false}
     } catch (error) {
         return {text: error instanceof Error ? error.message : String(error), isError: true}
     }

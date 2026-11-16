@@ -95,7 +95,7 @@ describe('answering a call', () => {
     it('tells Go the tools and the setting, again when the setting changes, and replies to calls', async () => {
         const stop = startBridge(TOOLS)
 
-        expect(app.Ready).toHaveBeenCalledWith([specOf(TOOLS[0])], 'off')
+        expect(app.Ready).toHaveBeenCalledWith(TOOLS.map(specOf), 'off')
 
         useSettingsStore.getState().setValue('assistants', 'read')
         expect(app.Ready).toHaveBeenLastCalledWith(expect.any(Array), 'read')
