@@ -6,7 +6,7 @@ import {PhotoField} from '../../components/PhotoField'
 import {newId, type Cv, type CvPerson} from '../cv'
 import type {Sectioned} from '../sections'
 import type {DocumentEdit} from '../use-cv-edit'
-import {CV_SECTION_CHOICES, emailWarning, linkWarning, toggled, updatePerson} from './edit-ops'
+import {cvSectionChoices, emailWarning, linkWarning, toggled, updatePerson} from './edit-ops'
 import {useEditorStore} from './editor-store'
 import {CheckPanel} from './CheckPanel'
 import {NotSortedNote} from '../import/NotSortedNote'
@@ -109,7 +109,7 @@ function ContentPanel({cv, edit}: {cv: Cv; edit: Edit}) {
         <>
             <NotSortedNote doc={cv} />
             <PersonPanel person={cv.person} edit={edit} />
-            <SectionList doc={cv} edit={edit as DocumentEdit<Sectioned>} choices={CV_SECTION_CHOICES} />
+            <SectionList doc={cv} edit={edit as DocumentEdit<Sectioned>} choices={cvSectionChoices(cv.design.language)} />
         </>
     )
 }

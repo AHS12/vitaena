@@ -11,6 +11,7 @@
  * Nothing is dropped: what the rules can't place goes into a hidden Not sorted section.
  */
 
+import {scriptsIn} from '../fonts'
 import {DEFAULT_DESIGN, emptyEntry, newId, type Cv, type CvEntry, type CvPerson, type CvSection, type CvTagGroup} from '../cv'
 import {joinItem, levelOfWords, withWordLevels} from '../levels'
 import {findDates, withoutDates, type DateRange} from './dates'
@@ -193,6 +194,13 @@ function addLinks(targets: readonly string[], contact: Contact): void {
 
 // ---------------------------------------------------------------- sections
 
+
+/** Bangla when most headings are written in it, so the app's own words follow; else English. */
+export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' {
+    const bangla = titles.filter((title) => scriptsIn(title).includes('bengali')).length
+
+    return bangla > 0 && bangla * 2 >= titles.length ? 'bn' : 'en'
+}
 
 export function textOf(lines: readonly PdfLine[]): string {
     let text = ''
@@ -684,5 +692,5 @@ export function cvFromLayout(layout: PdfLayout): ImportedCv {
         hide: [],
     }
 
-    return {cv: {person, sections: cvSections, design: {...DEFAULT_DESIGN, template: parts.twoColumns ? 'modern' : 'classic'}}, unsorted: unsorted.length}
+    return {cv: {person, sections: cvSections, design: {...DEFAULT_DESIGN, template: parts.twoColumns ? 'modern' : 'classic', language: languageOfHeadings(cvSections.map((section) => section.title))}}, unsorted: unsorted.length}
 }

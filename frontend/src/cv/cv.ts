@@ -10,7 +10,8 @@ import {z} from 'zod'
 import type {DocumentType} from '../core/document/document-file'
 import {cvFromV1} from './import-v1'
 import {withWordLevels} from './levels'
-import {detailsSection, emptyEntry, entriesSection, newId, tagsSection, textSection, type DetailRow, type Entry, type TagGroup} from './sections'
+import {labelsFor, type DocumentLanguage} from '../core/labels/labels'
+import {detailsSection, emptyEntry, entriesSection, newId, tagsSection, textSection, writingFields, type DetailRow, type Entry, type TagGroup} from './sections'
 
 export {emptyEntry, newId}
 
@@ -49,6 +50,7 @@ const designSchema = z.object({
     atsMode: z.boolean(),
     /** How levels on lists are drawn: the template's own way, or one picked here. */
     levelStyle: z.enum(['template', 'dots', 'bar', 'squares']),
+    ...writingFields,
 })
 
 const cvSchema = z.object({
@@ -67,28 +69,31 @@ export type CvDesign = Cv['design']
 export type EntryPart = CvEntry['hide'][number]
 export type PersonPart = CvPerson['hide'][number]
 
-export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', font: 'inter', fontSize: 10, paper: 'a4', margins: 'normal', spacing: 'normal', atsMode: false, levelStyle: 'template'}
+/** A CV's numbers are 0 to 9 unless chosen otherwise, as employers read them. */
+export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', font: 'inter', fontSize: 10, paper: 'a4', margins: 'normal', spacing: 'normal', atsMode: false, levelStyle: 'template', language: 'en', digits: 'latin', scriptFont: ''}
 
-/** A new CV: the sections most people need, empty, under the headings ATS parsers look for. */
-export function emptyCv(): Cv {
+/** A new CV: the sections most people need, empty, under the headings ATS parsers look for, in its language. */
+export function emptyCv(language: DocumentLanguage = 'en'): Cv {
+    const {sections} = labelsFor(language)
+
     return {
         person: {name: '', headline: '', email: '', phone: '', location: '', links: [], photo: '', hide: []},
         sections: [
-            {id: newId('section'), kind: 'text', title: 'Summary', visible: true, text: ''},
-            {id: newId('section'), kind: 'entries', title: 'Experience', visible: true, entries: []},
-            {id: newId('section'), kind: 'entries', title: 'Education', visible: true, entries: []},
-            {id: newId('section'), kind: 'tags', title: 'Skills', visible: true, groups: []},
+            {id: newId('section'), kind: 'text', title: sections.summary, visible: true, text: ''},
+            {id: newId('section'), kind: 'entries', title: sections.experience, visible: true, entries: []},
+            {id: newId('section'), kind: 'entries', title: sections.education, visible: true, entries: []},
+            {id: newId('section'), kind: 'tags', title: sections.skills, visible: true, groups: []},
         ],
-        design: {...DEFAULT_DESIGN},
+        design: {...DEFAULT_DESIGN, language},
     }
 }
 
 export const cvType: DocumentType<Cv> = {
     kind: 'cv',
     noun: 'CV',
-    version: 8,
+    version: 9,
     content: cvSchema,
-    empty: emptyCv,
+    empty: () => emptyCv(),
     migrations: {
         // Version 2 added the font, margins and spacing to the design.
         1: (content) => {
@@ -143,6 +148,12 @@ export const cvType: DocumentType<Cv> = {
         },
         // Version 8 added details sections. Older files have none, so nothing changes.
         7: (content) => content,
+        // Version 9 added the document's language, its digits and a font for Bangla.
+        8: (content) => {
+            const cv = content as {design?: Record<string, unknown>}
+
+            return {...cv, design: {language: 'en', digits: 'latin', scriptFont: '', ...cv.design}}
+        },
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.
     thumbnail: async (cv) => (await import('./thumbnail')).cvThumbnail(cv),

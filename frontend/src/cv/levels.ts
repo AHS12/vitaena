@@ -6,11 +6,11 @@
 
 /** Words for how well someone speaks or knows something, as a level out of five. */
 const LEVEL_WORDS: readonly [RegExp, number][] = [
-    [/native|mother|fluent|bilingual|expert|c2/i, 5],
-    [/advanced|proficient|professional|c1/i, 4],
-    [/intermediate|upper|working|b2|b1/i, 3],
-    [/conversational|elementary|basic|limited|a2/i, 2],
-    [/beginner|starter|a1/i, 1],
+    [/native|mother|fluent|bilingual|expert|c2|মাতৃভাষা|সাবলীল|দক্ষ/i, 5],
+    [/advanced|proficient|professional|c1|উন্নত|ভালো/i, 4],
+    [/intermediate|upper|working|b2|b1|মধ্যম|কাজ চালানোর মতো/i, 3],
+    [/conversational|elementary|basic|limited|a2|প্রাথমিক|সাধারণ/i, 2],
+    [/beginner|starter|a1|শিক্ষানবিশ/i, 1],
 ]
 
 /** The words a level stands for, offered as the note when someone picks a level. */

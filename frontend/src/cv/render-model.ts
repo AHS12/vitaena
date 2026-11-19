@@ -8,11 +8,12 @@
  */
 
 import type {Cv, CvEntry} from './cv'
-import type {Section} from './sections'
+import {ENGLISH, type Section, type Writing} from './sections'
 import {fontById, fontFamilies} from './fonts'
 import {parseRich, type Span} from './rich'
 import {levelOfWords, splitItem} from './levels'
-import {detailValue} from './details'
+import {labelsFor, languageInfo} from '../core/labels/labels'
+import {detailValue, numbersIn} from './details'
 
 export interface RenderEntry {
     readonly title: string
@@ -70,12 +71,18 @@ export interface RenderModel {
     /** The photo as a data URL, or "" for none. The engine hands it to the template as a file. */
     readonly photo: string
     readonly sections: readonly RenderSection[]
+    /** Words a template writes itself, in the CV's language. */
+    readonly words: {readonly contact: string}
     readonly design: {
         readonly accent: string
         /** The font's family name, as Typst knows it. */
         readonly font: string
         /** The families a template sets, the font first, then those for other scripts. */
         readonly fonts: readonly string[]
+        /** The language, as Typst's lang takes it: "en", "bn". */
+        readonly lang: string
+        /** Written in Latin letters, so headings may be spaced out or set in capitals. */
+        readonly latin: boolean
         readonly fontSize: number
         readonly paper: string
         /** Page margins, in centimetres. */
@@ -88,23 +95,28 @@ export interface RenderModel {
     }
 }
 
+/** What a template is told about the document's language. */
+export const pageLanguage = (language: string): {lang: string; latin: boolean} => {
+    const info = languageInfo(language)
+
+    return {lang: info.lang, latin: info.latin}
+}
+
 /** Page margins in centimetres, and room between blocks, for the design's choices. */
 export const MARGINS = {narrow: 1.3, normal: 1.8, wide: 2.4} as const
 export const SPACING = {compact: 0.8, normal: 1, relaxed: 1.2} as const
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-/** "2023-01" as "Jan 2023". */
-export function monthText(value: string): string {
+/** "2023-01" as "Jan 2023", or "জানুয়ারি ২০২৩". */
+export function monthText(value: string, writing: Writing = ENGLISH): string {
     const match = /^(\d{4})-(\d{2})$/.exec(value)
 
-    return match ? `${MONTHS[Number(match[2]) - 1]} ${match[1]}` : ''
+    return match ? numbersIn(`${labelsFor(writing.language).page.monthsShort[Number(match[2]) - 1]} ${match[1]}`, writing) : ''
 }
 
 /** An entry's dates in one consistent form: "Jan 2020 – Present", "2019 – Mar 2021", "Jun 2018". */
-export function datesText(entry: Pick<CvEntry, 'start' | 'end' | 'current'>): string {
-    const start = monthText(entry.start)
-    const end = entry.current ? 'Present' : monthText(entry.end)
+export function datesText(entry: Pick<CvEntry, 'start' | 'end' | 'current'>, writing: Writing = ENGLISH): string {
+    const start = monthText(entry.start, writing)
+    const end = entry.current ? labelsFor(writing.language).page.present : monthText(entry.end, writing)
 
     if (start && end) {
         return start === end ? start : `${start} – ${end}`
@@ -130,15 +142,15 @@ export function tagItem(text: string, level?: number): RenderTagItem {
 }
 
 /** Sections that belong beside the main story in a two-column template. */
-const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training/i
+const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training|দক্ষতা|ভাষা|আগ্রহ|শখ|প্রকল্প|পুরস্কার|স্বেচ্ছাসেবা|সনদ|প্রশিক্ষণ/i
 
-const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education/i.test(title)) ? 'side' : 'main')
+const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education|অভিজ্ঞতা|শিক্ষা/i.test(title)) ? 'side' : 'main')
 
 /**
  * A section as a template is given it: hidden parts left out, and null when nothing in
  * it shows. A family section is a biodata's own, and its render model handles it.
  */
-export function sectionBody(section: Section, today: Date): SectionBody | null {
+export function sectionBody(section: Section, today: Date, writing: Writing = ENGLISH): SectionBody | null {
     if (!section.visible) {
         return null
     }
@@ -162,7 +174,7 @@ export function sectionBody(section: Section, today: Date): SectionBody | null {
                 title: entry.title.trim(),
                 org: entry.org.trim(),
                 location: entry.hide.includes('location') ? '' : entry.location.trim(),
-                dates: entry.hide.includes('dates') ? '' : datesText(entry),
+                dates: entry.hide.includes('dates') ? '' : datesText(entry, writing),
                 summary: entry.hide.includes('summary') ? [] : parseRich(entry.summary.trim()),
                 bullets: entry.bullets.map(trimmed).filter(Boolean).map(parseRich),
             }))
@@ -171,7 +183,7 @@ export function sectionBody(section: Section, today: Date): SectionBody | null {
     }
 
     if (section.kind === 'details') {
-        const rows = section.rows.filter((row) => row.visible).map((row) => ({label: row.label.trim(), value: detailValue(row, today)})).filter((row) => row.value)
+        const rows = section.rows.filter((row) => row.visible).map((row) => ({label: row.label.trim(), value: detailValue(row, today, writing)})).filter((row) => row.value)
 
         return rows.length > 0 ? {kind: 'details', title, rows} : null
     }
@@ -207,7 +219,7 @@ export function renderModel(cv: Cv, today: Date = new Date()): RenderModel {
     ].filter((item) => item !== null)
 
     const sections = cv.sections.flatMap((section) => {
-        const body = section.visible ? sectionBody(section, today) : null
+        const body = section.visible ? sectionBody(section, today, cv.design) : null
 
         return body ? [{...body, column: columnOf(section.kind, body.title)}] : []
     })
@@ -218,10 +230,12 @@ export function renderModel(cv: Cv, today: Date = new Date()): RenderModel {
         contact,
         photo: person.photo && !person.hide.includes('photo') ? person.photo : '',
         sections,
+        words: {contact: labelsFor(cv.design.language).sections.contact},
         design: {
             accent: cv.design.accent,
             font: fontById(cv.design.font).family,
-            fonts: fontFamilies(cv.design.font),
+            fonts: fontFamilies(cv.design.font, cv.design.scriptFont),
+            ...pageLanguage(cv.design.language),
             fontSize: cv.design.fontSize,
             paper: cv.design.paper,
             margin: MARGINS[cv.design.margins],

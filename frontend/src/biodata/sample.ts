@@ -8,12 +8,18 @@
  */
 
 import {DEFAULT_BIODATA_DESIGN, type Biodata} from './biodata'
+import {sampleBiodataBn} from './sample-bn'
 
 const text = (id: string, label: string, value: string) => ({id, visible: true, label, kind: 'text' as const, value})
 
 const member = (id: string, relation: string, name: string, work: string, note = '') => ({id, visible: true, relation, name, work, note})
 
-export function sampleBiodata(): Biodata {
+/** The example in a language: Bangla has its own, and any other is the English one. */
+export function sampleBiodata(language = 'en'): Biodata {
+    if (language === 'bn') {
+        return sampleBiodataBn()
+    }
+
     return {
         heading: {text: '', image: ''},
         person: {name: 'Jane Doe', photo: '', fullPhoto: '', hide: []},

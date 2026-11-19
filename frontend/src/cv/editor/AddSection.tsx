@@ -13,7 +13,9 @@ export interface SectionChoice {
     readonly id: string
     readonly label: string
     make(): Section
-    /** Offered only while no section has this label as its heading. */
+    /** The heading it makes, when that isn't its label, as in a document in another language. */
+    readonly title?: string
+    /** Offered only while no section has this heading. */
     readonly once?: boolean
     /** Choices are drawn in groups, with a line between one group and the next. */
     readonly group?: string
@@ -50,7 +52,7 @@ export function AddSection({choices, doc, edit}: {choices: readonly SectionChoic
                             add(choice)
                         }
                     }}
-                    disabledKeys={choices.filter((choice) => choice.once && taken.has(choice.label.toLowerCase())).map((choice) => choice.id)}
+                    disabledKeys={choices.filter((choice) => choice.once && taken.has((choice.title ?? choice.label).toLowerCase())).map((choice) => choice.id)}
                 >
                     {choices.flatMap((choice, index) => [
                         ...(index > 0 && choice.group !== choices[index - 1].group

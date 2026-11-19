@@ -26,6 +26,8 @@ export type Script = 'bengali'
 /** A font for a script other than Latin, used where the chosen font has no such letters. */
 export interface ScriptFont extends CvFont {
     readonly script: Script
+    /** Used for its script when nothing else is chosen, beside main fonts of its kind. */
+    readonly fallback: boolean
 }
 
 const face = (pkg: string, prefix: string, name: string): string => `@expo-google-fonts/${pkg}/${name}/${prefix}_${name}.ttf`
@@ -41,12 +43,16 @@ export const CV_FONTS: readonly CvFont[] = [
 ]
 
 /**
- * Fonts for other scripts. Bangla has no italic tradition, so these have upright faces
- * only; italic text in Bangla stays upright, which is how it's printed.
+ * Fonts for other scripts. Bangla has no italic tradition, so most have upright faces
+ * only; italic text in Bangla stays upright, which is how it's printed. Tiro Bangla has no
+ * bold, so bold text in it is regular.
  */
 export const SCRIPT_FONTS: readonly ScriptFont[] = [
-    {id: 'noto-sans-bengali', family: 'Noto Sans Bengali', label: 'Noto Sans Bengali', kind: 'Sans serif', script: 'bengali', files: faces('noto-sans-bengali', 'NotoSansBengali', ['400Regular', '700Bold'])},
-    {id: 'noto-serif-bengali', family: 'Noto Serif Bengali', label: 'Noto Serif Bengali', kind: 'Serif', script: 'bengali', files: faces('noto-serif-bengali', 'NotoSerifBengali', ['400Regular', '700Bold'])},
+    {id: 'noto-sans-bengali', family: 'Noto Sans Bengali', label: 'Noto Sans Bengali', kind: 'Sans serif', script: 'bengali', fallback: true, files: faces('noto-sans-bengali', 'NotoSansBengali', ['400Regular', '700Bold'])},
+    {id: 'noto-serif-bengali', family: 'Noto Serif Bengali', label: 'Noto Serif Bengali', kind: 'Serif', script: 'bengali', fallback: true, files: faces('noto-serif-bengali', 'NotoSerifBengali', ['400Regular', '700Bold'])},
+    {id: 'anek-bangla', family: 'Anek Bangla', label: 'Anek Bangla', kind: 'Sans serif', script: 'bengali', fallback: false, files: faces('anek-bangla', 'AnekBangla', ['400Regular', '700Bold'])},
+    {id: 'baloo-da-2', family: 'Baloo Da 2', label: 'Baloo Da 2', kind: 'Sans serif', script: 'bengali', fallback: false, files: faces('baloo-da-2', 'BalooDa2', ['400Regular', '700Bold'])},
+    {id: 'tiro-bangla', family: 'Tiro Bangla', label: 'Tiro Bangla', kind: 'Serif', script: 'bengali', fallback: false, files: faces('tiro-bangla', 'TiroBangla', ['400Regular', '400Regular_Italic'])},
 ]
 
 /** The letters of each script, as Unicode blocks. */
@@ -57,12 +63,19 @@ const SCRIPT_LETTERS: Readonly<Record<Script, RegExp>> = {
 export const fontById = (id: string): CvFont => CV_FONTS.find((font) => font.id === id) ?? CV_FONTS[0]
 
 /** The script font that suits a main font: sans with sans, serif with serif. */
-export const scriptFontFor = (script: Script, kind: FontKind): ScriptFont => SCRIPT_FONTS.find((font) => font.script === script && font.kind === kind) ?? SCRIPT_FONTS.find((font) => font.script === script)!
+export const scriptFontFor = (script: Script, kind: FontKind): ScriptFont =>
+    SCRIPT_FONTS.find((font) => font.script === script && font.fallback && font.kind === kind) ?? SCRIPT_FONTS.find((font) => font.script === script && font.fallback)!
 
-/** The families a template is given, in the order Typst looks for each letter in them. */
-export function fontFamilies(id: string): string[] {
+export const scriptFontById = (id: string): ScriptFont | undefined => SCRIPT_FONTS.find((font) => font.id === id)
+
+/**
+ * The families a template is given, in the order Typst looks for each letter in them:
+ * the main font, the script font chosen (or the one that suits the main font), then Inter.
+ */
+export function fontFamilies(id: string, scriptFont = ''): string[] {
     const main = fontById(id)
-    const scripts = [...new Set(SCRIPT_FONTS.map((font) => font.script))].map((script) => scriptFontFor(script, main.kind).family)
+    const chosen = scriptFontById(scriptFont)
+    const scripts = [...new Set(SCRIPT_FONTS.map((font) => font.script))].map((script) => (chosen?.script === script ? chosen : scriptFontFor(script, main.kind)).family)
 
     return [...new Set([main.family, ...scripts, CV_FONTS[0].family])]
 }
@@ -70,9 +83,12 @@ export function fontFamilies(id: string): string[] {
 /** The scripts that appear in some text, such as a document's render model as JSON. */
 export const scriptsIn = (text: string): Script[] => (Object.keys(SCRIPT_LETTERS) as Script[]).filter((script) => SCRIPT_LETTERS[script].test(text))
 
-/** The script fonts' files that text needs, both kinds, since the template may pick either. */
+/**
+ * The script fonts' files a render model needs, given as JSON: for each script in it, the
+ * fallbacks of both kinds, since a template may pick either, and any it names.
+ */
 export const scriptFilesFor = (text: string): string[] => {
     const scripts = new Set(scriptsIn(text))
 
-    return SCRIPT_FONTS.filter((font) => scripts.has(font.script)).flatMap((font) => font.files)
+    return SCRIPT_FONTS.filter((font) => scripts.has(font.script) && (font.fallback || text.includes(`"${font.family}"`))).flatMap((font) => font.files)
 }

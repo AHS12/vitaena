@@ -8,6 +8,7 @@
  */
 
 import {DEFAULT_DESIGN, type Cv, type CvEntry} from './cv'
+import {sampleCvBn} from './sample-bn'
 
 const job = (id: string, title: string, org: string, start: string, end: string, bullets: string[], current = false): CvEntry => ({
     id,
@@ -23,7 +24,12 @@ const job = (id: string, title: string, org: string, start: string, end: string,
     hide: [],
 })
 
-export function sampleCv(): Cv {
+/** The example in a language: Bangla has its own, and any other is the English one. */
+export function sampleCv(language = 'en'): Cv {
+    if (language === 'bn') {
+        return sampleCvBn()
+    }
+
     return {
         person: {
             name: 'Jane Doe',

@@ -5,6 +5,7 @@
  */
 
 import {LONG_BULLET} from '../components/BulletList'
+import {languageInfo, labelsFor} from '../core/labels/labels'
 import type {Cv} from './cv'
 import {emailWarning} from './editor/edit-ops'
 import {CV_TEMPLATES} from './templates/templates'
@@ -82,7 +83,22 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
         results.push({id: 'headline', level: 'tip', title: 'Add a headline', detail: 'The role you want, in the words a job ad would use, helps both keyword searches and people skimming.'})
     }
 
-    const unknown = shown.filter((section) => !isKnown(section.title)).map((section) => section.title.trim() || 'An untitled section')
+    // The app's own headings in another language: right for a reader of that language, but
+    // screening software knows English ones, so it's said once, not per heading.
+    const ownWords = new Set(Object.values(labelsFor(cv.design.language).sections).map((title) => title.toLowerCase()))
+    const inLanguage = cv.design.language !== 'en' ? shown.filter((section) => ownWords.has(section.title.trim().toLowerCase())) : []
+    const unknown = shown.filter((section) => !isKnown(section.title) && !inLanguage.includes(section)).map((section) => section.title.trim() || 'An untitled section')
+
+    if (inLanguage.length > 0) {
+        const language = languageInfo(cv.design.language).name
+
+        results.push({
+            id: 'language',
+            level: 'tip',
+            title: `Your headings are in ${language}`,
+            detail: `Right for a reader of ${language}, but screening software mostly looks for English headings such as Experience and Education. For a job advertised in English, choose English in Style, Language.`,
+        })
+    }
 
     results.push(
         unknown.length === 0
@@ -95,7 +111,7 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
               },
     )
 
-    if (!shown.some((section) => section.kind === 'entries' && /experience|employment|work|positions/i.test(section.title))) {
+    if (!shown.some((section) => section.kind === 'entries' && /experience|employment|work|positions|অভিজ্ঞতা|পেশা|চাকরি/i.test(section.title))) {
         results.push({id: 'experience', level: 'tip', title: 'No Experience section', detail: 'Most screening looks for one, even for a first job: internships and volunteering count.'})
     }
 
@@ -114,7 +130,7 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
     }
 
     const entries = shown.flatMap((section) => (section.kind === 'entries' ? section.entries.filter((entry) => entry.visible).map((entry) => ({section: section.title, entry})) : []))
-    const undated = entries.filter(({section, entry}) => /experience|employment|work|education|positions/i.test(section) && !entry.start && !entry.end && !entry.current)
+    const undated = entries.filter(({section, entry}) => /experience|employment|work|education|positions|অভিজ্ঞতা|পেশা|চাকরি|শিক্ষা/i.test(section) && !entry.start && !entry.end && !entry.current)
 
     if (undated.length > 0) {
         results.push({

@@ -20,6 +20,12 @@ importers:
       '@dnd-kit/utilities':
         specifier: 3.2.2
         version: 3.2.2(react@19.3.1)
+      '@expo-google-fonts/anek-bangla':
+        specifier: 0.4.1
+        version: 0.4.1
+      '@expo-google-fonts/baloo-da-2':
+        specifier: 0.4.2
+        version: 0.4.2
       '@expo-google-fonts/eb-garamond':
         specifier: 0.4.3
         version: 0.4.3
@@ -41,6 +47,9 @@ importers:
       '@expo-google-fonts/source-serif-4':
         specifier: 0.4.2
         version: 0.4.2
+      '@expo-google-fonts/tiro-bangla':
+        specifier: 0.4.1
+        version: 0.4.1
       '@heroui/react':
         specifier: ^3.2.7
         version: 3.2.7(@internationalized/date@3.12.4)(@react-aria/ssr@3.10.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-aria/utils@3.34.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-spectrum/provider@3.11.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-aria-components@1.22.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-aria@3.53.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)
@@ -559,6 +568,12 @@ packages:
       '@noble/hashes':
         optional: true
 
+  '@expo-google-fonts/anek-bangla@0.4.1':
+    resolution: {integrity: sha512-/ntb/auqswMkSCakQtqtfmX15J4E0UWoJuY9A9yndZ1C5mOIqaHFfr12Eguunc6SIzjQbTFFwvWfnP+5mvvqpA==}
+
+  '@expo-google-fonts/baloo-da-2@0.4.2':
+    resolution: {integrity: sha512-4E9cvfgn065/H2vdxMq6KkMVpa2jTl99zOY0PEEL9jPgnR9+q8xURZCoOMMZraFu+/R6fk4TW+nc0peA486aWA==}
+
   '@expo-google-fonts/eb-garamond@0.4.3':
     resolution: {integrity: sha512-8HsDPKN6vDlzxZLgo3UFcyr4uvtY33TBpM65owySnF8cy8hq0ss8AWmBvT/lMRJ/wfcoaPP8gFQsizPRvr0nqg==}
 
@@ -579,6 +594,9 @@ packages:
 
   '@expo-google-fonts/source-serif-4@0.4.2':
     resolution: {integrity: sha512-7X2w5KT0n/pxRXr5Ogv6W35D004IbCXUouTCr9VCh9bSlSWbryyvk8/ovXNOaJLOJV8QeIDnX0hIppgH0UZ8sA==}
+
+  '@expo-google-fonts/tiro-bangla@0.4.1':
+    resolution: {integrity: sha512-BYuRzdoDnaw9VC9Jy6JDwZgFQl+c+FqK2kka1aaesdySyl2YziB2r2yunBHbSg1JDqKAn4Klnzh7aDXpS8TDvw==}
 
   '@heroui/react@3.2.7':
     resolution: {integrity: sha512-cFYqzjgkuni+UD8mKOzbUloi99DCFEt1bE7YLE/3/RpahdRsjzp10zjbNgDn7CJC0oES2AX81Siu/EeLk7bsVg==}
@@ -2677,6 +2695,10 @@ snapshots:
 
   '@exodus/bytes@1.16.0': {}
 
+  '@expo-google-fonts/anek-bangla@0.4.1': {}
+
+  '@expo-google-fonts/baloo-da-2@0.4.2': {}
+
   '@expo-google-fonts/eb-garamond@0.4.3': {}
 
   '@expo-google-fonts/ibm-plex-sans@0.4.1': {}
@@ -2690,6 +2712,8 @@ snapshots:
   '@expo-google-fonts/noto-serif-bengali@0.4.4': {}
 
   '@expo-google-fonts/source-serif-4@0.4.2': {}
+
+  '@expo-google-fonts/tiro-bangla@0.4.1': {}
 
   '@heroui/react@3.2.7(@internationalized/date@3.12.4)(@react-aria/ssr@3.10.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-aria/utils@3.34.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-spectrum/provider@3.11.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-aria-components@1.22.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-aria@3.53.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)':
     dependencies:

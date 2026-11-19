@@ -66,7 +66,7 @@
 )
 
 #set document(title: if cv.name != "" { cv.name + " – CV" } else { "CV" }, author: cv.name)
-#set text(font: cv.design.fonts, size: cv.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(25))
+#set text(font: cv.design.fonts, size: cv.design.fontSize * 1pt, lang: cv.design.lang, ligatures: false, fill: luma(25))
 #set par(leading: 0.55em, spacing: gap(0.7), justify: false)
 #set list(marker: [•], indent: 0.1em, body-indent: 0.55em, spacing: gap(0.45))
 #set page(
@@ -184,7 +184,7 @@
         align(center, box(width: 3cm, height: 3cm, radius: 50%, clip: true, stroke: 2pt + white, image(cv.photo, width: 3cm, height: 3cm, fit: "cover")))
       }
       if cv.contact.len() > 0 {
-        heading-side("Contact")
+        heading-side(cv.words.contact)
         // One detail to a line: the column is too narrow to share.
         cv.contact.map(c => block(above: 0.5em, below: 0.5em, if c.url != "" { link(c.url)[#c.text] } else { c.text })).join()
       }

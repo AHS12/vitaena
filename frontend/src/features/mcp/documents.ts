@@ -5,16 +5,17 @@
  */
 
 import {checkCv, type CheckResult} from '../../cv/ats-check'
-import {cvType, type Cv} from '../../cv/cv'
+import {cvType, emptyCv, type Cv} from '../../cv/cv'
 import {plainText, sectionLines} from '../../cv/cv-export'
 import {renderModel} from '../../cv/render-model'
 import {CV_TEMPLATES, TEMPLATE_USE_LABELS} from '../../cv/templates/templates'
 import type {PageModel} from '../../cv/typst/images'
-import {biodataType, type Biodata} from '../../biodata/biodata'
+import {biodataType, emptyBiodata, type Biodata} from '../../biodata/biodata'
 import {checkBiodata} from '../../biodata/check'
 import {biodataRenderModel} from '../../biodata/render-model'
 import {BIODATA_TEMPLATES} from '../../biodata/templates/templates'
 import {parseAnyDocument, type DocumentType} from '../../core/document/document-file'
+import type {DocumentLanguage} from '../../core/labels/labels'
 import {readDocument} from '../../platform/documents'
 import {hasUnsavedChanges, useDocumentStore} from '../../store/document-store'
 import {DOCUMENT_TYPES, type Content} from '../../store/document-types'
@@ -32,6 +33,8 @@ export interface TemplateInfo {
 /** What the tools need from each kind of document. */
 export interface KindTools<T> {
     readonly type: DocumentType<T>
+    /** A new, empty one, with its headings and labels in a language. */
+    emptyIn(language: DocumentLanguage): T
     readonly templates: readonly TemplateInfo[]
     template(content: T): string
     pageModel(content: T): PageModel
@@ -42,6 +45,7 @@ export interface KindTools<T> {
 
 const cvTools: KindTools<Cv> = {
     type: cvType,
+    emptyIn: (language) => emptyCv(language),
     templates: CV_TEMPLATES.map((template) => ({id: template.id, name: template.name, about: template.about, facts: template.facts, suits: TEMPLATE_USE_LABELS[template.use]})),
     template: (cv) => cv.design.template,
     pageModel: (cv) => renderModel(cv),
@@ -51,6 +55,7 @@ const cvTools: KindTools<Cv> = {
 
 const biodataTools: KindTools<Biodata> = {
     type: biodataType,
+    emptyIn: (language) => emptyBiodata(language),
     templates: BIODATA_TEMPLATES.map((template) => ({id: template.id, name: template.name, about: template.about, facts: template.facts})),
     template: (biodata) => biodata.design.template,
     pageModel: (biodata) => biodataRenderModel(biodata),

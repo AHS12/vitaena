@@ -20,6 +20,8 @@ import {sampleBiodata} from '../../biodata/sample'
 import {BIODATA_TEMPLATES} from '../../biodata/templates/templates'
 import {renderModel} from '../render-model'
 import {sampleCv} from '../sample'
+
+const sampleCvBangla = () => sampleCv('bn')
 import {CV_TEMPLATES} from './templates'
 
 /** Letters that each stand alone, as one glyph, and appear nowhere else on the page. */
@@ -87,5 +89,28 @@ describe.each(BIODATA_TEMPLATES.map((template) => template.id))('Bangla in the %
         expect(await read(pdf)).toContain(letters(NAME))
 
         expect(embeddedFonts(pdf).some((font) => /^NotoS(ans|erif)Bengali/.test(font))).toBe(true)
+    }, 60_000)
+})
+
+describe('the Bangla example, laid out in every template', () => {
+    it.each(CV_TEMPLATES.map((template) => template.id))('fits the CV in %s, with its English parts intact', async (template) => {
+        const pdf = await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel(sampleCvBangla()))
+
+        expect(await read(pdf)).toContain('jane.doe@example.com')
+        expect(embeddedFonts(pdf).some((font) => /^NotoS(ans|erif)Bengali/.test(font))).toBe(true)
+    }, 60_000)
+
+    it.each(BIODATA_TEMPLATES.map((template) => template.id))('fits the biodata in %s on one page', async (template) => {
+        const pdf = await templatePdf(compiler, new URL(`../../biodata/templates/${template}.typ`, import.meta.url), '/biodata.json', biodataRenderModel(sampleBiodata('bn')))
+        const document = await getDocument({data: pdf.slice(), useSystemFonts: false}).promise
+
+        expect(document.numPages).toBe(1)
+    }, 60_000)
+
+    it('sets Bangla in a chosen Bangla font', async () => {
+        const cv = sampleCvBangla()
+        const pdf = await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel({...cv, design: {...cv.design, scriptFont: 'baloo-da-2'}}))
+
+        expect(embeddedFonts(pdf).some((font) => font.startsWith('BalooDa2'))).toBe(true)
     }, 60_000)
 })

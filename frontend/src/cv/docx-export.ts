@@ -7,6 +7,13 @@
 import type {RenderEntry, RenderModel} from './render-model'
 import type {Span} from './rich'
 
+/**
+ * The fonts Word is told: the main one for Latin letters, and the Bangla one for Bangla,
+ * which Word treats as a complex script and sets in its own font. Word uses them where
+ * they're installed; a Word file names fonts but doesn't carry them.
+ */
+export const wordFonts = (design: {readonly font: string; readonly fonts: readonly string[]}) => ({ascii: design.font, hAnsi: design.font, cs: design.fonts[1] ?? design.font})
+
 const BULLETS = 'cv-bullets'
 
 export async function cvDocx(model: RenderModel): Promise<Uint8Array> {
@@ -83,7 +90,7 @@ export async function cvDocx(model: RenderModel): Promise<Uint8Array> {
         title: model.name ? `${model.name} – CV` : 'CV',
         creator: model.name || undefined,
         styles: {
-            default: {document: {run: {font: model.design.font, size}, paragraph: {spacing: {after: 60, line: 276}}}},
+            default: {document: {run: {font: wordFonts(model.design), size}, paragraph: {spacing: {after: 60, line: 276}}}},
             paragraphStyles: [{id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: {size: Math.round(size * 1.1)}, paragraph: {spacing: {before: 280, after: 100}}}],
         },
         numbering: {

@@ -13,7 +13,10 @@ import {PhotoField} from '../components/PhotoField'
 import {SplitPane} from '../components/SplitPane'
 import {APP} from '../core/app'
 import {useDocumentStore} from '../store/document-store'
+import {languageInfo} from '../core/labels/labels'
 import {Group, StyleGroups, TemplateGallery, type SharedStyle} from '../cv/editor/DesignPanel'
+import {scriptsIn} from '../cv/fonts'
+import {inLanguage} from '../cv/relabel'
 import {silhouettePhoto} from '../cv/editor/silhouette'
 import {toggled} from '../cv/editor/edit-ops'
 import {useEditorStore} from '../cv/editor/editor-store'
@@ -26,7 +29,7 @@ import type {Sectioned} from '../cv/sections'
 import {useDocumentEdit, type DocumentEdit} from '../cv/use-cv-edit'
 import type {Biodata} from './biodata'
 import {BiodataCheck} from './BiodataCheck'
-import {BIODATA_SECTION_CHOICES, updateHeading, updatePerson} from './edit-ops'
+import {biodataSectionChoices, updateHeading, updatePerson} from './edit-ops'
 import {biodataRenderModel, isBlank} from './render-model'
 import {NotSortedNote} from '../cv/import/NotSortedNote'
 import {sampleBiodata} from './sample'
@@ -98,7 +101,7 @@ function ContentPanel({biodata, edit}: {biodata: Biodata; edit: Edit}) {
                 />
                 <ShowParts parts={PICTURE_PARTS} hidden={person.hide} onToggle={(part) => edit.act('show part', (current) => updatePerson(current, {hide: toggled(current.person.hide, part)}))} />
             </FixedPanel>
-            <SectionList doc={biodata} edit={edit as unknown as DocumentEdit<Sectioned>} choices={BIODATA_SECTION_CHOICES} />
+            <SectionList doc={biodata} edit={edit as unknown as DocumentEdit<Sectioned>} choices={biodataSectionChoices(biodata.design.language)} />
         </>
     )
 }
@@ -141,11 +144,12 @@ function DesignSidebar({biodata, edit}: {biodata: Biodata; edit: Edit}) {
             return model
         }
 
-        const example = sampleBiodata()
+        const example = sampleBiodata(biodata.design.language)
 
         return biodataRenderModel({...example, person: {...example.person, name: model.name || example.person.name, photo: biodata.person.photo || silhouettePhoto()}, design: biodata.design})
     }, [blank, biodata, model])
     const previews = useTemplatePreviews(shown, BIODATA_TEMPLATE_IDS, 900)
+    const hasBangla = useMemo(() => scriptsIn(JSON.stringify([biodata.heading, biodata.person.name, biodata.sections])).includes('bengali'), [biodata.heading, biodata.person.name, biodata.sections])
 
     return (
         <div className="cv-side cv-side--design" data-coach="design">
@@ -166,7 +170,12 @@ function DesignSidebar({biodata, edit}: {biodata: Biodata; edit: Edit}) {
                         onPick={(id) => set('template', id, 'template')}
                     />
                 ) : (
-                    <StyleGroups design={biodata.design} set={set as <K extends keyof SharedStyle>(key: K, value: SharedStyle[K], label: string) => void}>
+                    <StyleGroups
+                        design={biodata.design}
+                        set={set as <K extends keyof SharedStyle>(key: K, value: SharedStyle[K], label: string) => void}
+                        onLanguage={(language) => edit.act(`write in ${languageInfo(language).name}`, (current) => inLanguage(current, language))}
+                        hasBangla={hasBangla}
+                    >
                         <Group title="Border">
                             <div className="design-row">
                                 <Switch label="Border around each page" value={biodata.design.border} onChange={(border) => set('border', border, border ? 'border on' : 'border off')} />
@@ -219,7 +228,7 @@ export function BiodataEditor() {
                                         ? {
                                               title: 'Your biodata appears here as you type',
                                               text: 'Start with your name on the left, or look at a finished one first.',
-                                              onExample: () => edit.act('example', (current) => ({...sampleBiodata(), design: current.design})),
+                                              onExample: () => edit.act('example', (current) => ({...sampleBiodata(current.design.language), design: current.design})),
                                           }
                                         : null
                                 }

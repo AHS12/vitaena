@@ -50,7 +50,8 @@
 }
 
 #set document(title: if b.name != "" { b.name + " – Biodata" } else { "Biodata" }, author: b.name)
-#set text(font: b.design.fonts, size: b.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(20))
+// Spacing letters out breaks the line that joins Bangla letters, so only Latin text gets it.
+#set text(font: b.design.fonts, size: b.design.fontSize * 1pt, lang: b.design.lang, ligatures: false, fill: luma(20))
 #set par(leading: 0.6em, spacing: gap(0.7), justify: false)
 #set list(marker: [•], indent: 0.2em, body-indent: 0.6em, spacing: gap(0.45))
 #set page(
@@ -76,7 +77,7 @@
   align: horizon,
   line(length: 100%, stroke: 0.5pt + accent),
   diamond(3.5pt),
-  text(size: 1.1em, weight: "bold", fill: accent, tracking: 0.04em, upper(it.body)),
+  text(size: 1.1em, weight: "bold", fill: accent, tracking: if b.design.latin { 0.04em } else { 0em }, upper(it.body)),
   diamond(3.5pt),
   line(length: 100%, stroke: 0.5pt + accent),
 ))
@@ -90,7 +91,7 @@
   if b.headingImage != "" { image(b.headingImage, height: 1.2cm) }
   if b.heading != "" { block(above: 0.4em, below: 0.9em, text(fill: accent, style: "italic", b.heading)) }
   if b.name != "" {
-    text(size: 2.1em, weight: "bold", fill: accent, tracking: 0.02em)[#b.name]
+    text(size: 2.1em, weight: "bold", fill: accent, tracking: if b.name.contains(regex("[^\\p{Latin}\\p{Common}\\p{Inherited}]")) { 0em } else { 0.02em })[#b.name]
     v(0.1em)
     grid(columns: (1.6cm, auto, 1.6cm), column-gutter: 0.4em, align: horizon, line(length: 100%, stroke: 0.5pt + accent), diamond(4pt), line(length: 100%, stroke: 0.5pt + accent))
   }
@@ -115,7 +116,7 @@
   stroke: 0.5pt + accent.lighten(50%),
   inset: (x: 0.6em, y: gap(0.45)),
   fill: (x, y) => if y == 0 { tint },
-  table.header(..("Relation", "Name", "Work", "Note").map(h => text(weight: "bold", fill: accent, h))),
+  table.header(..(b.words.relation, b.words.name, b.words.work, b.words.note).map(h => text(weight: "bold", fill: accent, h))),
   ..members.map(m => (strong(m.relation), m.name, m.work, text(fill: muted, m.note))).flatten(),
 )
 

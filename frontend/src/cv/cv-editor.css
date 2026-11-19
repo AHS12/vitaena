@@ -410,6 +410,12 @@ input.panel__title:focus {
     color: var(--text-primary);
 }
 
+.design-group__subtitle {
+    margin: 4px 0 0;
+    font: var(--text-label);
+    color: var(--text-secondary);
+}
+
 .template-choices,
 .font-choices {
     display: grid;

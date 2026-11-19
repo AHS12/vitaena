@@ -9,7 +9,8 @@
 
 import {z} from 'zod'
 import type {DocumentType} from '../core/document/document-file'
-import {detailsSection, entriesSection, familySection, newId, tagsSection, textSection, emptyFamilyMember, type Section} from '../cv/sections'
+import {labelsFor, type DocumentLanguage} from '../core/labels/labels'
+import {detailsSection, entriesSection, familySection, newId, tagsSection, textSection, emptyFamilyMember, writingFields, type Section} from '../cv/sections'
 import {emptyDetailRow} from '../cv/details'
 
 /** A picture as a JPEG or PNG data URL, or "" for none. Kept small, inside the file. */
@@ -45,6 +46,7 @@ const designSchema = z.object({
     spacing: z.enum(['compact', 'normal', 'relaxed']),
     /** A border around each page, drawn in the template's own way. */
     border: z.boolean(),
+    ...writingFields,
 })
 
 const biodataSchema = z.object({
@@ -60,7 +62,8 @@ export type BiodataDesign = Biodata['design']
 export type BiodataSection = Biodata['sections'][number]
 export type BiodataPicture = BiodataPerson['hide'][number]
 
-export const DEFAULT_BIODATA_DESIGN: BiodataDesign = {template: 'clean', accent: '#7a1f4b', font: 'source-serif-4', fontSize: 10.5, paper: 'a4', margins: 'normal', spacing: 'normal', border: false}
+/** A biodata in Bangla writes its numbers in Bangla unless chosen otherwise, as printed ones do. */
+export const DEFAULT_BIODATA_DESIGN: BiodataDesign = {template: 'clean', accent: '#7a1f4b', font: 'source-serif-4', fontSize: 10.5, paper: 'a4', margins: 'normal', spacing: 'normal', border: false, language: 'en', digits: 'native', scriptFont: ''}
 
 /** A details section with these labels and every value empty. */
 export function detailsWith(title: string, labels: readonly (string | {readonly label: string; readonly kind: 'date' | 'height'})[]): Section {
@@ -76,21 +79,23 @@ export function detailsWith(title: string, labels: readonly (string | {readonly 
 const section = (kind: 'entries' | 'text', title: string): Section =>
     kind === 'entries' ? {id: newId('section'), kind, title, visible: true, entries: []} : {id: newId('section'), kind, title, visible: true, text: ''}
 
-/** A new biodata: the sections most have, in the usual order, with labels and no values. */
-export function emptyBiodata(): Biodata {
+/** A new biodata: the sections most have, in the usual order, with labels in its language and no values. */
+export function emptyBiodata(language: DocumentLanguage = 'en'): Biodata {
+    const {sections: s, rows: r} = labelsFor(language)
+
     return {
         heading: {text: '', image: ''},
         person: {name: '', photo: '', fullPhoto: '', hide: []},
         sections: [
-            detailsWith('Personal details', [{label: 'Date of birth', kind: 'date'}, {label: 'Height', kind: 'height'}, 'Marital status', 'Religion', 'Nationality', 'Home town', 'Current city']),
-            section('entries', 'Education'),
-            section('entries', 'Work'),
-            {id: newId('section'), kind: 'family', title: 'Family', visible: true, members: [emptyFamilyMember('Father'), emptyFamilyMember('Mother')]},
-            section('text', 'About me'),
-            section('text', 'Expectations'),
-            detailsWith('Contact', ['Contact person', 'Relation', 'Phone', 'Address']),
+            detailsWith(s.personalDetails, [{label: r.dateOfBirth, kind: 'date'}, {label: r.height, kind: 'height'}, r.maritalStatus, r.religion, r.nationality, r.homeTown, r.currentCity]),
+            section('entries', s.education),
+            section('entries', s.work),
+            {id: newId('section'), kind: 'family', title: s.family, visible: true, members: [emptyFamilyMember(r.father), emptyFamilyMember(r.mother)]},
+            section('text', s.aboutMe),
+            section('text', s.expectations),
+            detailsWith(s.contact, [r.contactPerson, r.relation, r.phone, r.address]),
         ] as BiodataSection[],
-        design: {...DEFAULT_BIODATA_DESIGN},
+        design: {...DEFAULT_BIODATA_DESIGN, language},
     }
 }
 
@@ -98,9 +103,17 @@ export const biodataType: DocumentType<Biodata> = {
     kind: 'biodata',
     noun: 'biodata',
     plural: 'biodata',
-    version: 1,
+    version: 2,
     content: biodataSchema,
-    empty: emptyBiodata,
+    empty: () => emptyBiodata(),
+    migrations: {
+        // Version 2 added the document's language, its digits and a font for Bangla.
+        1: (content) => {
+            const biodata = content as {design?: Record<string, unknown>}
+
+            return {...biodata, design: {language: 'en', digits: 'native', scriptFont: '', ...biodata.design}}
+        },
+    },
     // Loaded on use, so tests and the library list never pull in the layout engine.
     thumbnail: async (biodata) => {
         const [{pageThumbnail}, {biodataRenderModel}] = await Promise.all([import('../cv/thumbnail'), import('./render-model')])

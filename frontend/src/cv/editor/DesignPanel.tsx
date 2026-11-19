@@ -8,10 +8,12 @@ import {useEffect, useMemo, type ReactNode} from 'react'
 import {ColourRow} from '../../components/ColourRow'
 import {Segmented} from '../../components/Segmented'
 import type {Cv, CvDesign} from '../cv'
-import {CV_FONTS} from '../fonts'
+import {LANGUAGES, languageInfo, type DocumentLanguage} from '../../core/labels/labels'
+import {CV_FONTS, SCRIPT_FONTS, scriptsIn} from '../fonts'
 import {CV_TEMPLATES, TEMPLATE_USE_LABELS} from '../templates/templates'
 import {fontUrl} from '../typst/font-urls'
 import type {DocumentEdit} from '../use-cv-edit'
+import {inLanguage} from '../relabel'
 import {renderModel} from '../render-model'
 import {sampleCv} from '../sample'
 import {silhouettePhoto} from './silhouette'
@@ -45,7 +47,7 @@ function loadFaces() {
 
     facesLoaded = true
 
-    for (const font of CV_FONTS) {
+    for (const font of [...CV_FONTS, ...SCRIPT_FONTS]) {
         const face = new FontFace(`vitaena-${font.id}`, `url(${fontUrl(font.files[0])})`)
 
         void face.load().then((loaded) => document.fonts.add(loaded)).catch(() => undefined)
@@ -133,7 +135,7 @@ export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
             return model
         }
 
-        const example = sampleCv()
+        const example = sampleCv(cv.design.language)
         const person = model.name ? cv.person : example.person
 
         return renderModel({...example, person: {...person, photo: cv.person.photo || silhouettePhoto()}, design: cv.design})
@@ -159,14 +161,65 @@ export interface SharedStyle {
     readonly paper: 'a4' | 'us-letter'
     readonly margins: 'narrow' | 'normal' | 'wide'
     readonly spacing: 'compact' | 'normal' | 'relaxed'
+    readonly language: DocumentLanguage
+    readonly digits: 'latin' | 'native'
+    readonly scriptFont: string
 }
 
-/** Colour, font, size and the page, for any type; `children` adds the type's own groups. */
-export function StyleGroups({design, set, children}: {design: SharedStyle; set<K extends keyof SharedStyle>(key: K, value: SharedStyle[K], label: string): void; children?: ReactNode}) {
+/** A line of Bangla to show each Bangla font in. */
+const BANGLA_SAMPLE = 'আমার নাম'
+
+/**
+ * Colour, font, size and the page, for any type; `children` adds the type's own groups.
+ * Changing the language goes through `onLanguage`, since it changes headings as well.
+ * `hasBangla` says the document has Bangla letters, so the font for them is worth choosing.
+ */
+export function StyleGroups({
+    design,
+    set,
+    onLanguage,
+    hasBangla,
+    children,
+}: {
+    design: SharedStyle
+    set<K extends keyof SharedStyle>(key: K, value: SharedStyle[K], label: string): void
+    onLanguage(language: DocumentLanguage): void
+    hasBangla: boolean
+    children?: ReactNode
+}) {
     useEffect(loadFaces, [])
+
+    const language = languageInfo(design.language)
+    const showBanglaFont = hasBangla || design.language === 'bn'
 
     return (
         <div className="design-panel">
+            <Group title="Language">
+                <div className="design-row">
+                    <span className="design-row__label">Write in</span>
+                    <Segmented label="Write in" value={design.language} options={LANGUAGES.map((info) => ({value: info.id, label: info.own}))} onChange={onLanguage} />
+                </div>
+                {language.digits ? (
+                    <div className="design-row">
+                        <span className="design-row__label">Numbers</span>
+                        <Segmented
+                            label="Numbers"
+                            value={design.digits}
+                            options={[
+                                {value: 'native', label: language.digits.slice(1, 4)},
+                                {value: 'latin', label: '123'},
+                            ]}
+                            onChange={(digits) => set('digits', digits, 'numbers')}
+                        />
+                    </div>
+                ) : null}
+                <p className="design-panel__tip">
+                    {language.id === 'en'
+                        ? 'The headings, labels and dates Vitaena writes. Your own words stay as you wrote them.'
+                        : `Headings, labels, dates and "${language.id === 'bn' ? 'বর্তমান' : 'Present'}" are written in ${language.name}. Headings you wrote yourself stay as they are.`}
+                </p>
+            </Group>
+
             <Group title="Colour">
                 <ColourRow label="Accent" value={design.accent} presets={ACCENTS} onChange={(accent) => set('accent', accent, 'colour')} />
             </Group>
@@ -186,6 +239,27 @@ export function StyleGroups({design, set, children}: {design: SharedStyle; set<K
                     <span className="design-row__label">Size</span>
                     <Segmented label="Text size" value={design.fontSize} options={SIZES} onChange={(size) => set('fontSize', size, 'text size')} />
                 </div>
+                {showBanglaFont ? (
+                    <>
+                        <h4 className="design-group__subtitle">Bangla text in</h4>
+                        <div className="font-choices" role="radiogroup" aria-label="Bangla text in">
+                            <button type="button" role="radio" aria-checked={design.scriptFont === ''} className="font-choice" onClick={() => set('scriptFont', '', 'Bangla font')}>
+                                <span className="font-choice__name">Matching</span>
+                                <span className="font-choice__kind">Noto, sans or serif to suit</span>
+                            </button>
+                            {SCRIPT_FONTS.filter((font) => font.script === 'bengali').map((font) => (
+                                <button key={font.id} type="button" role="radio" aria-checked={design.scriptFont === font.id} className="font-choice" onClick={() => set('scriptFont', font.id, 'Bangla font')}>
+                                    <span className="font-choice__name" style={{fontFamily: `vitaena-${font.id}, var(--font-sans)`}}>
+                                        {BANGLA_SAMPLE}
+                                    </span>
+                                    <span className="font-choice__kind">
+                                        {font.label} · {font.kind}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </>
+                ) : null}
             </Group>
 
             <Group title="Page">
@@ -240,9 +314,11 @@ export function StylePanel({cv, edit}: {cv: Cv; edit: Edit}) {
     const set = setter(edit)
     // Only worth asking about once some list shows levels.
     const hasLevels = cv.sections.some((section) => section.kind === 'tags' && section.groups.some((group) => group.showLevels))
+    const hasBangla = useMemo(() => scriptsIn(JSON.stringify([cv.person, cv.sections])).includes('bengali'), [cv.person, cv.sections])
+    const onLanguage = (language: DocumentLanguage) => edit.act(`write in ${languageInfo(language).name}`, (current) => inLanguage(current, language))
 
     return (
-        <StyleGroups design={design} set={set}>
+        <StyleGroups design={design} set={set} onLanguage={onLanguage} hasBangla={hasBangla}>
             {hasLevels ? (
                 <Group title="Levels">
                     <div className="design-row">
