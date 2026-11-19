@@ -50,6 +50,8 @@ export interface BiodataRenderModel {
         readonly lang: string
         /** Written in Latin letters, so headings may be spaced out or set in capitals. */
         readonly latin: boolean
+        /** Written right to left, as Urdu is. */
+        readonly rtl: boolean
         readonly fontSize: number
         readonly paper: string
         /** Page margins, in centimetres. */

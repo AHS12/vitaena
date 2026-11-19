@@ -6,10 +6,10 @@
 
 /** Words for how well someone speaks or knows something, as a level out of five. */
 const LEVEL_WORDS: readonly [RegExp, number][] = [
-    [/native|mother|fluent|bilingual|expert|c2|মাতৃভাষা|সাবলীল|দক্ষ|मातृभाषा|धाराप्रवाह|अस्खलित/i, 5],
-    [/advanced|proficient|professional|c1|উন্নত|ভালো|उन्नत|प्रवीण/i, 4],
-    [/intermediate|upper|working|b2|b1|মধ্যম|কাজ চালানোর মতো|मध्यम/i, 3],
-    [/conversational|elementary|basic|limited|a2|প্রাথমিক|সাধারণ|प्रारंभिक|बुनियादी|प्राथमिक/i, 2],
+    [/native|mother|fluent|bilingual|expert|c2|মাতৃভাষা|সাবলীল|দক্ষ|मातृभाषा|धाराप्रवाह|अस्खलित|مادری|روانی/i, 5],
+    [/advanced|proficient|professional|c1|উন্নত|ভালো|उन्नत|प्रवीण|اعلیٰ|ماہر/i, 4],
+    [/intermediate|upper|working|b2|b1|মধ্যম|কাজ চালানোর মতো|मध्यम|درمیانہ/i, 3],
+    [/conversational|elementary|basic|limited|a2|প্রাথমিক|সাধারণ|प्रारंभिक|बुनियादी|प्राथमिक|بنیادی|ابتدائی/i, 2],
     [/beginner|starter|a1|শিক্ষানবিশ|नौसिखिया/i, 1],
 ]
 

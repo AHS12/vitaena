@@ -74,6 +74,11 @@
 
 #set document(title: if cv.name != "" { cv.name + " – CV" } else { "CV" }, author: cv.name)
 #set text(font: cv.design.fonts, size: cv.design.fontSize * 1pt, lang: cv.design.lang, ligatures: false, fill: luma(40))
+
+// Right to left, for Urdu: Typst flips grids and start and end by the language,
+// Nastaliq's tall letters get taller line boxes, the same for Latin text so lines beside
+// each other stay level, and its joined letters keep the ligatures Latin text goes without.
+#set text(top-edge: 0.85em, bottom-edge: -0.35em, ligatures: true) if cv.design.rtl
 #set par(leading: 0.55em, spacing: gap(0.7), justify: false)
 #set list(marker: text(fill: luma(110))[•], indent: 0.1em, body-indent: 0.5em, spacing: gap(0.45))
 #set page(
@@ -83,13 +88,13 @@
   header: context {
     if counter(page).get().first() > 1 and cv.name != "" {
       set text(size: 0.8em, fill: muted)
-      align(right, cv.name)
+      align(end, cv.name)
     }
   },
   footer: context {
     if counter(page).final().first() > 1 {
       set text(size: 0.8em, fill: muted)
-      align(right, counter(page).display("1 / 1", both: true))
+      align(end, counter(page).display("1 / 1", both: true))
     }
   },
 )
@@ -126,7 +131,7 @@
   grid(
     columns: (1fr, auto),
     column-gutter: 1.2em,
-    align: (left + horizon, right + horizon),
+    align: (start + horizon, end + horizon),
     header-text,
     box(width: 2.5cm, height: 2.5cm, radius: 50%, clip: true, image(cv.photo, width: 2.5cm, height: 2.5cm, fit: "cover")),
   )
@@ -160,7 +165,7 @@
         columns: (1fr, auto),
         column-gutter: 1em,
         text(size: 1.05em, weight: "bold", fill: ink, e.title),
-        align(right, text(size: 0.9em, fill: muted, e.dates)),
+        align(end, text(size: 0.9em, fill: muted, e.dates)),
       )
       v(0.65em, weak: true)
       below.join(linebreak())
@@ -254,8 +259,8 @@
 #if two {
   grid(
     columns: (1.68fr, 1fr),
-    stroke: (x, y) => if x == 0 { (right: 0.6pt + rule) },
-    inset: (x, y) => if x == 0 { (right: 1.4em) } else { (left: 1.4em) },
+    stroke: (x, y) => if x == 0 { if cv.design.rtl { (left: 0.6pt + rule) } else { (right: 0.6pt + rule) } },
+    inset: (x, y) => if (x == 0) != cv.design.rtl { (right: 1.4em) } else { (left: 1.4em) },
     { for s in cv.sections.filter(s => s.column == "main") { section(s, false) } },
     { for s in cv.sections.filter(s => s.column == "side") { section(s, true) } },
   )

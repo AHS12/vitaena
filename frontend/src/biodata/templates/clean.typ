@@ -27,6 +27,11 @@
 
 #set document(title: if b.name != "" { b.name + " – Biodata" } else { "Biodata" }, author: b.name)
 #set text(font: b.design.fonts, size: b.design.fontSize * 1pt, lang: b.design.lang, ligatures: false, fill: luma(20))
+
+// Right to left, for Urdu: Typst flips grids and start and end by the language,
+// Nastaliq's tall letters get taller line boxes, the same for Latin text so lines beside
+// each other stay level, and its joined letters keep the ligatures Latin text goes without.
+#set text(top-edge: 0.85em, bottom-edge: -0.35em, ligatures: true) if b.design.rtl
 #set par(leading: 0.6em, spacing: gap(0.7), justify: false)
 #set list(marker: [•], indent: 0.2em, body-indent: 0.6em, spacing: gap(0.45))
 #set page(
@@ -71,7 +76,7 @@
 }
 
 #if b.photo != "" {
-  grid(columns: (1fr, auto), column-gutter: 1.2em, align: (left + horizon, right + top), name-block,
+  grid(columns: (1fr, auto), column-gutter: 1.2em, align: (start + horizon, end + top), name-block,
     box(width: 3.4cm, height: 3.4cm, radius: 4pt, clip: true, image(b.photo, width: 3.4cm, height: 3.4cm, fit: "cover")))
 } else {
   name-block
@@ -88,7 +93,7 @@
   columns: (auto, 1fr, 1fr, auto),
   stroke: (x, y) => if y > 0 { (top: 0.4pt + luma(220)) },
   // Room between columns as padding, not a gutter, so each row's line runs unbroken.
-  inset: (x, y) => (left: 0pt, right: if x < 3 { 1em } else { 0pt }, y: gap(0.45)),
+  inset: (x, y) => if b.design.rtl { (right: 0pt, left: if x < 3 { 1em } else { 0pt }, y: gap(0.45)) } else { (left: 0pt, right: if x < 3 { 1em } else { 0pt }, y: gap(0.45)) },
   ..members.map(m => (strong(under(m.relation, m.second)), m.name, m.work, text(fill: muted, m.note))).flatten(),
 )
 

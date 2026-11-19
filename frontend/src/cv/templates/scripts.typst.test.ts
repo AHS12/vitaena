@@ -150,3 +150,23 @@ describe('Hindi and Marathi, in every template', () => {
         expect(await read(pdf)).toContain(letters('Jane Doe ऋऌ'))
     }, 60_000)
 })
+
+
+describe('Urdu, right to left, in every template', () => {
+    it.each(CV_TEMPLATES.map((template) => template.id))('sets an Urdu CV in Nastaliq in %s, with its English intact', async (template) => {
+        const cv = sampleCv('ur')
+        const pdf = await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel({...cv, person: {...cv.person, name: 'جین ڈو', headline: 'سافٹ ویئر انجینئر'}}))
+
+        expect(await read(pdf)).toContain('jane.doe@example.com')
+        expect(embeddedFonts(pdf).some((font) => font.startsWith('NotoNastaliqUrdu'))).toBe(true)
+    }, 60_000)
+
+    it.each(BIODATA_TEMPLATES.map((template) => template.id))('lays out the Urdu biodata in %s', async (template) => {
+        const biodata = sampleBiodata('ur')
+        const pdf = await templatePdf(compiler, new URL(`../../biodata/templates/${template}.typ`, import.meta.url), '/biodata.json', biodataRenderModel({...biodata, person: {...biodata.person, name: 'جین ڈو'}}))
+        const document = await getDocument({data: pdf.slice(), useSystemFonts: false}).promise
+
+        expect(document.numPages).toBeLessThanOrEqual(2)
+        expect(embeddedFonts(pdf).some((font) => font.startsWith('NotoNastaliqUrdu'))).toBe(true)
+    }, 60_000)
+})

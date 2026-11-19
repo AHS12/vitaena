@@ -67,23 +67,28 @@
 
 #set document(title: if cv.name != "" { cv.name + " – CV" } else { "CV" }, author: cv.name)
 #set text(font: cv.design.fonts, size: cv.design.fontSize * 1pt, lang: cv.design.lang, ligatures: false, fill: luma(25))
+
+// Right to left, for Urdu: Typst flips grids and start and end by the language,
+// Nastaliq's tall letters get taller line boxes, the same for Latin text so lines beside
+// each other stay level, and its joined letters keep the ligatures Latin text goes without.
+#set text(top-edge: 0.85em, bottom-edge: -0.35em, ligatures: true) if cv.design.rtl
 #set par(leading: 0.55em, spacing: gap(0.7), justify: false)
 #set list(marker: [•], indent: 0.1em, body-indent: 0.55em, spacing: gap(0.45))
 #set page(
   paper: cv.design.paper,
   fill: white,
   margin: (x: mx, top: cv.design.margin * 0.9cm, bottom: cv.design.margin * 0.9cm),
-  background: if two { place(right + top, rect(width: panel, height: 100%, fill: accent)) },
+  background: if two { place((if cv.design.rtl { left } else { right }) + top, rect(width: panel, height: 100%, fill: accent)) },
   header: context {
     if counter(page).get().first() > 1 and cv.name != "" {
       set text(size: 0.8em, fill: muted)
-      align(left, cv.name)
+      align(start, cv.name)
     }
   },
   footer: context {
     if counter(page).final().first() > 1 {
       set text(size: 0.8em, fill: muted)
-      align(left, counter(page).display("1 / 1", both: true))
+      align(start, counter(page).display("1 / 1", both: true))
     }
   },
 )

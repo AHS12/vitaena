@@ -111,7 +111,7 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
               },
     )
 
-    if (!shown.some((section) => section.kind === 'entries' && /experience|employment|work|positions|অভিজ্ঞতা|পেশা|চাকরি|अनुभव|व्यवसाय/i.test(section.title))) {
+    if (!shown.some((section) => section.kind === 'entries' && /experience|employment|work|positions|অভিজ্ঞতা|পেশা|চাকরি|अनुभव|व्यवसाय|تجربہ|پیشہ|ملازمت/i.test(section.title))) {
         results.push({id: 'experience', level: 'tip', title: 'No Experience section', detail: 'Most screening looks for one, even for a first job: internships and volunteering count.'})
     }
 
@@ -130,7 +130,7 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
     }
 
     const entries = shown.flatMap((section) => (section.kind === 'entries' ? section.entries.filter((entry) => entry.visible).map((entry) => ({section: section.title, entry})) : []))
-    const undated = entries.filter(({section, entry}) => /experience|employment|work|education|positions|অভিজ্ঞতা|পেশা|চাকরি|শিক্ষা|अनुभव|व्यवसाय|शिक्षा|शैक्षणिक|शिक्षण/i.test(section) && !entry.start && !entry.end && !entry.current)
+    const undated = entries.filter(({section, entry}) => /experience|employment|work|education|positions|অভিজ্ঞতা|পেশা|চাকরি|শিক্ষা|अनुभव|व्यवसाय|शिक्षा|शैक्षणिक|शिक्षण|تجربہ|پیشہ|تعلیم/i.test(section) && !entry.start && !entry.end && !entry.current)
 
     if (undated.length > 0) {
         results.push({

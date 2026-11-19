@@ -72,7 +72,7 @@ describe('a document in Bangla', () => {
     it('gets the Bangla font chosen for it, after the main font', () => {
         const cv = sampleCv('bn')
 
-        expect(renderModel({...cv, design: {...cv.design, scriptFont: 'tiro-bangla'}}).design.fonts).toEqual(['Inter', 'Tiro Bangla', 'Noto Sans Devanagari'])
+        expect(renderModel({...cv, design: {...cv.design, scriptFont: 'tiro-bangla'}}).design.fonts).toEqual(['Inter', 'Tiro Bangla', 'Noto Sans Devanagari', 'Noto Nastaliq Urdu'])
     })
 
     it('is told in Check that screening software looks for English headings', () => {
@@ -143,5 +143,23 @@ describe('a document in Hindi or Marathi', () => {
         expect(findDates('जनवरी २०२० – वर्तमान')).toMatchObject({start: '2020-01', current: true})
         expect(dayOf('१२ मार्च १९९६')).toBe('1996-03-12')
         expect(languageOfHeadings(['कार्य अनुभव', 'शैक्षणिक योग्यता'])).toBe('hi')
+    })
+})
+
+describe('a document in Urdu', () => {
+    it('starts with its headings in Urdu, and tells the templates it runs right to left', () => {
+        expect(emptyCv('ur').sections.map((section) => section.title)).toEqual(['خلاصہ', 'تجربہ', 'تعلیمی قابلیت', 'مہارتیں'])
+        expect(renderModel(emptyCv('ur')).design.rtl).toBe(true)
+        expect(renderModel(emptyCv('hi')).design.rtl).toBe(false)
+    })
+
+    it('writes dates with Urdu months and digits', () => {
+        expect(datesText({start: '2020-01', end: '', current: true}, {language: 'ur', digits: 'native'})).toBe('جنوری ۲۰۲۰ – تاحال')
+    })
+
+    it('is read back on import', () => {
+        expect(knownHeading('تعلیمی قابلیت')).toBe('entries')
+        expect(findDates('جنوری ۲۰۲۰ – تاحال')).toMatchObject({start: '2020-01', current: true})
+        expect(languageOfHeadings(['تجربہ', 'تعلیمی قابلیت'])).toBe('ur')
     })
 })

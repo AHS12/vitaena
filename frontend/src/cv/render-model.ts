@@ -85,6 +85,8 @@ export interface RenderModel {
         readonly lang: string
         /** Written in Latin letters, so headings may be spaced out or set in capitals. */
         readonly latin: boolean
+        /** Written right to left, as Urdu is. */
+        readonly rtl: boolean
         readonly fontSize: number
         readonly paper: string
         /** Page margins, in centimetres. */
@@ -98,10 +100,10 @@ export interface RenderModel {
 }
 
 /** What a template is told about the document's language. */
-export const pageLanguage = (language: string): {lang: string; latin: boolean} => {
+export const pageLanguage = (language: string): {lang: string; latin: boolean; rtl: boolean} => {
     const info = languageInfo(language)
 
-    return {lang: info.lang, latin: info.latin}
+    return {lang: info.lang, latin: info.latin, rtl: info.rtl ?? false}
 }
 
 /** Page margins in centimetres, and room between blocks, for the design's choices. */
@@ -144,9 +146,9 @@ export function tagItem(text: string, level?: number): RenderTagItem {
 }
 
 /** Sections that belong beside the main story in a two-column template. */
-const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training|দক্ষতা|ভাষা|আগ্রহ|শখ|প্রকল্প|পুরস্কার|স্বেচ্ছাসেবা|সনদ|প্রশিক্ষণ|कौशल|भाषा|रुचि|शौक|परियोजना|पुरस्कार|प्रमाणपत्र|स्वयंसेवा|छंद|आवडी|प्रकल्प/i
+const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training|দক্ষতা|ভাষা|আগ্রহ|শখ|প্রকল্প|পুরস্কার|স্বেচ্ছাসেবা|সনদ|প্রশিক্ষণ|कौशल|भाषा|रुचि|शौक|परियोजना|पुरस्कार|प्रमाणपत्र|स्वयंसेवा|छंद|आवडी|प्रकल्प|مہارت|زبان|دلچسپ|مشاغل|منصوب|اعزاز|اسناد|رضاکار/i
 
-const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education|অভিজ্ঞতা|শিক্ষা|अनुभव|शिक्षा|शैक्षणिक/i.test(title)) ? 'side' : 'main')
+const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education|অভিজ্ঞতা|শিক্ষা|अनुभव|शिक्षा|शैक्षणिक|تجربہ|تعلیم/i.test(title)) ? 'side' : 'main')
 
 /**
  * A section as a template is given it: hidden parts left out, and null when nothing in

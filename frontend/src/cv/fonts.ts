@@ -21,7 +21,7 @@ export interface CvFont {
 }
 
 /** The writing systems the bundled fonts cover, beyond the Latin letters every font has. */
-export type Script = 'bengali' | 'devanagari'
+export type Script = 'bengali' | 'devanagari' | 'arabic'
 
 /** A font for a script other than Latin, used where the chosen font has no such letters. */
 export interface ScriptFont extends CvFont {
@@ -55,12 +55,15 @@ export const SCRIPT_FONTS: readonly ScriptFont[] = [
     {id: 'tiro-bangla', family: 'Tiro Bangla', label: 'Tiro Bangla', kind: 'Serif', script: 'bengali', fallback: false, files: faces('tiro-bangla', 'TiroBangla', ['400Regular', '400Regular_Italic'])},
     {id: 'noto-sans-devanagari', family: 'Noto Sans Devanagari', label: 'Noto Sans Devanagari', kind: 'Sans serif', script: 'devanagari', fallback: true, files: faces('noto-sans-devanagari', 'NotoSansDevanagari', ['400Regular', '700Bold'])},
     {id: 'noto-serif-devanagari', family: 'Noto Serif Devanagari', label: 'Noto Serif Devanagari', kind: 'Serif', script: 'devanagari', fallback: true, files: faces('noto-serif-devanagari', 'NotoSerifDevanagari', ['400Regular', '700Bold'])},
+    // Urdu is read in Nastaliq, whether the Latin font beside it is sans or serif.
+    {id: 'noto-nastaliq-urdu', family: 'Noto Nastaliq Urdu', label: 'Noto Nastaliq Urdu', kind: 'Serif', script: 'arabic', fallback: true, files: faces('noto-nastaliq-urdu', 'NotoNastaliqUrdu', ['400Regular', '700Bold'])},
 ]
 
 /** The letters of each script, by Unicode script. */
 const SCRIPT_LETTERS: Readonly<Record<Script, RegExp>> = {
     bengali: /\p{Script=Bengali}/u,
     devanagari: /\p{Script=Devanagari}/u,
+    arabic: /\p{Script=Arabic}/u,
 }
 
 /**

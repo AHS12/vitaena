@@ -57,6 +57,11 @@
 #set document(title: if b.name != "" { b.name + " – Biodata" } else { "Biodata" }, author: b.name)
 // Spacing letters out breaks the line that joins Bangla letters, so only Latin text gets it.
 #set text(font: b.design.fonts, size: b.design.fontSize * 1pt, lang: b.design.lang, ligatures: false, fill: luma(20))
+
+// Right to left, for Urdu: Typst flips grids and start and end by the language,
+// Nastaliq's tall letters get taller line boxes, the same for Latin text so lines beside
+// each other stay level, and its joined letters keep the ligatures Latin text goes without.
+#set text(top-edge: 0.85em, bottom-edge: -0.35em, ligatures: true) if b.design.rtl
 #set par(leading: 0.6em, spacing: gap(0.7), justify: false)
 #set list(marker: [•], indent: 0.2em, body-indent: 0.6em, spacing: gap(0.45))
 #set page(
@@ -103,7 +108,7 @@
 }
 
 #if b.photo != "" {
-  grid(columns: (side, 1fr, side), column-gutter: 0.8em, align: (left, center + horizon, right + top), [], middle,
+  grid(columns: (side, 1fr, side), column-gutter: 0.8em, align: (start, center + horizon, end + top), [], middle,
     box(width: side, height: side, stroke: 1pt + accent, inset: 2pt, box(width: 100%, height: 100%, clip: true, image(b.photo, width: 100%, height: 100%, fit: "cover"))))
 } else {
   middle

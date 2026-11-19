@@ -439,6 +439,10 @@ input.panel__title:focus {
     color: var(--warning);
 }
 
+.panel__title {
+    unicode-bidi: plaintext;
+}
+
 .design-group__subtitle {
     margin: 4px 0 0;
     font: var(--text-label);

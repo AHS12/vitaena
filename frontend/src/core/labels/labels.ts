@@ -11,8 +11,9 @@ import {bn} from './bn'
 import {en} from './en'
 import {hi} from './hi'
 import {mr} from './mr'
+import {ur} from './ur'
 
-export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr'] as const
+export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur'] as const
 
 export type DocumentLanguage = (typeof LANGUAGE_IDS)[number]
 
@@ -107,6 +108,8 @@ export interface LanguageInfo {
     readonly latin: boolean
     /** Its own digits, 0 to 9, or null when it uses 0 to 9. */
     readonly digits: string | null
+    /** Written right to left. */
+    readonly rtl?: boolean
 }
 
 export const LANGUAGES: readonly LanguageInfo[] = [
@@ -114,9 +117,10 @@ export const LANGUAGES: readonly LanguageInfo[] = [
     {id: 'bn', name: 'Bangla', own: 'বাংলা', lang: 'bn', latin: false, digits: '০১২৩৪৫৬৭৮৯'},
     {id: 'hi', name: 'Hindi', own: 'हिन्दी', lang: 'hi', latin: false, digits: '०१२३४५६७८९'},
     {id: 'mr', name: 'Marathi', own: 'मराठी', lang: 'mr', latin: false, digits: '०१२३४५६७८९'},
+    {id: 'ur', name: 'Urdu', own: 'اردو', lang: 'ur', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true},
 ]
 
-const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr}
+const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur}
 
 export const isLanguage = (value: string): value is DocumentLanguage => value in TABLES
 
@@ -149,8 +153,13 @@ export function withDigits(text: string, language: string, native: boolean): str
     return digits && native ? text.replace(/[0-9]/g, (digit) => digits[Number(digit)]) : text
 }
 
-/** Bangla and Devanagari digits read as 0 to 9, so a date written either way can be understood. */
-export const asLatinDigits = (text: string): string => text.replace(/[০-৯]/g, (digit) => String('০১২৩৪৫৬৭৮৯'.indexOf(digit))).replace(/[०-९]/g, (digit) => String('०१२३४५६७८९'.indexOf(digit)))
+/** Bangla, Devanagari and Arabic digits read as 0 to 9, so a date written either way can be understood. */
+export const asLatinDigits = (text: string): string =>
+    text
+        .replace(/[০-৯]/g, (digit) => String('০১২৩৪৫৬৭৮৯'.indexOf(digit)))
+        .replace(/[०-९]/g, (digit) => String('०१२३४५६७८९'.indexOf(digit)))
+        .replace(/[۰-۹]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
+        .replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
 
 /** Every language's month names but English, January first, for reading dates written in them. */
 export const OTHER_MONTHS: readonly (readonly string[])[] = LANGUAGE_IDS.filter((language) => language !== 'en').map((language) => TABLES[language].page.months)
