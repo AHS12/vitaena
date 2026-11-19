@@ -3,7 +3,7 @@
  * English one, all invented. It has no heading line and no religion, as the English one.
  */
 
-import {DEFAULT_BIODATA_DESIGN, type Biodata} from './biodata'
+import {DEFAULT_BIODATA_DESIGN, NO_SECOND, type Biodata} from './biodata'
 
 const text = (id: string, label: string, value: string) => ({id, visible: true, label, kind: 'text' as const, value})
 
@@ -80,6 +80,7 @@ export function sampleBiodataBn(): Biodata {
                 rows: [text('person', 'যোগাযোগের ব্যক্তি', 'জন ডো'), text('relation', 'সম্পর্ক', 'পিতা'), text('phone', 'ফোন', '+1 555 0100')],
             },
         ],
+        second: NO_SECOND,
         design: {...DEFAULT_BIODATA_DESIGN, language: 'bn', digits: 'native'},
     }
 }

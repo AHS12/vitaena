@@ -7,7 +7,7 @@
  * choose, and the app never suggests either.
  */
 
-import {DEFAULT_BIODATA_DESIGN, type Biodata} from './biodata'
+import {DEFAULT_BIODATA_DESIGN, NO_SECOND, type Biodata} from './biodata'
 import {sampleBiodataBn} from './sample-bn'
 
 const text = (id: string, label: string, value: string) => ({id, visible: true, label, kind: 'text' as const, value})
@@ -90,6 +90,7 @@ export function sampleBiodata(language = 'en'): Biodata {
                 rows: [text('person', 'Contact person', 'John Doe'), text('relation', 'Relation', 'Father'), text('phone', 'Phone', '+1 555 0100')],
             },
         ],
+        second: NO_SECOND,
         design: {...DEFAULT_BIODATA_DESIGN},
     }
 }

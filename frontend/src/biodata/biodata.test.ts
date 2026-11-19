@@ -42,8 +42,8 @@ describe('what a biodata template is given', () => {
         const family = model.sections.find((section) => section.kind === 'family')
 
         expect(personal?.kind === 'details' && personal.rows.slice(0, 2)).toEqual([
-            {label: 'Date of birth', value: '12 March 1996 (30 years)'},
-            {label: 'Height', value: '5′ 4″ (163 cm)'},
+            {id: 'birth', label: 'Date of birth', second: '', value: '12 March 1996 (30 years)'},
+            {id: 'height', label: 'Height', second: '', value: '5′ 4″ (163 cm)'},
         ])
         expect(family?.kind === 'family' && family.members.map((member) => member.relation)).toEqual(['Father', 'Mother', 'Brother', 'Sister'])
     })

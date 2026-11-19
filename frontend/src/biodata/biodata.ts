@@ -9,7 +9,7 @@
 
 import {z} from 'zod'
 import type {DocumentType} from '../core/document/document-file'
-import {labelsFor, type DocumentLanguage} from '../core/labels/labels'
+import {LANGUAGE_IDS, labelsFor, type DocumentLanguage} from '../core/labels/labels'
 import {detailsSection, entriesSection, familySection, newId, tagsSection, textSection, emptyFamilyMember, writingFields, type Section} from '../cv/sections'
 import {emptyDetailRow} from '../cv/details'
 
@@ -49,10 +49,21 @@ const designSchema = z.object({
     ...writingFields,
 })
 
+/**
+ * Second labels: headings, labels and relations written again in another language,
+ * under the first, by the id of the section, row or family member they belong to.
+ */
+const secondSchema = z.object({
+    /** The second labels' language, or "" for none. */
+    language: z.union([z.literal(''), z.enum(LANGUAGE_IDS)]),
+    labels: z.record(z.string(), z.string()),
+})
+
 const biodataSchema = z.object({
     heading: headingSchema,
     person: personSchema,
     sections: z.array(sectionSchema),
+    second: secondSchema,
     design: designSchema,
 })
 
@@ -61,6 +72,9 @@ export type BiodataPerson = Biodata['person']
 export type BiodataDesign = Biodata['design']
 export type BiodataSection = Biodata['sections'][number]
 export type BiodataPicture = BiodataPerson['hide'][number]
+export type BiodataSecond = Biodata['second']
+
+export const NO_SECOND: BiodataSecond = {language: '', labels: {}}
 
 /** A biodata in Bangla writes its numbers in Bangla unless chosen otherwise, as printed ones do. */
 export const DEFAULT_BIODATA_DESIGN: BiodataDesign = {template: 'clean', accent: '#7a1f4b', font: 'source-serif-4', fontSize: 10.5, paper: 'a4', margins: 'normal', spacing: 'normal', border: false, language: 'en', digits: 'native', scriptFont: ''}
@@ -95,6 +109,7 @@ export function emptyBiodata(language: DocumentLanguage = 'en'): Biodata {
             section('text', s.expectations),
             detailsWith(s.contact, [r.contactPerson, r.relation, r.phone, r.address]),
         ] as BiodataSection[],
+        second: NO_SECOND,
         design: {...DEFAULT_BIODATA_DESIGN, language},
     }
 }
@@ -103,7 +118,7 @@ export const biodataType: DocumentType<Biodata> = {
     kind: 'biodata',
     noun: 'biodata',
     plural: 'biodata',
-    version: 2,
+    version: 3,
     content: biodataSchema,
     empty: () => emptyBiodata(),
     migrations: {
@@ -113,6 +128,8 @@ export const biodataType: DocumentType<Biodata> = {
 
             return {...biodata, design: {language: 'en', digits: 'native', scriptFont: '', ...biodata.design}}
         },
+        // Version 3 added second labels, in another language. Older files have none.
+        2: (content) => ({second: {language: '', labels: {}}, ...(content as object)}),
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.
     thumbnail: async (biodata) => {

@@ -3,10 +3,45 @@
 import {newSection} from '../cv/editor/edit-ops'
 import type {SectionChoice} from '../cv/editor/AddSection'
 import {emptyFamilyMember, newId, type Section} from '../cv/sections'
-import {labelsFor, type Labels} from '../core/labels/labels'
+import {labelsFor, translator, type DocumentLanguage, type Labels} from '../core/labels/labels'
 import {detailsWith, type Biodata, type BiodataPerson} from './biodata'
 
 export const updatePerson = (biodata: Biodata, change: Partial<BiodataPerson>): Biodata => ({...biodata, person: {...biodata.person, ...change}})
+
+/**
+ * Second labels turned on in a language, or off with "". Turning them on fills in, in that
+ * language, every heading, label and relation that is one of the app's own and has no
+ * second label yet; turning them off keeps them, hidden, for turning on again.
+ */
+export function withSecondLanguage(biodata: Biodata, language: DocumentLanguage | ''): Biodata {
+    if (!language) {
+        return {...biodata, second: {...biodata.second, language: ''}}
+    }
+
+    const word = translator(biodata.design.language, language)
+    const labels = {...biodata.second.labels}
+    const fill = (id: string, text: string) => {
+        const translated = word(text)
+
+        if (!labels[id] && translated !== text) {
+            labels[id] = translated
+        }
+    }
+
+    for (const section of biodata.sections) {
+        fill(section.id, section.title)
+
+        if (section.kind === 'details') {
+            section.rows.forEach((row) => fill(row.id, row.label))
+        } else if (section.kind === 'family') {
+            section.members.forEach((member) => fill(member.id, member.relation))
+        }
+    }
+
+    return {...biodata, second: {language, labels}}
+}
+
+export const setSecondLabel = (biodata: Biodata, id: string, text: string): Biodata => ({...biodata, second: {...biodata.second, labels: {...biodata.second.labels, [id]: text}}})
 
 export const updateHeading = (biodata: Biodata, change: Partial<Biodata['heading']>): Biodata => ({...biodata, heading: {...biodata.heading, ...change}})
 

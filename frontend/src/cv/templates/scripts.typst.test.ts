@@ -16,6 +16,7 @@ import type {TypstCompiler} from '@myriaddreamin/typst.ts'
 import {getDocument} from 'pdfjs-dist/legacy/build/pdf.mjs'
 import {templatePdf, typstCompiler} from '../../tests/typst'
 import {biodataRenderModel} from '../../biodata/render-model'
+import {withSecondLanguage} from '../../biodata/edit-ops'
 import {sampleBiodata} from '../../biodata/sample'
 import {BIODATA_TEMPLATES} from '../../biodata/templates/templates'
 import {renderModel} from '../render-model'
@@ -112,5 +113,18 @@ describe('the Bangla example, laid out in every template', () => {
         const pdf = await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel({...cv, design: {...cv.design, scriptFont: 'baloo-da-2'}}))
 
         expect(embeddedFonts(pdf).some((font) => font.startsWith('BalooDa2'))).toBe(true)
+    }, 60_000)
+})
+
+describe('second labels, laid out in every biodata template', () => {
+    it.each(BIODATA_TEMPLATES.map((template) => template.id))('draws English labels under the Bangla ones in %s', async (template) => {
+        const biodata = withSecondLanguage(sampleBiodata('bn'), 'en')
+        const pdf = await templatePdf(compiler, new URL(`../../biodata/templates/${template}.typ`, import.meta.url), '/biodata.json', biodataRenderModel(biodata))
+        // Heritage sets its headings in capitals.
+        const text = (await read(pdf)).toLowerCase()
+
+        for (const label of ['personaldetails', 'dateofbirth', 'father', 'contact']) {
+            expect(text, label).toContain(label)
+        }
     }, 60_000)
 })

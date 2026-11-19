@@ -21,6 +21,11 @@
   body
 }).join()
 
+// A heading, label or relation with its second label, in another language, under it or
+// after it, smaller. Without one, just the first.
+#let under(first, second) = if second == "" { first } else { stack(dir: ttb, spacing: 0.25em, first, text(size: 0.82em, second)) }
+#let after(first, second) = if second == "" { first } else [#first#h(0.5em)#text(size: 0.8em, weight: "regular")[#second]]
+
 #set document(title: if b.name != "" { b.name + " – Biodata" } else { "Biodata" }, author: b.name)
 #set text(font: b.design.fonts, size: b.design.fontSize * 1pt, lang: b.design.lang, ligatures: false, fill: luma(20))
 #set par(leading: 0.6em, spacing: gap(0.7), justify: false)
@@ -52,14 +57,14 @@
   columns: (38%, 1fr),
   column-gutter: 1em,
   row-gutter: gap(0.55),
-  ..rows.map(r => (text(fill: muted, r.label), r.value)).flatten(),
+  ..rows.map(r => (text(fill: muted, under(r.label, r.second)), r.value)).flatten(),
 )
 
 #let family(members) = table(
   columns: (auto, 1fr, 1fr, auto),
   stroke: (x, y) => if y > 0 { (top: 0.4pt + luma(220)) },
   inset: (x, y) => (left: 0pt, right: if x < 3 { 1em } else { 0pt }, y: gap(0.45)),
-  ..members.map(m => (strong(m.relation), m.name, m.work, text(fill: muted, m.note))).flatten(),
+  ..members.map(m => (strong(under(m.relation, m.second)), m.name, m.work, text(fill: muted, m.note))).flatten(),
 )
 
 #let entry(e) = block(above: gap(0.8), below: gap(0.4), breakable: false, {
@@ -75,7 +80,7 @@
 })
 
 #let section(s) = {
-  heading(level: 2, s.title)
+  heading(level: 2, after(s.title, s.second))
   if s.kind == "details" {
     details(s.rows)
   } else if s.kind == "family" {

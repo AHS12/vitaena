@@ -13,7 +13,10 @@ import {PhotoField} from '../components/PhotoField'
 import {SplitPane} from '../components/SplitPane'
 import {APP} from '../core/app'
 import {useDocumentStore} from '../store/document-store'
-import {languageInfo} from '../core/labels/labels'
+import {LANGUAGES, languageInfo} from '../core/labels/labels'
+import {Segmented} from '../components/Segmented'
+import {SecondLabelsProvider, type SecondLabels} from '../cv/editor/second-labels-context'
+import {setSecondLabel, withSecondLanguage} from './edit-ops'
 import {Group, StyleGroups, TemplateGallery, type SharedStyle} from '../cv/editor/DesignPanel'
 import {scriptsIn} from '../cv/fonts'
 import {inLanguage} from '../cv/relabel'
@@ -64,6 +67,20 @@ function FixedPanel({id, title, children}: {id: string; title: string; children:
 
 function ContentPanel({biodata, edit}: {biodata: Biodata; edit: Edit}) {
     const {heading, person} = biodata
+    const labels = biodata.second.labels
+    // While second labels are on, every heading, label and relation has a field for one.
+    const second = useMemo<SecondLabels | null>(
+        () =>
+            biodata.second.language
+                ? {
+                      language: languageInfo(biodata.second.language).name,
+                      get: (id) => labels[id] ?? '',
+                      type: (id, text) => edit.type((current) => setSecondLabel(current, id, text)),
+                      commit: edit.commit,
+                  }
+                : null,
+        [biodata.second.language, labels, edit],
+    )
 
     return (
         <>
@@ -101,7 +118,9 @@ function ContentPanel({biodata, edit}: {biodata: Biodata; edit: Edit}) {
                 />
                 <ShowParts parts={PICTURE_PARTS} hidden={person.hide} onToggle={(part) => edit.act('show part', (current) => updatePerson(current, {hide: toggled(current.person.hide, part)}))} />
             </FixedPanel>
-            <SectionList doc={biodata} edit={edit as unknown as DocumentEdit<Sectioned>} choices={biodataSectionChoices(biodata.design.language)} />
+            <SecondLabelsProvider value={second}>
+                <SectionList doc={biodata} edit={edit as unknown as DocumentEdit<Sectioned>} choices={biodataSectionChoices(biodata.design.language)} />
+            </SecondLabelsProvider>
         </>
     )
 }
@@ -176,6 +195,18 @@ function DesignSidebar({biodata, edit}: {biodata: Biodata; edit: Edit}) {
                         onLanguage={(language) => edit.act(`write in ${languageInfo(language).name}`, (current) => inLanguage(current, language))}
                         hasBangla={hasBangla}
                     >
+                        <Group title="Two languages">
+                            <div className="design-row">
+                                <span className="design-row__label">Second labels</span>
+                                <Segmented
+                                    label="Second labels"
+                                    value={biodata.second.language}
+                                    options={[{value: '' as const, label: 'Off'}, ...LANGUAGES.filter((info) => info.id !== biodata.design.language).map((info) => ({value: info.id, label: info.own}))]}
+                                    onChange={(language) => edit.act(language ? `second labels in ${languageInfo(language).name}` : 'second labels off', (current) => withSecondLanguage(current, language))}
+                                />
+                            </div>
+                            <p className="design-panel__tip">Each heading, label and relation written again under the first, smaller, as many printed biodata have. Vitaena fills in the ones it wrote; you write the rest in Content.</p>
+                        </Group>
                         <Group title="Border">
                             <div className="design-row">
                                 <Switch label="Border around each page" value={biodata.design.border} onChange={(border) => set('border', border, border ? 'border on' : 'border off')} />

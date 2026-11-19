@@ -4,7 +4,7 @@
  * a label and a value, a family, and a line of the person's own above their name.
  */
 
-import {DEFAULT_BIODATA_DESIGN, type Biodata, type BiodataSection} from '../../biodata/biodata'
+import {DEFAULT_BIODATA_DESIGN, NO_SECOND, type Biodata, type BiodataSection} from '../../biodata/biodata'
 import {asLatinDigits, labelsFor} from '../../core/labels/labels'
 import {cmOf} from '../details'
 import {newId, type DetailRow, type FamilyMember} from '../sections'
@@ -194,6 +194,7 @@ export function biodataFromLayout(layout: PdfLayout, parts: DocumentParts = docu
             heading: {text: heading, image: ''},
             person: {name: parts.name, photo: '', fullPhoto: '', hide: []},
             sections,
+            second: NO_SECOND,
             design: {...DEFAULT_BIODATA_DESIGN, language: languageOfHeadings(sections.map((section) => section.title))},
         },
         unsorted: unsorted.length,

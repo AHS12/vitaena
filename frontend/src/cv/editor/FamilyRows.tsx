@@ -10,6 +10,7 @@ import {emptyFamilyMember, type FamilyMember, type Sectioned} from '../sections'
 import type {DocumentEdit} from '../use-cv-edit'
 import {updateMember, updateMembers} from './edit-ops'
 import {VisibilityButton} from './VisibilityButton'
+import {SecondLabel} from './second-labels'
 
 type Edit = DocumentEdit<Sectioned>
 
@@ -30,6 +31,7 @@ function MemberRow({sectionId, member, handle, edit}: {sectionId: string; member
             </span>
             <input className="form-field__input member-row__work" aria-label={`${member.relation || 'Their'} work`} value={member.work} placeholder="Work, such as Engineer" onChange={(event) => type({work: event.target.value})} />
             <input className="form-field__input member-row__note" aria-label={`Note on ${member.relation || 'them'}`} value={member.note} placeholder="Note, such as Married" onChange={(event) => type({note: event.target.value})} />
+            <SecondLabel id={member.id} of={member.relation} />
         </div>
     )
 }

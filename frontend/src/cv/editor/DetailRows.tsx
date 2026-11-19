@@ -12,6 +12,7 @@ import {moveItem} from '../../core/list'
 import type {DetailRow as CvDetailRow, Sectioned} from '../sections'
 import {cmOf, detailValue, emptyDetailRow, feetAndInches} from '../details'
 import type {DocumentEdit} from '../use-cv-edit'
+import {SecondLabel} from './second-labels'
 import {updateRow, updateRows} from './edit-ops'
 import {VisibilityButton} from './VisibilityButton'
 
@@ -92,6 +93,7 @@ function DetailRow({sectionId, row, handle, edit}: {sectionId: string; row: CvDe
                     {shown ? <span className="detail-row__preview">{shown}</span> : null}
                 </span>
             )}
+            <SecondLabel id={row.id} of={row.label} />
         </div>
     )
 }

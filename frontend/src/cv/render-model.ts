@@ -44,6 +44,8 @@ export interface RenderTagGroup {
 
 /** One line of a details section, its value already written out: "12 March 1996 (30 years)". */
 export interface RenderDetail {
+    /** The row's id, so a biodata can find its second label. */
+    readonly id: string
     /** "" when the row has no label, and only its value is shown. */
     readonly label: string
     readonly value: string
@@ -183,7 +185,7 @@ export function sectionBody(section: Section, today: Date, writing: Writing = EN
     }
 
     if (section.kind === 'details') {
-        const rows = section.rows.filter((row) => row.visible).map((row) => ({label: row.label.trim(), value: detailValue(row, today, writing)})).filter((row) => row.value)
+        const rows = section.rows.filter((row) => row.visible).map((row) => ({id: row.id, label: row.label.trim(), value: detailValue(row, today, writing)})).filter((row) => row.value)
 
         return rows.length > 0 ? {kind: 'details', title, rows} : null
     }
