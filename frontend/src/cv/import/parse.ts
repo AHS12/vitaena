@@ -195,11 +195,15 @@ function addLinks(targets: readonly string[], contact: Contact): void {
 // ---------------------------------------------------------------- sections
 
 
-/** Bangla when most headings are written in it, so the app's own words follow; else English. */
-export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' {
-    const bangla = titles.filter((title) => scriptsIn(title).includes('bengali')).length
+/**
+ * Bangla, or Hindi for Devanagari, when most headings are written in it, so the app's own
+ * words follow; else English. Marathi can't be told from Hindi by its letters alone.
+ */
+export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi' {
+    const count = (script: 'bengali' | 'devanagari') => titles.filter((title) => scriptsIn(title).includes(script)).length
+    const most = (found: number) => found > 0 && found * 2 >= titles.length
 
-    return bangla > 0 && bangla * 2 >= titles.length ? 'bn' : 'en'
+    return most(count('bengali')) ? 'bn' : most(count('devanagari')) ? 'hi' : 'en'
 }
 
 export function textOf(lines: readonly PdfLine[]): string {

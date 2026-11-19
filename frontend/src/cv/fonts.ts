@@ -21,7 +21,7 @@ export interface CvFont {
 }
 
 /** The writing systems the bundled fonts cover, beyond the Latin letters every font has. */
-export type Script = 'bengali'
+export type Script = 'bengali' | 'devanagari'
 
 /** A font for a script other than Latin, used where the chosen font has no such letters. */
 export interface ScriptFont extends CvFont {
@@ -53,11 +53,14 @@ export const SCRIPT_FONTS: readonly ScriptFont[] = [
     {id: 'anek-bangla', family: 'Anek Bangla', label: 'Anek Bangla', kind: 'Sans serif', script: 'bengali', fallback: false, files: faces('anek-bangla', 'AnekBangla', ['400Regular', '700Bold'])},
     {id: 'baloo-da-2', family: 'Baloo Da 2', label: 'Baloo Da 2', kind: 'Sans serif', script: 'bengali', fallback: false, files: faces('baloo-da-2', 'BalooDa2', ['400Regular', '700Bold'])},
     {id: 'tiro-bangla', family: 'Tiro Bangla', label: 'Tiro Bangla', kind: 'Serif', script: 'bengali', fallback: false, files: faces('tiro-bangla', 'TiroBangla', ['400Regular', '400Regular_Italic'])},
+    {id: 'noto-sans-devanagari', family: 'Noto Sans Devanagari', label: 'Noto Sans Devanagari', kind: 'Sans serif', script: 'devanagari', fallback: true, files: faces('noto-sans-devanagari', 'NotoSansDevanagari', ['400Regular', '700Bold'])},
+    {id: 'noto-serif-devanagari', family: 'Noto Serif Devanagari', label: 'Noto Serif Devanagari', kind: 'Serif', script: 'devanagari', fallback: true, files: faces('noto-serif-devanagari', 'NotoSerifDevanagari', ['400Regular', '700Bold'])},
 ]
 
-/** The letters of each script, as Unicode blocks. */
+/** The letters of each script, by Unicode script. */
 const SCRIPT_LETTERS: Readonly<Record<Script, RegExp>> = {
-    bengali: /[ঀ-৿]/,
+    bengali: /\p{Script=Bengali}/u,
+    devanagari: /\p{Script=Devanagari}/u,
 }
 
 /**

@@ -72,7 +72,7 @@ describe('a document in Bangla', () => {
     it('gets the Bangla font chosen for it, after the main font', () => {
         const cv = sampleCv('bn')
 
-        expect(renderModel({...cv, design: {...cv.design, scriptFont: 'tiro-bangla'}}).design.fonts).toEqual(['Inter', 'Tiro Bangla'])
+        expect(renderModel({...cv, design: {...cv.design, scriptFont: 'tiro-bangla'}}).design.fonts).toEqual(['Inter', 'Tiro Bangla', 'Noto Sans Devanagari'])
     })
 
     it('is told in Check that screening software looks for English headings', () => {
@@ -123,5 +123,25 @@ describe('importing a document written in Bangla', () => {
     it('is made in Bangla when most of its headings are', () => {
         expect(languageOfHeadings(['কর্ম অভিজ্ঞতা', 'শিক্ষাগত যোগ্যতা', 'Skills'])).toBe('bn')
         expect(languageOfHeadings(['Experience', 'Education', 'ভাষা'])).toBe('en')
+    })
+})
+
+describe('a document in Hindi or Marathi', () => {
+    it('starts with its headings in that language', () => {
+        expect(emptyCv('hi').sections.map((section) => section.title)).toEqual(['सारांश', 'कार्य अनुभव', 'शैक्षणिक योग्यता', 'कौशल'])
+        expect(emptyBiodata('mr').sections[0].title).toBe('वैयक्तिक माहिती')
+    })
+
+    it('writes dates and ages with Devanagari months and digits', () => {
+        expect(datesText({start: '2020-01', end: '', current: true}, {language: 'hi', digits: 'native'})).toBe('जनवरी २०२० – वर्तमान')
+        expect(detailValue({id: 'r', visible: true, label: '', kind: 'date', date: '1996-03-12', show: 'both'}, new Date(2026, 10, 15), {language: 'mr', digits: 'native'})).toBe('१२ मार्च १९९६ (३० वर्षे)')
+    })
+
+    it('is read back on import', () => {
+        expect(knownHeading('कार्य अनुभव')).toBe('entries')
+        expect(knownHeading('कौटुंबिक माहिती')).toBe('family')
+        expect(findDates('जनवरी २०२० – वर्तमान')).toMatchObject({start: '2020-01', current: true})
+        expect(dayOf('१२ मार्च १९९६')).toBe('1996-03-12')
+        expect(languageOfHeadings(['कार्य अनुभव', 'शैक्षणिक योग्यता'])).toBe('hi')
     })
 })

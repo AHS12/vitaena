@@ -3,7 +3,7 @@
  * "Sep 2023". Found anywhere in a line, so what's around them can be read as well.
  */
 
-import {asLatinDigits, labelsFor} from '../../core/labels/labels'
+import {asLatinDigits, OTHER_MONTHS} from '../../core/labels/labels'
 
 export interface DateRange {
     /** "2022-03", or "" when not given. */
@@ -17,13 +17,14 @@ export interface DateRange {
 }
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
-/** Bangla month names, January first, as the label table writes them. */
-const BANGLA_MONTHS = labelsFor('bn').page.months
-const MONTH_NAME = `(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|${BANGLA_MONTHS.join('|')})\\.?`
+const MONTH_NAME = `(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|${[...new Set(OTHER_MONTHS.flat())].join('|')})\\.?`
+
+/** A month written in Bangla, Hindi or Marathi, 1 to 12, or 0. */
+const otherMonth = (name: string): number => OTHER_MONTHS.map((months) => months.indexOf(name) + 1).find((month) => month > 0) ?? 0
 const YEAR = '(?:19|20)\\d{2}'
 /** One date: "Mar 2022", "March, 2022", "03/2022", "03.2022", "2022-03" or "2022". */
 const ONE = `(?:${MONTH_NAME},?\\s+${YEAR}|(?:0?[1-9]|1[0-2])[/.]${YEAR}|${YEAR}[-/](?:0[1-9]|1[0-2])(?!\\d)|${YEAR})`
-const NOW = '(?:present|current(?:ly)?|now|today|ongoing|to date|বর্তমান|চলমান|এখন পর্যন্ত)'
+const NOW = '(?:present|current(?:ly)?|now|today|ongoing|to date|বর্তমান|চলমান|এখন পর্যন্ত|वर्तमान|अब तक|सध्या|आजपर्यंत)'
 const RANGE = new RegExp(`(?<![\\w/.-])(${ONE})(?:\\s*(?:[–—-]|to|until)\\s*(${ONE}|${NOW}))?(?![\\w/])`, 'i')
 
 /** One date as "2022-03". A year alone is January when it starts and December when it ends. */
@@ -31,15 +32,15 @@ function monthOf(text: string, end: boolean): string {
     const year = /(?:19|20)\d{2}/.exec(text)![0]
     const name = new RegExp(MONTH_NAME, 'i').exec(text)
     const number = /^(0?[1-9]|1[0-2])[/.]/.exec(text) ?? new RegExp(`^${YEAR}[-/](0[1-9]|1[0-2])`).exec(text)
-    const bangla = name ? BANGLA_MONTHS.indexOf(name[0].replace(/\.$/, '')) + 1 : 0
-    const month = bangla > 0 ? bangla : name ? MONTHS.indexOf(name[0].slice(0, 3).toLowerCase()) + 1 : number ? Number(number[1]) : end ? 12 : 1
+    const other = name ? otherMonth(name[0].replace(/\.$/, '')) : 0
+    const month = other > 0 ? other : name ? MONTHS.indexOf(name[0].slice(0, 3).toLowerCase()) + 1 : number ? Number(number[1]) : end ? 12 : 1
 
     return `${year}-${String(month).padStart(2, '0')}`
 }
 
 /** The first date or range of dates in the text, or null. */
 export function findDates(original: string): DateRange | null {
-    // Bangla digits read as 0 to 9; each is one character, so places in the text stay the same.
+    // Bangla and Devanagari digits read as 0 to 9; each is one character, so places in the text stay the same.
     const text = asLatinDigits(original)
     const match = RANGE.exec(text)
 

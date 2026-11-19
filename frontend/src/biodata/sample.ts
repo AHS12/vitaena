@@ -8,18 +8,27 @@
  */
 
 import {DEFAULT_BIODATA_DESIGN, NO_SECOND, type Biodata} from './biodata'
+import {isLanguage} from '../core/labels/labels'
+import {inLanguage} from '../cv/relabel'
 import {sampleBiodataBn} from './sample-bn'
 
 const text = (id: string, label: string, value: string) => ({id, visible: true, label, kind: 'text' as const, value})
 
 const member = (id: string, relation: string, name: string, work: string, note = '') => ({id, visible: true, relation, name, work, note})
 
-/** The example in a language: Bangla has its own, and any other is the English one. */
+/**
+ * The example in a language: Bangla has its own; any other is the English one with its
+ * headings and labels in that language.
+ */
 export function sampleBiodata(language = 'en'): Biodata {
     if (language === 'bn') {
         return sampleBiodataBn()
     }
 
+    return isLanguage(language) && language !== 'en' ? inLanguage(englishBiodata(), language) : englishBiodata()
+}
+
+function englishBiodata(): Biodata {
     return {
         heading: {text: '', image: ''},
         person: {name: 'Jane Doe', photo: '', fullPhoto: '', hide: []},

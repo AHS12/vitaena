@@ -44,6 +44,9 @@ const MORE_BANGLA: readonly [HeadingKind, readonly string[]][] = [
     ['details', ['ব্যক্তিগত বিবরণ']],
     ['family', ['পরিবার', 'পারিবারিক বিবরণ']],
     ['contact', ['যোগাযোগের ঠিকানা', 'যোগাযোগের তথ্য']],
+    ['entries', ['अनुभव', 'शिक्षा', 'शैक्षिक योग्यता', 'शिक्षण', 'अनुभव']],
+    ['family', ['परिवार', 'कुटुंब']],
+    ['tags', ['कौशल्य']],
 ]
 
 const KNOWN: readonly [HeadingKind, readonly string[]][] = [

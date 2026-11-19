@@ -9,8 +9,10 @@
 
 import {bn} from './bn'
 import {en} from './en'
+import {hi} from './hi'
+import {mr} from './mr'
 
-export const LANGUAGE_IDS = ['en', 'bn'] as const
+export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr'] as const
 
 export type DocumentLanguage = (typeof LANGUAGE_IDS)[number]
 
@@ -110,9 +112,11 @@ export interface LanguageInfo {
 export const LANGUAGES: readonly LanguageInfo[] = [
     {id: 'en', name: 'English', own: 'English', lang: 'en', latin: true, digits: null},
     {id: 'bn', name: 'Bangla', own: 'বাংলা', lang: 'bn', latin: false, digits: '০১২৩৪৫৬৭৮৯'},
+    {id: 'hi', name: 'Hindi', own: 'हिन्दी', lang: 'hi', latin: false, digits: '०१२३४५६७८९'},
+    {id: 'mr', name: 'Marathi', own: 'मराठी', lang: 'mr', latin: false, digits: '०१२३४५६७८९'},
 ]
 
-const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn}
+const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr}
 
 export const isLanguage = (value: string): value is DocumentLanguage => value in TABLES
 
@@ -145,5 +149,8 @@ export function withDigits(text: string, language: string, native: boolean): str
     return digits && native ? text.replace(/[0-9]/g, (digit) => digits[Number(digit)]) : text
 }
 
-/** A language's own digits read as 0 to 9, so a date written either way can be understood. */
-export const asLatinDigits = (text: string): string => text.replace(/[০-৯]/g, (digit) => String('০১২৩৪৫৬৭৮৯'.indexOf(digit)))
+/** Bangla and Devanagari digits read as 0 to 9, so a date written either way can be understood. */
+export const asLatinDigits = (text: string): string => text.replace(/[০-৯]/g, (digit) => String('০১২৩৪৫৬৭৮৯'.indexOf(digit))).replace(/[०-९]/g, (digit) => String('०१२३४५६७८९'.indexOf(digit)))
+
+/** Every language's month names but English, January first, for reading dates written in them. */
+export const OTHER_MONTHS: readonly (readonly string[])[] = LANGUAGE_IDS.filter((language) => language !== 'en').map((language) => TABLES[language].page.months)

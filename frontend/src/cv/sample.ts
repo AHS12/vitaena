@@ -8,6 +8,8 @@
  */
 
 import {DEFAULT_DESIGN, type Cv, type CvEntry} from './cv'
+import {isLanguage} from '../core/labels/labels'
+import {inLanguage} from './relabel'
 import {sampleCvBn} from './sample-bn'
 
 const job = (id: string, title: string, org: string, start: string, end: string, bullets: string[], current = false): CvEntry => ({
@@ -24,12 +26,19 @@ const job = (id: string, title: string, org: string, start: string, end: string,
     hide: [],
 })
 
-/** The example in a language: Bangla has its own, and any other is the English one. */
+/**
+ * The example in a language: Bangla has its own; any other is the English one with its
+ * headings and labels in that language.
+ */
 export function sampleCv(language = 'en'): Cv {
     if (language === 'bn') {
         return sampleCvBn()
     }
 
+    return isLanguage(language) && language !== 'en' ? inLanguage(englishCv(), language) : englishCv()
+}
+
+function englishCv(): Cv {
     return {
         person: {
             name: 'Jane Doe',

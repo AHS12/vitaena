@@ -15,10 +15,12 @@ import {beforeAll, describe, expect, it} from 'vitest'
 import type {TypstCompiler} from '@myriaddreamin/typst.ts'
 import {getDocument} from 'pdfjs-dist/legacy/build/pdf.mjs'
 import {templatePdf, typstCompiler} from '../../tests/typst'
+import {emptyBiodata} from '../../biodata/biodata'
 import {biodataRenderModel} from '../../biodata/render-model'
 import {withSecondLanguage} from '../../biodata/edit-ops'
 import {sampleBiodata} from '../../biodata/sample'
 import {BIODATA_TEMPLATES} from '../../biodata/templates/templates'
+import {emptyCv} from '../cv'
 import {renderModel} from '../render-model'
 import {sampleCv} from '../sample'
 
@@ -126,5 +128,25 @@ describe('second labels, laid out in every biodata template', () => {
         for (const label of ['personaldetails', 'dateofbirth', 'father', 'contact']) {
             expect(text, label).toContain(label)
         }
+    }, 60_000)
+})
+
+describe('Hindi and Marathi, in every template', () => {
+    it.each([...CV_TEMPLATES.map((template) => template.id)])('draws Devanagari in the bundled font in the %s CV template', async (template) => {
+        const cv = emptyCv('hi')
+        const model = renderModel({...cv, person: {...cv.person, name: 'Jane Doe ऋऌ', headline: 'सॉफ़्टवेयर इंजीनियर'}, sections: [{id: 's', kind: 'text', title: cv.sections[0].title, visible: true, text: 'पाँच वर्षों का अनुभव, क्षमता और ज्ञान'}]})
+        const pdf = await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', model)
+
+        expect(await read(pdf)).toContain(letters('Jane Doe ऋऌ'))
+        expect(embeddedFonts(pdf).some((font) => /^NotoS(ans|erif)Devanagari/.test(font))).toBe(true)
+    }, 60_000)
+
+    it.each(BIODATA_TEMPLATES.map((template) => template.id))('lays out a Marathi biodata in %s on one page', async (template) => {
+        const biodata = emptyBiodata('mr')
+        const pdf = await templatePdf(compiler, new URL(`../../biodata/templates/${template}.typ`, import.meta.url), '/biodata.json', biodataRenderModel({...biodata, person: {...biodata.person, name: 'Jane Doe ऋऌ'}}))
+        const document = await getDocument({data: pdf.slice(), useSystemFonts: false}).promise
+
+        expect(document.numPages).toBe(1)
+        expect(await read(pdf)).toContain(letters('Jane Doe ऋऌ'))
     }, 60_000)
 })

@@ -5,7 +5,7 @@
  */
 
 import {DEFAULT_BIODATA_DESIGN, NO_SECOND, type Biodata, type BiodataSection} from '../../biodata/biodata'
-import {asLatinDigits, labelsFor} from '../../core/labels/labels'
+import {asLatinDigits, OTHER_MONTHS} from '../../core/labels/labels'
 import {cmOf} from '../details'
 import {newId, type DetailRow, type FamilyMember} from '../sections'
 import type {PdfLine} from './layout'
@@ -29,12 +29,10 @@ export function isBiodata(layout: PdfLayout, parts: DocumentParts): boolean {
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 const pad = (value: number) => String(value).padStart(2, '0')
 
-const BANGLA_MONTHS = labelsFor('bn').page.months
-
 /** A day as written in a biodata, "12 March 1996", "12/03/1996" (day first), "1996-03-12" or "১২ মার্চ ১৯৯৬", as "1996-03-12". */
 export function dayOf(written: string): string {
-    // Bangla digits and month names read as 0 to 9 and English month names.
-    const text = BANGLA_MONTHS.reduce((line, name, index) => line.replace(name, MONTHS[index]), asLatinDigits(written))
+    // Bangla and Devanagari digits and month names read as 0 to 9 and English month names.
+    const text = OTHER_MONTHS.flatMap((months) => months.map((name, index) => [name, MONTHS[index]] as const)).reduce((line, [name, english]) => line.replace(name, english), asLatinDigits(written))
     const iso = /\b((?:19|20)\d{2})-(\d{1,2})-(\d{1,2})\b/.exec(text)
     const numbers = /\b(\d{1,2})[/.-](\d{1,2})[/.-]((?:19|20)\d{2})\b/.exec(text)
     const dayFirst = /\b(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?([a-z]{3,9})\.?,?\s+((?:19|20)\d{2})\b/i.exec(text)
@@ -64,7 +62,7 @@ export function dayOf(written: string): string {
 
 /** A height as written, "5′ 4″", "5 ft 4 in", "5'4"" or "163 cm", in centimetres and how it was shown; null if it isn't one. */
 export function heightOf(written: string): {cm: number; show: 'ft-in' | 'cm' | 'both'} | null {
-    const text = asLatinDigits(written).replace(/সেমি/g, 'cm')
+    const text = asLatinDigits(written).replace(/সেমি|सेमी/g, 'cm')
     const imperial = /(\d)\s*(?:['′’]|ft\.?|feet|foot)\s*(?:(\d{1,2})\s*(?:["″”]|''|in\.?|inch(?:es)?)?)?/i.exec(text)
     const metric = /(\d{2,3}(?:\.\d)?)\s*cm\b/i.exec(text)
 
@@ -79,15 +77,15 @@ export function heightOf(written: string): {cm: number; show: 'ft-in' | 'cm' | '
 function rowOf(label: string, value: string): DetailRow {
     const base = {id: newId('row'), visible: true, label}
 
-    if (/\b(?:date of birth|birth ?date|born|d\.?o\.?b)\b|জন্ম ?তারিখ/i.test(label)) {
+    if (/\b(?:date of birth|birth ?date|born|d\.?o\.?b)\b|জন্ম ?তারিখ|जन्म ?(?:तिथि|तारीख)/i.test(label)) {
         const date = dayOf(value)
 
         if (date) {
-            return {...base, kind: 'date', date, show: /\(\s*\d+\s*(?:years?|yrs?|বছর)\s*\)/i.test(asLatinDigits(value)) ? 'both' : 'date'}
+            return {...base, kind: 'date', date, show: /\(\s*\d+\s*(?:years?|yrs?|বছর|वर्षे?)\s*\)/i.test(asLatinDigits(value)) ? 'both' : 'date'}
         }
     }
 
-    if (/\bheight\b|উচ্চতা/i.test(label)) {
+    if (/\bheight\b|উচ্চতা|कद|उंची|ऊंचाई/i.test(label)) {
         const height = heightOf(value)
 
         if (height) {
