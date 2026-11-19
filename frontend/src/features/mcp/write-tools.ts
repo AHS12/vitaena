@@ -6,6 +6,7 @@
 import {z} from 'zod'
 import {LANGUAGE_IDS, LANGUAGES, type DocumentLanguage} from '../../core/labels/labels'
 import {CV_FONTS, SCRIPT_FONTS} from '../../cv/fonts'
+import {addedFamilies, useAddedFonts} from '../../cv/added-fonts'
 import {inLanguage} from '../../cv/relabel'
 import type {Sectioned} from '../../cv/sections'
 import {nounOfKind} from '../../store/document-types'
@@ -64,7 +65,7 @@ export const setDesignTool = defineTool({
         id: idInput,
         template: z.string().optional(),
         accent: z.string().optional().describe('A colour as #rrggbb.'),
-        font: z.enum(CV_FONTS.map((font) => font.id) as [string, ...string[]]).optional(),
+        font: z.string().optional().describe('A built-in font id, or custom: and the family of a font the person added (list_templates lists them).'),
         fontSize: z.number().min(8).max(13).optional().describe('In points, 8 to 13, in half steps.'),
         paper: z.enum(['a4', 'us-letter']).optional(),
         margins: z.enum(['narrow', 'normal', 'wide']).optional(),
@@ -74,7 +75,7 @@ export const setDesignTool = defineTool({
         border: z.boolean().optional().describe('Biodata only.'),
         language: z.enum(LANGUAGE_IDS).optional().describe('The language of the headings, labels and dates the app writes.'),
         digits: z.enum(['latin', 'native']).optional().describe('Numbers the app writes: native for the language\'s own digits (০১২ in Bangla), latin for 0 to 9.'),
-        scriptFont: z.enum(['', ...SCRIPT_FONTS.map((font) => font.id)] as [string, ...string[]]).optional().describe('The font for Bangla letters; "" for the one that suits the main font.'),
+        scriptFont: z.string().optional().describe('The font for Bangla letters: "" for the one that suits the main font, a bundled one\'s id, or custom: and the family of one the person added.'),
     }),
     readOnly: false,
     idempotent: true,
@@ -99,6 +100,16 @@ export const setDesignTool = defineTool({
 
         if (design.accent !== undefined && !ACCENT.test(design.accent)) {
             throw new Error(`The accent must be a colour as #rrggbb, not "${design.accent}".`)
+        }
+
+        const added = addedFamilies(useAddedFonts.getState().fonts).map((family) => family.id)
+
+        if (design.font !== undefined && !CV_FONTS.some((font) => font.id === design.font) && !added.includes(design.font)) {
+            throw new Error(`There's no font "${design.font}". They are: ${[...CV_FONTS.map((font) => font.id), ...added].join(', ')}.`)
+        }
+
+        if (design.scriptFont !== undefined && design.scriptFont !== '' && !SCRIPT_FONTS.some((font) => font.id === design.scriptFont) && !added.includes(design.scriptFont)) {
+            throw new Error(`There's no Bangla font "${design.scriptFont}". They are: "" (matching), ${[...SCRIPT_FONTS.map((font) => font.id), ...added].join(', ')}.`)
         }
 
         if (design.fontSize !== undefined && design.fontSize * 2 !== Math.round(design.fontSize * 2)) {

@@ -60,7 +60,22 @@ const SCRIPT_LETTERS: Readonly<Record<Script, RegExp>> = {
     bengali: /[ঀ-৿]/,
 }
 
-export const fontById = (id: string): CvFont => CV_FONTS.find((font) => font.id === id) ?? CV_FONTS[0]
+/**
+ * A font the person added is named in a design by its family: "custom:Kalpurush". The
+ * files are theirs, kept in the app; a document naming one on a computer that hasn't
+ * it falls back to the bundled fonts after it in the list.
+ */
+export const ADDED = 'custom:'
+
+export const isAddedFont = (id: string): boolean => id.startsWith(ADDED) && id.length > ADDED.length
+
+export const addedFamily = (id: string): string => id.slice(ADDED.length)
+
+export const addedFontId = (family: string): string => ADDED + family
+
+/** A built-in font by id, a font the person added as one of its kind, or Inter. */
+export const fontById = (id: string): CvFont =>
+    isAddedFont(id) ? {id, family: addedFamily(id), label: addedFamily(id), kind: 'Sans serif', files: []} : (CV_FONTS.find((font) => font.id === id) ?? CV_FONTS[0])
 
 /** The script font that suits a main font: sans with sans, serif with serif. */
 export const scriptFontFor = (script: Script, kind: FontKind): ScriptFont =>
@@ -76,8 +91,11 @@ export function fontFamilies(id: string, scriptFont = ''): string[] {
     const main = fontById(id)
     const chosen = scriptFontById(scriptFont)
     const scripts = [...new Set(SCRIPT_FONTS.map((font) => font.script))].map((script) => (chosen?.script === script ? chosen : scriptFontFor(script, main.kind)).family)
+    // A Bangla font the person added comes first, with the bundled one behind it for any
+    // letter it lacks, or for a computer that hasn't it.
+    const added = isAddedFont(scriptFont) ? [addedFamily(scriptFont)] : []
 
-    return [...new Set([main.family, ...scripts, CV_FONTS[0].family])]
+    return [...new Set([main.family, ...added, ...scripts, CV_FONTS[0].family])]
 }
 
 /** The scripts that appear in some text, such as a document's render model as JSON. */

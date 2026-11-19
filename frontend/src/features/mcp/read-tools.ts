@@ -4,6 +4,7 @@
  */
 
 import {z} from 'zod'
+import {addedFamilies, useAddedFonts} from '../../cv/added-fonts'
 import type {Section} from '../../cv/sections'
 import {listDocuments} from '../../platform/documents'
 import {useDocumentStore} from '../../store/document-store'
@@ -107,7 +108,7 @@ export const readDocumentTool = defineTool({
 export const listTemplatesTool = defineTool({
     name: 'list_templates',
     title: 'List templates',
-    description: 'Lists the templates a kind of document can use, with what each looks like and suits. set_design and create_document take a template\'s id.',
+    description: 'Lists the templates a kind of document can use, with what each looks like and suits, and the fonts the person added, which set_design takes as custom: and the family. set_design and create_document take a template\'s id.',
     input: z.object({
         kind: z.enum(KINDS).describe('The kind of document.'),
     }),
@@ -115,8 +116,11 @@ export const listTemplatesTool = defineTool({
     run: async ({kind}) => {
         const templates = toolsFor(kind).templates
         const lines = templates.map((template) => `- ${template.name} (id ${template.id}): ${template.about} ${template.facts}.${template.suits ? ` Suits: ${template.suits}.` : ''}`)
+        await useAddedFonts.getState().load()
+        const fonts = addedFamilies(useAddedFonts.getState().fonts).map((family) => ({id: family.id, family: family.family, scripts: family.scripts}))
+        const added = fonts.length > 0 ? `\n\nFonts the person added (font for English letters, scriptFont for Bangla):\n${fonts.map((font) => `- ${font.family} (id ${font.id}), letters for ${font.scripts.join(', ') || 'no script the app knows'}`).join('\n')}` : ''
 
-        return {text: `Templates for a ${nounOfKind(kind) ?? kind}:\n${lines.join('\n')}`, structured: {templates}}
+        return {text: `Templates for a ${nounOfKind(kind) ?? kind}:\n${lines.join('\n')}${added}`, structured: {templates, fonts}}
     },
 })
 

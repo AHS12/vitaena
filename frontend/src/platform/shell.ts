@@ -33,6 +33,7 @@ export interface ShellRuntime {
 export const SERVICES = {
     core: 'backend.App',
     documents: 'backend/documents.Library',
+    fonts: 'backend/fonts.Service',
     backup: 'backend/backup.Service',
     export: 'backend/export.Files',
     mcp: 'backend/mcp.Service',

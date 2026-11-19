@@ -16,6 +16,8 @@ const DOCUMENT_FILTERS = ['*.json']
 /** Opening offers documents and CVs to import together; a PDF or Word file is imported rather than opened. */
 const OPEN_FILTERS = ['*.json;*.pdf;*.docx', '*.json', '*.pdf;*.docx']
 const IMPORT_FILTERS = ['*.pdf;*.docx', '*.pdf', '*.docx']
+const FONT_FILTERS = ['*.ttf;*.otf;*.ttc']
+const FONT_TYPES = '.ttf,.otf,.ttc,font/ttf,font/otf,font/collection'
 const IMPORT_TYPES = '.pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 const BROWSER_DOWNLOADS = 'Downloads'
 
@@ -64,6 +66,11 @@ export async function openDocumentFile(title: string): Promise<OpenedFile | null
 /** Asks for a CV to import, a PDF or a Word file, and returns its path and contents, or null. */
 export async function openImportFile(title: string): Promise<OpenedFile | null> {
     return openFile(title, IMPORT_FILTERS, IMPORT_TYPES)
+}
+
+/** Asks for a font file to add, and returns its path and contents, or null. */
+export async function openFontFile(): Promise<OpenedFile | null> {
+    return openFile('Add a font', FONT_FILTERS, FONT_TYPES)
 }
 
 async function openFile(title: string, filters: string[], accept: string): Promise<OpenedFile | null> {

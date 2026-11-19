@@ -7,7 +7,9 @@
  * use, never fetched from the network: the default font download is turned off.
  *
  * Fonts for other scripts, such as Bangla, are added the first time a document has
- * letters in that script, so a document in English never loads them.
+ * letters in that script, so a document in English never loads them. Fonts the person
+ * added are handed over by the page (giveAddedFonts) and added the first time a
+ * document names one.
  */
 
 import type {TypstCompiler, TypstRenderer} from '@myriaddreamin/typst.ts'
@@ -59,7 +61,7 @@ export class LayoutFailed extends Error {
 interface Engine {
     readonly compiler: TypstCompiler
     readonly renderer: TypstRenderer
-    /** Gives the compiler these fonts too, if it hasn't them yet. */
+    /** Gives the compiler these fonts too, if it hasn't them yet: npm paths, or "added:" and a font's id. */
     readonly addFonts: (files: readonly string[]) => Promise<void>
 }
 
@@ -78,7 +80,28 @@ const bytesOf = async (url: string): Promise<Uint8Array> => {
 /** Each font file's bytes, fetched once. */
 const fontFiles = new Map<string, Promise<Uint8Array>>()
 
+/** Fonts the person added, by id: the family inside, and the file. */
+const addedFonts = new Map<string, {readonly family: string; readonly bytes: Uint8Array}>()
+
+const ADDED = 'added:'
+
+/** Takes fonts the person added, so a document naming one of their families can use it. */
+export function giveAddedFonts(fonts: readonly {readonly id: string; readonly family: string; readonly bytes: Uint8Array}[]): void {
+    for (const font of fonts) {
+        addedFonts.set(font.id, {family: font.family, bytes: font.bytes})
+    }
+}
+
+/** The added fonts a render model, as JSON, names. */
+const addedFilesFor = (json: string): string[] => [...addedFonts].filter(([, font]) => json.includes(JSON.stringify(font.family))).map(([id]) => ADDED + id)
+
 function fontBytes(file: string): Promise<Uint8Array> {
+    if (file.startsWith(ADDED)) {
+        const added = addedFonts.get(file.slice(ADDED.length))
+
+        return added ? Promise.resolve(added.bytes) : Promise.reject(new Error('That font was removed.'))
+    }
+
     let bytes = fontFiles.get(file)
 
     if (!bytes) {
@@ -134,6 +157,41 @@ async function start(): Promise<Engine> {
     return {compiler, renderer, addFonts}
 }
 
+/** What Typst reads from a font file. */
+export interface FontFileInfo {
+    readonly family: string
+    readonly style: string
+    readonly weight: number
+    /** Typst's flags, such as "SERIF" or "VARIABLE", as one string. */
+    readonly flags: string
+    /** The letters it has, as runs of codepoints: not covered, covered, not covered… */
+    readonly coverage: readonly number[]
+}
+
+let infoReader: Promise<{getFontInfo(bytes: Uint8Array): Promise<unknown>}> | null = null
+
+/** What's inside a font file: one entry per font, since a .ttc holds several. */
+export async function readFontInfo(bytes: Uint8Array): Promise<FontFileInfo[]> {
+    infoReader ??= (async () => {
+        const typst = await import('@myriaddreamin/typst.ts')
+        const builder = typst.createTypstFontBuilder()
+
+        await builder.init({getModule: () => bytesOf(compilerWasm)})
+
+        return builder
+    })()
+
+    const read = (await (await infoReader).getFontInfo(bytes)) as {info?: {family?: string; variant?: {style?: string; weight?: number}; flags?: unknown; coverage?: number[]}[]}
+
+    return (read.info ?? []).map((font) => ({
+        family: font.family ?? '',
+        style: font.variant?.style ?? 'normal',
+        weight: font.variant?.weight ?? 400,
+        flags: typeof font.flags === 'string' ? font.flags : JSON.stringify(font.flags ?? ''),
+        coverage: font.coverage ?? [],
+    }))
+}
+
 /** Starts the compiler and renderer, once. */
 export function warmUp(): Promise<Engine> {
     engine ??= start().catch((error: unknown) => {
@@ -151,7 +209,7 @@ async function compile(model: PageModel, template: string, format: 0 | 1): Promi
     const {source, data} = TEMPLATES[template] ?? TEMPLATES.classic
     const json = JSON.stringify(readable)
 
-    await addFonts(scriptFilesFor(json))
+    await addFonts([...scriptFilesFor(json), ...addedFilesFor(json)])
 
     compiler.addSource(MAIN, source)
     compiler.mapShadow(data, new TextEncoder().encode(json))

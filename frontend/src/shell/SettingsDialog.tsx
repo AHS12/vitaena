@@ -31,6 +31,8 @@ import {features} from './feature'
 import {RemovedDocuments} from './pages/RemovedDocuments'
 import {AttentionDot} from './attention'
 import {SettingRow} from './SettingRow'
+import {addedFamilies, useAddedFonts} from '../cv/added-fonts'
+import {faceName, SCRIPT_NAMES} from '../core/fonts/font-info'
 
 interface PageEntry {
     readonly id: string
@@ -279,6 +281,44 @@ function StoragePage() {
             ) : (
                 <p className="settings__intro">Running in a browser, nothing is saved to disk.</p>
             )}
+            <FontRows />
+        </>
+    )
+}
+
+/** The fonts the person added, each with Remove, and a way to add one. */
+function FontRows() {
+    const fonts = useAddedFonts((state) => state.fonts)
+    const {add, remove} = useAddedFonts.getState()
+    const message = useAddedFonts((state) => state.message)
+    const families = addedFamilies(fonts)
+
+    return (
+        <>
+            <SettingRow
+                label="Your fonts"
+                help={
+                    families.length === 0
+                        ? 'Add a .ttf or .otf file, such as a Bangla font you use, and choose it in Style for any document. It goes into backups with your documents.'
+                        : `${families.length === 1 ? '1 font' : `${families.length} fonts`}, kept with your documents and in backups. A PDF carries the font; a Word file names it, so Word uses it where it's installed.`
+                }
+            >
+                <button type="button" className="button" onClick={() => void add()}>
+                    Add a font…
+                </button>
+            </SettingRow>
+            {message ? <p className="settings__intro">{message.text}</p> : null}
+            {families.map((family) => (
+                <SettingRow
+                    key={family.id}
+                    label={family.family}
+                    help={`${[...new Set(family.files.map(faceName))].join(', ')} · ${family.scripts.map((script) => SCRIPT_NAMES[script]).join(', ') || 'no letters Vitaena knows'} · ${formatBytes(family.files.reduce((total, file) => total + file.size, 0))}`}
+                >
+                    <button type="button" className="button" onClick={() => void Promise.all(family.files.map((file) => remove(file.id)))}>
+                        Remove
+                    </button>
+                </SettingRow>
+            ))}
         </>
     )
 }

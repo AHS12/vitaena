@@ -10,7 +10,8 @@
  */
 
 import type {PageModel} from './images'
-import type {LayoutReply, LayoutRequest} from './engine.worker'
+import type {GivenFont, LayoutReply, LayoutRequest} from './engine.worker'
+import type {FontFileInfo} from './layout'
 
 export interface TypstProblem {
     readonly message: string
@@ -30,10 +31,16 @@ export interface Preview {
     readonly ms: number
 }
 
-type Job = {readonly op: 'svg' | 'pdf'; readonly model: PageModel; readonly template: string} | {readonly op: 'warm'}
+type Job =
+    | {readonly op: 'svg' | 'pdf'; readonly model: PageModel; readonly template: string}
+    | {readonly op: 'warm'}
+    | {readonly op: 'fonts'; readonly fonts: readonly GivenFont[]}
+    | {readonly op: 'font-info'; readonly bytes: Uint8Array}
+
+type Done = {svg?: string; pdf?: Uint8Array; info?: readonly FontFileInfo[]}
 
 /** Something that lays out: the worker, or the page itself. */
-type Runner = (job: Job) => Promise<{svg?: string; pdf?: Uint8Array}>
+type Runner = (job: Job) => Promise<Done>
 
 let runner: Runner | null = null
 
@@ -58,7 +65,7 @@ function workerRunner(): Runner {
             throw new TypstError(reply.problems)
         }
 
-        return {svg: reply.svg, pdf: reply.pdf}
+        return {svg: reply.svg, pdf: reply.pdf, info: reply.info}
     }
 }
 
@@ -72,15 +79,53 @@ const pageRunner: Runner = async (job) => {
             return {}
         }
 
+        if (job.op === 'fonts') {
+            layout.giveAddedFonts(job.fonts)
+            return {}
+        }
+
+        if (job.op === 'font-info') {
+            return {info: await layout.readFontInfo(job.bytes)}
+        }
+
         return job.op === 'svg' ? {svg: await layout.layOutSvg(job.model, job.template)} : {pdf: await layout.layOutPdf(job.model, job.template)}
     } catch (error) {
         throw error instanceof layout.LayoutFailed ? new TypstError(error.problems) : error
     }
 }
 
-const run: Runner = (job) => {
+const runOnce: Runner = (job) => {
     runner ??= typeof Worker === 'undefined' ? pageRunner : workerRunner()
     return runner(job)
+}
+
+/**
+ * Gives the fonts a page needs that the person added, before it's laid out. Set by the
+ * module that keeps those fonts, so the engine itself knows nothing of where they come from.
+ */
+type FontProvider = (families: readonly string[]) => Promise<readonly GivenFont[]>
+
+let provideFonts: FontProvider | null = null
+const given = new Set<string>()
+
+export function setFontProvider(provider: FontProvider): void {
+    provideFonts = provider
+}
+
+const familiesOf = (model: PageModel): readonly string[] => (model as {design?: {fonts?: readonly string[]}}).design?.fonts ?? []
+
+/** A layout, after handing over any added font it names that the layout hasn't yet. */
+const run: Runner = async (job) => {
+    if ((job.op === 'svg' || job.op === 'pdf') && provideFonts) {
+        const fonts = (await provideFonts(familiesOf(job.model)).catch(() => [])).filter((font) => !given.has(font.id))
+
+        if (fonts.length > 0) {
+            await runOnce({op: 'fonts', fonts})
+            fonts.forEach((font) => given.add(font.id))
+        }
+    }
+
+    return runOnce(job)
 }
 
 let running: Promise<unknown> = Promise.resolve()
@@ -146,6 +191,9 @@ export async function whenIdle(): Promise<void> {
 
 /** All pages as SVG, waiting its turn rather than giving way to newer previews. */
 export const svg = (model: PageModel, template: string): Promise<string> => serial(async () => (await run({op: 'svg', model, template})).svg ?? '')
+
+/** What's inside a font file, read by the layout engine, as it waits its turn. */
+export const fontInfo = (bytes: Uint8Array): Promise<readonly FontFileInfo[]> => serial(async () => (await run({op: 'font-info', bytes})).info ?? [])
 
 /** The document as a PDF, the same layout the preview shows. */
 export const pdf = (model: PageModel, template: string): Promise<Uint8Array> => serial(async () => (await run({op: 'pdf', model, template})).pdf ?? new Uint8Array())

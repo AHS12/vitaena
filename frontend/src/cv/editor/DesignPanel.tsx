@@ -9,7 +9,9 @@ import {ColourRow} from '../../components/ColourRow'
 import {Segmented} from '../../components/Segmented'
 import type {Cv, CvDesign} from '../cv'
 import {LANGUAGES, languageInfo, type DocumentLanguage} from '../../core/labels/labels'
-import {CV_FONTS, SCRIPT_FONTS, scriptsIn} from '../fonts'
+import {CV_FONTS, isAddedFont, addedFamily, SCRIPT_FONTS, scriptsIn} from '../fonts'
+import {addedFamilies, previewFamily, previewFont, useAddedFonts} from '../added-fonts'
+import {Plus} from 'lucide-react'
 import {CV_TEMPLATES, TEMPLATE_USE_LABELS} from '../templates/templates'
 import {fontUrl} from '../typst/font-urls'
 import type {DocumentEdit} from '../use-cv-edit'
@@ -166,6 +168,32 @@ export interface SharedStyle {
     readonly scriptFont: string
 }
 
+/** "Add a font…": a .ttf or .otf file of the person's own, kept in the app for every document. */
+function AddFontButton() {
+    const add = useAddedFonts((state) => state.add)
+
+    return (
+        <button type="button" className="button add-font" onClick={() => void add()}>
+            <Plus size={13} aria-hidden="true" />
+            Add a font…
+        </button>
+    )
+}
+
+/** What adding a font found, or why it wasn't added. */
+function FontMessage({text, ok}: {text: string; ok: boolean}) {
+    const dismiss = useAddedFonts((state) => state.dismiss)
+
+    return (
+        <div className={`font-message${ok ? '' : ' font-message--refused'}`} role="status">
+            <p className="font-message__text">{text}</p>
+            <button type="button" className="button font-message__close" onClick={dismiss}>
+                Got it
+            </button>
+        </div>
+    )
+}
+
 /** A line of Bangla to show each Bangla font in. */
 const BANGLA_SAMPLE = 'আমার নাম'
 
@@ -190,7 +218,17 @@ export function StyleGroups({
     useEffect(loadFaces, [])
 
     const language = languageInfo(design.language)
-    const showBanglaFont = hasBangla || design.language === 'bn'
+    const added = useAddedFonts((state) => state.fonts)
+    const message = useAddedFonts((state) => state.message)
+    const families = useMemo(() => addedFamilies(added), [added])
+    const latinFamilies = families.filter((family) => family.scripts.includes('latin'))
+    const banglaFamilies = families.filter((family) => family.scripts.includes('bengali'))
+    const showBanglaFont = hasBangla || design.language === 'bn' || isAddedFont(design.scriptFont)
+
+    useEffect(() => families.forEach((family) => previewFont(family.files[0])), [families])
+
+    // A font named by the document but not added on this computer: say so, and keep the name.
+    const missing = [design.font, design.scriptFont].filter((id) => isAddedFont(id) && !families.some((family) => family.id === id)).map(addedFamily)
 
     return (
         <div className="design-panel">
@@ -234,7 +272,22 @@ export function StyleGroups({
                             <span className="font-choice__kind">{font.kind}</span>
                         </button>
                     ))}
+                    {latinFamilies.map((family) => (
+                        <button key={family.id} type="button" role="radio" aria-checked={design.font === family.id} className="font-choice" onClick={() => set('font', family.id, 'font')}>
+                            <span className="font-choice__name" style={{fontFamily: `${previewFamily(family.files[0])}, var(--font-sans)`}}>
+                                {family.family}
+                            </span>
+                            <span className="font-choice__kind">Your font</span>
+                        </button>
+                    ))}
                 </div>
+                <AddFontButton />
+                {message ? <FontMessage text={message.text} ok={message.ok} /> : null}
+                {missing.length > 0 ? (
+                    <p className="design-panel__tip design-panel__tip--warning">
+                        {missing.join(' and ')} {missing.length === 1 ? "isn't" : "aren't"} added on this computer, so a bundled font is used. Add {missing.length === 1 ? 'it' : 'them'} here to bring the look back.
+                    </p>
+                ) : null}
                 <div className="design-row">
                     <span className="design-row__label">Size</span>
                     <Segmented label="Text size" value={design.fontSize} options={SIZES} onChange={(size) => set('fontSize', size, 'text size')} />
@@ -255,6 +308,14 @@ export function StyleGroups({
                                     <span className="font-choice__kind">
                                         {font.label} · {font.kind}
                                     </span>
+                                </button>
+                            ))}
+                            {banglaFamilies.map((family) => (
+                                <button key={family.id} type="button" role="radio" aria-checked={design.scriptFont === family.id} className="font-choice" onClick={() => set('scriptFont', family.id, 'Bangla font')}>
+                                    <span className="font-choice__name" style={{fontFamily: `${previewFamily(family.files[0])}, var(--font-sans)`}}>
+                                        {BANGLA_SAMPLE}
+                                    </span>
+                                    <span className="font-choice__kind">{family.family} · Your font</span>
                                 </button>
                             ))}
                         </div>

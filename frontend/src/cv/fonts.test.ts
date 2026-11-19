@@ -36,3 +36,13 @@ describe('the scripts in a document', () => {
         expect(files.some((file) => file.includes('noto-serif-bengali'))).toBe(true)
     })
 })
+
+describe('a font the person added', () => {
+    it('is named by its family, before the bundled fonts', () => {
+        expect(fontFamilies('custom:Merriweather')).toEqual(['Merriweather', 'Noto Sans Bengali', 'Inter'])
+    })
+
+    it('for Bangla, comes before the bundled Bangla font, which takes any letter it lacks', () => {
+        expect(fontFamilies('inter', 'custom:Kalpurush')).toEqual(['Inter', 'Kalpurush', 'Noto Sans Bengali'])
+    })
+})

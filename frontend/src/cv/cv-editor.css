@@ -410,6 +410,35 @@ input.panel__title:focus {
     color: var(--text-primary);
 }
 
+.add-font {
+    align-self: flex-start;
+}
+
+.font-message {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-sunken);
+}
+
+.font-message--refused {
+    border-color: var(--warning);
+}
+
+.font-message__text {
+    margin: 0;
+    font: var(--text-label);
+    color: var(--text-primary);
+}
+
+.design-panel__tip--warning {
+    color: var(--warning);
+}
+
 .design-group__subtitle {
     margin: 4px 0 0;
     font: var(--text-label);

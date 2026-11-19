@@ -15,6 +15,7 @@ import (
 	"vitaena/backend/backup"
 	"vitaena/backend/documents"
 	"vitaena/backend/export"
+	"vitaena/backend/fonts"
 	"vitaena/backend/mcp"
 	"vitaena/backend/secrets"
 
@@ -41,6 +42,8 @@ func main() {
 	}
 
 	library := documents.New(shell)
+	// Fonts the person adds sit beside their documents, so backups carry them.
+	addedFonts := fonts.New(library.LibraryFolder)
 
 	// Each optional feature is a service of its own, in its own folder. Leaving
 	// one out means deleting its lines here and its folders: see
@@ -66,6 +69,7 @@ func main() {
 		Services: []application.Service{
 			application.NewService(service),
 			application.NewService(library),
+			application.NewService(addedFonts),
 			application.NewService(backups),
 			application.NewService(exports),
 			application.NewService(assistants),

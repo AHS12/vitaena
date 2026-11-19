@@ -16,6 +16,7 @@ import (
 
 	"vitaena/backend"
 	"vitaena/backend/documents"
+	"vitaena/backend/fonts"
 	"vitaena/backend/secrets"
 )
 
@@ -488,5 +489,52 @@ func TestThePictureHandlerServesPicturesInABackupBeingRestored(t *testing.T) {
 
 	if recorder.Code != http.StatusOK || recorder.Body.String() != "png oak" {
 		t.Fatalf("status = %d, body = %q", recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestABackupCarriesTheFontsAPersonAdded(t *testing.T) {
+	app := newBackupApp(t)
+	kept := fonts.New(func() (string, error) { return app.folder(t), nil })
+
+	font, err := kept.AddFont("kalpurush.ttf", []byte("font bytes"), fonts.Info{Family: "Kalpurush", Style: "normal", Weight: 400})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	target := filepath.Join(t.TempDir(), "backup.zip")
+	if _, err := app.BackUpToFile(target, nil, "0.4.0"); err != nil {
+		t.Fatal(err)
+	}
+
+	got := zipEntries(t, target)
+	if !slices.Contains(got, "documents/fonts/"+font.ID) || !slices.Contains(got, "documents/fonts/"+font.ID+fonts.InfoSuffix) {
+		t.Fatalf("zip holds %v, want the font and what it is", got)
+	}
+
+	restored := newBackupApp(t)
+	if _, err := restored.OpenBackupFile(target); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := restored.RestoreFromHolding(nil); err != nil {
+		t.Fatal(err)
+	}
+
+	listed, err := fonts.New(func() (string, error) { return restored.folder(t), nil }).ListFonts()
+	if err != nil || len(listed) != 1 || listed[0].Family != "Kalpurush" {
+		t.Fatalf("restored %+v, %v", listed, err)
+	}
+}
+
+func TestABackupWithAnUnknownFileAmongTheFontsIsRefused(t *testing.T) {
+	app := newBackupApp(t)
+
+	path := writeZip(t, map[string]string{
+		"backup.json":             `{"format":1,"files":[]}`,
+		"documents/fonts/run.exe": `MZ`,
+	})
+
+	if _, err := app.OpenBackupFile(path); err == nil {
+		t.Fatal("opened a backup with a program among its fonts")
 	}
 }
