@@ -54,7 +54,7 @@
 )
 
 #set document(title: if cv.name != "" { cv.name + " – CV" } else { "CV" }, author: cv.name)
-#set text(font: (cv.design.font, "Inter"), size: cv.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(30))
+#set text(font: cv.design.fonts, size: cv.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(30))
 #set par(leading: 0.6em, spacing: gap(0.75), justify: false)
 #set list(marker: [–], indent: 0em, body-indent: 0.6em, spacing: gap(0.5))
 #set page(

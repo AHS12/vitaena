@@ -6,7 +6,7 @@
  * way; the family is a biodata's own.
  */
 
-import {fontById} from '../cv/fonts'
+import {fontById, fontFamilies} from '../cv/fonts'
 import {MARGINS, sectionBody, SPACING, type SectionBody} from '../cv/render-model'
 import type {Biodata} from './biodata'
 
@@ -34,6 +34,8 @@ export interface BiodataRenderModel {
         readonly accent: string
         /** The font's family name, as Typst knows it. */
         readonly font: string
+        /** The families a template sets, the font first, then those for other scripts. */
+        readonly fonts: readonly string[]
         readonly fontSize: number
         readonly paper: string
         /** Page margins, in centimetres. */
@@ -74,6 +76,7 @@ export function biodataRenderModel(biodata: Biodata, today: Date = new Date()): 
         design: {
             accent: design.accent,
             font: fontById(design.font).family,
+            fonts: fontFamilies(design.font),
             fontSize: design.fontSize,
             paper: design.paper,
             margin: MARGINS[design.margins],

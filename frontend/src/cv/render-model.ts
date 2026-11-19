@@ -9,7 +9,7 @@
 
 import type {Cv, CvEntry} from './cv'
 import type {Section} from './sections'
-import {fontById} from './fonts'
+import {fontById, fontFamilies} from './fonts'
 import {parseRich, type Span} from './rich'
 import {levelOfWords, splitItem} from './levels'
 import {detailValue} from './details'
@@ -74,6 +74,8 @@ export interface RenderModel {
         readonly accent: string
         /** The font's family name, as Typst knows it. */
         readonly font: string
+        /** The families a template sets, the font first, then those for other scripts. */
+        readonly fonts: readonly string[]
         readonly fontSize: number
         readonly paper: string
         /** Page margins, in centimetres. */
@@ -219,6 +221,7 @@ export function renderModel(cv: Cv, today: Date = new Date()): RenderModel {
         design: {
             accent: cv.design.accent,
             font: fontById(cv.design.font).family,
+            fonts: fontFamilies(cv.design.font),
             fontSize: cv.design.fontSize,
             paper: cv.design.paper,
             margin: MARGINS[cv.design.margins],

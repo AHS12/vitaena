@@ -50,7 +50,7 @@
 }
 
 #set document(title: if b.name != "" { b.name + " – Biodata" } else { "Biodata" }, author: b.name)
-#set text(font: (b.design.font, "Inter"), size: b.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(20))
+#set text(font: b.design.fonts, size: b.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(20))
 #set par(leading: 0.6em, spacing: gap(0.7), justify: false)
 #set list(marker: [•], indent: 0.2em, body-indent: 0.6em, spacing: gap(0.45))
 #set page(

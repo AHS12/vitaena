@@ -32,6 +32,12 @@ importers:
       '@expo-google-fonts/lato':
         specifier: 0.4.1
         version: 0.4.1
+      '@expo-google-fonts/noto-sans-bengali':
+        specifier: 0.4.4
+        version: 0.4.4
+      '@expo-google-fonts/noto-serif-bengali':
+        specifier: 0.4.4
+        version: 0.4.4
       '@expo-google-fonts/source-serif-4':
         specifier: 0.4.2
         version: 0.4.2
@@ -564,6 +570,12 @@ packages:
 
   '@expo-google-fonts/lato@0.4.1':
     resolution: {integrity: sha512-U2g1sOBFSNgmxhh/Ywgyi7Hx6T3UielX2nmZuP55wqndrIEyNX3HeUQIhhQDe2vZ+nvZI0Z2vTcVjmOn/BM9ow==}
+
+  '@expo-google-fonts/noto-sans-bengali@0.4.4':
+    resolution: {integrity: sha512-Ya58tLTEdP4P5EF3ZXTM829/g57mbfW8OrD16MMZr2sC3nIKItl/3J9tZlk1nrtqfFGzIgxb+zt/hLjAaTAQgQ==}
+
+  '@expo-google-fonts/noto-serif-bengali@0.4.4':
+    resolution: {integrity: sha512-NfoAaM38zg3ziaKJDfOEAg92WIUM8qZYsauSt4O9ySgzmJclPMuIb2BCqOLHrbiegbI8tDPw7lfsQUc/L3ZYgA==}
 
   '@expo-google-fonts/source-serif-4@0.4.2':
     resolution: {integrity: sha512-7X2w5KT0n/pxRXr5Ogv6W35D004IbCXUouTCr9VCh9bSlSWbryyvk8/ovXNOaJLOJV8QeIDnX0hIppgH0UZ8sA==}
@@ -2672,6 +2684,10 @@ snapshots:
   '@expo-google-fonts/inter@0.4.1': {}
 
   '@expo-google-fonts/lato@0.4.1': {}
+
+  '@expo-google-fonts/noto-sans-bengali@0.4.4': {}
+
+  '@expo-google-fonts/noto-serif-bengali@0.4.4': {}
 
   '@expo-google-fonts/source-serif-4@0.4.2': {}
 
