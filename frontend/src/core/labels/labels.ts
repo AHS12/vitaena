@@ -125,6 +125,8 @@ export interface LanguageInfo {
     readonly yearFirst?: {readonly year: string; readonly day: string; readonly spaced: boolean}
     /** Between the two dates of a range, when it isn't " – ". */
     readonly to?: string
+    /** Between items in a list, when it isn't ", ": "، " in Arabic letters, "、" in Japanese. */
+    readonly comma?: string
 }
 
 export const LANGUAGES: readonly LanguageInfo[] = [
@@ -132,13 +134,13 @@ export const LANGUAGES: readonly LanguageInfo[] = [
     {id: 'bn', name: 'Bangla', own: 'বাংলা', lang: 'bn', latin: false, digits: '০১২৩৪৫৬৭৮৯', script: 'bengali'},
     {id: 'hi', name: 'Hindi', own: 'हिन्दी', lang: 'hi', latin: false, digits: '०१२३४५६७८९', script: 'devanagari'},
     {id: 'mr', name: 'Marathi', own: 'मराठी', lang: 'mr', latin: false, digits: '०१२३४५६७८९', script: 'devanagari'},
-    {id: 'ur', name: 'Urdu', own: 'اردو', lang: 'ur', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic'},
-    {id: 'ar', name: 'Arabic', own: 'العربية', lang: 'ar', latin: false, digits: '٠١٢٣٤٥٦٧٨٩', rtl: true, script: 'arabic'},
-    {id: 'ja', name: 'Japanese', own: '日本語', lang: 'ja', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}, to: '～'},
-    {id: 'zh-Hans', name: 'Chinese, simplified', own: '简体中文', lang: 'zh', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}},
-    {id: 'zh-Hant', name: 'Chinese, traditional', own: '繁體中文', lang: 'zh', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}},
+    {id: 'ur', name: 'Urdu', own: 'اردو', lang: 'ur', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic', comma: '، '},
+    {id: 'ar', name: 'Arabic', own: 'العربية', lang: 'ar', latin: false, digits: '٠١٢٣٤٥٦٧٨٩', rtl: true, script: 'arabic', comma: '، '},
+    {id: 'ja', name: 'Japanese', own: '日本語', lang: 'ja', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}, to: '～', comma: '、'},
+    {id: 'zh-Hans', name: 'Chinese, simplified', own: '简体中文', lang: 'zh', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}, comma: '，'},
+    {id: 'zh-Hant', name: 'Chinese, traditional', own: '繁體中文', lang: 'zh', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}, comma: '，'},
     {id: 'ko', name: 'Korean', own: '한국어', lang: 'ko', latin: false, digits: null, script: 'hangul', yearFirst: {year: '년', day: '일', spaced: true}, to: ' ~ '},
-    {id: 'fa', name: 'Persian', own: 'فارسی', lang: 'fa', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic'},
+    {id: 'fa', name: 'Persian', own: 'فارسی', lang: 'fa', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic', comma: '، '},
 ]
 
 const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur, ar, fa, ja, 'zh-Hans': zhHans, 'zh-Hant': zhHant, ko}
@@ -216,6 +218,9 @@ export function dayMonthYear(language: string, day: number, month: number, year:
 
     return first ? [`${year}${first.year}`, name, `${day}${first.day}`].join(first.spaced ? ' ' : '') : `${day} ${name} ${year}`
 }
+
+/** The comma between items in a list, in the language's own. */
+export const commaIn = (language: string): string => languageInfo(language).comma ?? ', '
 
 /** Two dates as a range: "Jan 2020 – Present", "2020年1月～現在". */
 export const dateRange = (language: string, start: string, end: string): string => `${start}${languageInfo(language).to ?? ' – '}${end}`

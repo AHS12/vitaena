@@ -6,7 +6,7 @@
  * way; the family is a biodata's own.
  */
 
-import {labelsFor} from '../core/labels/labels'
+import {commaIn, labelsFor} from '../core/labels/labels'
 import {fontById, fontFamilies} from '../cv/fonts'
 import {MARGINS, pageLanguage, sectionBody, SPACING, type RenderDetail, type SectionBody} from '../cv/render-model'
 import type {Biodata} from './biodata'
@@ -39,7 +39,7 @@ export interface BiodataRenderModel {
     readonly fullPhoto: string
     readonly sections: readonly BiodataRenderSection[]
     /** Words a template writes itself, in the biodata's language: a family table's column headings. */
-    readonly words: {readonly relation: string; readonly name: string; readonly work: string; readonly note: string}
+    readonly words: {readonly relation: string; readonly name: string; readonly work: string; readonly note: string; readonly comma: string}
     readonly design: {
         readonly accent: string
         /** The font's family name, as Typst knows it. */
@@ -98,7 +98,7 @@ export function biodataRenderModel(biodata: Biodata, today: Date = new Date()): 
         photo: shown(person.photo, person.hide.includes('photo')),
         fullPhoto: shown(person.fullPhoto, person.hide.includes('fullPhoto')),
         sections,
-        words: {relation: labels.rows.relation, name: labels.page.name, work: labels.page.work, note: labels.page.note},
+        words: {relation: labels.rows.relation, name: labels.page.name, work: labels.page.work, note: labels.page.note, comma: commaIn(design.language)},
         design: {
             accent: design.accent,
             font: fontById(design.font).family,

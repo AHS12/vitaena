@@ -301,3 +301,22 @@ describe('a document in Korean', () => {
         expect(languageOfHeadings(['요약', '경력', '학력'])).toBe('ko')
     })
 })
+
+describe('the comma between items', () => {
+    it('is each language’s own, in skills and between a job and its employer', () => {
+        const withSkills = (language: 'en' | 'ar' | 'ja' | 'zh-Hans') => {
+            const cv = emptyCv(language)
+            const skills = {...cv.sections[3], kind: 'tags' as const, groups: [{id: 'g', visible: true, label: '', items: ['Go', 'SQL'], showLevels: false, levels: []}]}
+
+            return renderModel({...cv, sections: [skills]})
+        }
+        const items = (language: 'en' | 'ar' | 'ja' | 'zh-Hans') => {
+            const section = withSkills(language).sections[0]
+
+            return section.kind === 'tags' ? section.groups[0].items : ''
+        }
+
+        expect([items('en'), items('ar'), items('ja'), items('zh-Hans')]).toEqual(['Go, SQL', 'Go، SQL', 'Go、SQL', 'Go，SQL'])
+        expect(withSkills('ar').words.comma).toBe('، ')
+    })
+})

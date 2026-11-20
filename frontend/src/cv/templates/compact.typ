@@ -117,7 +117,7 @@
   let meta = (e.location, e.dates).filter(x => x != "")
 
   block(sticky: true, above: gap(0.7), below: gap(0.3), {
-    head.join([, ])
+    head.join(cv.words.comma)
     if meta.len() > 0 {
       text(fill: muted)[ — #meta.join(" | ")]
     }

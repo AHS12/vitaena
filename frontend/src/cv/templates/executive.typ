@@ -131,7 +131,7 @@
 
   block(sticky: true, above: gap(1), below: gap(0.4), {
     if e.title != "" { text(weight: "bold", e.title) }
-    if e.title != "" and e.org != "" [, ]
+    if e.title != "" and e.org != "" { cv.words.comma }
     if e.org != "" { emph(e.org) }
     if meta.len() > 0 {
       linebreak()

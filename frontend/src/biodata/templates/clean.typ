@@ -101,7 +101,7 @@
 
 #let entry(e) = block(above: gap(0.8), below: gap(0.4), breakable: false, {
   let head = (e.title, e.org).filter(x => x != "")
-  strong(head.join([, ]))
+  strong(head.join(b.words.comma))
   let meta = (e.location, e.dates).filter(x => x != "")
   if meta.len() > 0 {
     linebreak()

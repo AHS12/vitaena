@@ -136,7 +136,7 @@
         text(size: 0.88em, weight: "bold", fill: accent, e.dates)
         linebreak()
       }
-      head.join([, ])
+      head.join(cv.words.comma)
       if e.location != "" {
         linebreak()
         text(size: 0.9em, fill: muted, e.location)

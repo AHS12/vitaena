@@ -12,7 +12,7 @@ import {ENGLISH, type Section, type Writing} from './sections'
 import {fontById, fontFamilies} from './fonts'
 import {parseRich, type Span} from './rich'
 import {levelOfWords, splitItem} from './levels'
-import {dateRange, labelsFor, languageInfo, monthAndYear} from '../core/labels/labels'
+import {commaIn, dateRange, labelsFor, languageInfo, monthAndYear} from '../core/labels/labels'
 import {detailValue, numbersIn} from './details'
 
 export interface RenderEntry {
@@ -74,7 +74,8 @@ export interface RenderModel {
     readonly photo: string
     readonly sections: readonly RenderSection[]
     /** Words a template writes itself, in the CV's language. */
-    readonly words: {readonly contact: string}
+    /** Words the template writes itself: the Contact heading, and the comma between a job and its employer. */
+    readonly words: {readonly contact: string; readonly comma: string}
     readonly design: {
         readonly accent: string
         /** The font's family name, as Typst knows it. */
@@ -203,7 +204,7 @@ export function sectionBody(section: Section, today: Date, writing: Writing = EN
                 // A level set by hand wins; else one the item's own words name.
                 const list = kept.map((item) => tagItem(item.text, group.showLevels ? item.level || undefined : 0))
 
-                return {label: group.label.trim(), items: items.join(', '), levels: group.showLevels, list}
+                return {label: group.label.trim(), items: items.join(commaIn(writing.language)), levels: group.showLevels, list}
             })
             .filter((group) => group.items)
 
@@ -236,7 +237,7 @@ export function renderModel(cv: Cv, today: Date = new Date()): RenderModel {
         contact,
         photo: person.photo && !person.hide.includes('photo') ? person.photo : '',
         sections,
-        words: {contact: labelsFor(cv.design.language).sections.contact},
+        words: {contact: labelsFor(cv.design.language).sections.contact, comma: commaIn(cv.design.language)},
         design: {
             accent: cv.design.accent,
             font: fontById(cv.design.font).family,

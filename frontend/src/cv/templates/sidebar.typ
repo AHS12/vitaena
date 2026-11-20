@@ -122,7 +122,7 @@
   let soft = if side { white.transparentize(25%) } else { muted }
 
   block(sticky: true, above: gap(0.9), below: gap(0.35), {
-    head.join(if side { linebreak() } else [, ])
+    head.join(if side { linebreak() } else { cv.words.comma })
     if meta.len() > 0 {
       linebreak()
       text(size: 0.88em, fill: soft, if side { meta.join(linebreak()) } else { meta.join("  |  ") })

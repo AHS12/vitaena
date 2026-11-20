@@ -140,9 +140,9 @@
     box(text(size: 0.9em, fill: muted, e.dates)),
     {
       block(sticky: true, below: gap(0.3), {
-        head.join([, ])
+        head.join(cv.words.comma)
         if e.location != "" {
-          [, ]
+          cv.words.comma
           text(fill: muted, e.location)
         }
       })

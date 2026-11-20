@@ -140,7 +140,7 @@
 
   // The heading lines stay with what follows them, but a long entry may still break.
   block(sticky: true, above: gap(0.9), below: gap(0.35), {
-    head.join([, ])
+    head.join(cv.words.comma)
     if meta.len() > 0 {
       linebreak()
       text(size: 0.92em, fill: muted, meta.join("  |  "))
