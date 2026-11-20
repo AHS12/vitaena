@@ -46,7 +46,7 @@ func main() {
 	// Fonts the person adds sit beside their documents, so backups carry them.
 	addedFonts := fonts.New(library.LibraryFolder)
 	// Fonts for Chinese, Japanese and Korean are downloaded when someone needs them.
-	fontPacks := fontpacks.New(shell)
+	fontPacks := fontpacks.New(shell.DataFolder, shell.Emit)
 
 	// Each optional feature is a service of its own, in its own folder. Leaving
 	// one out means deleting its lines here and its folders: see
