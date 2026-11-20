@@ -29,7 +29,7 @@
   <a href="https://github.com/AHS12/vitaena/actions/workflows/ci.yml">
     <img src="https://img.shields.io/github/check-runs/AHS12/vitaena/dev?nameFilter=Linux%20%2F%20build&label=Linux%20build" alt="Linux build">
   </a>
-  <a href="LICENSE">
+  <a href="LICENSE.md">
     <img src="https://img.shields.io/github/license/AHS12/vitaena" alt="MIT licence">
   </a>
 </p>
@@ -142,4 +142,4 @@ arranged.
 
 ## Licence
 
-[MIT](LICENSE). Every font, bundled or downloaded, is under the [SIL Open Font License 1.1](https://openfontlicense.org).
+[MIT](LICENSE.md). Every font, bundled or downloaded, is under the [SIL Open Font License 1.1](https://openfontlicense.org).
