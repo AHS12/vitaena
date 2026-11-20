@@ -47,7 +47,7 @@
 </p>
 
 <p align="center">
-  <a href="https://vitaena.ahs12.xyz/#assistants">
+  <a href="https://vitaena.ahs12.xyz/assistants/">
     <img src="https://img.shields.io/badge/AI%20assistants-MCP-1f6b68?logo=modelcontextprotocol&logoColor=white" alt="Works with AI assistants over MCP">
   </a>
   <img src="https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white" alt="Go">
@@ -62,6 +62,8 @@
   <a href="https://github.com/AHS12/vitaena/releases/latest">Download</a> ·
   <a href="https://vitaena.ahs12.xyz/templates/">Templates</a> ·
   <a href="https://vitaena.ahs12.xyz/biodata/">Biodata</a> ·
+  <a href="https://vitaena.ahs12.xyz/languages/">Languages</a> ·
+  <a href="https://vitaena.ahs12.xyz/assistants/">AI assistants</a> ·
   <a href="CHANGELOG.md">What's new</a>
 </p>
 
@@ -83,7 +85,8 @@ no watermark, and nothing leaves it unless you back it up to storage of your own
 - **Your AI assistant,** such as Claude, Copilot or a model on your own computer, can
   work on your documents over MCP, when you allow it in Settings.
 
-Everything else is on the [website](https://vitaena.ahs12.xyz).
+Everything else is on the [website](https://vitaena.ahs12.xyz), with pages for
+[languages](https://vitaena.ahs12.xyz/languages/) and [AI assistants](https://vitaena.ahs12.xyz/assistants/).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screens/home-dark.png">

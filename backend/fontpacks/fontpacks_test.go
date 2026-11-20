@@ -8,11 +8,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"vitaena/backend"
 )
 
 func fontOf(name string, data []byte) Font {
@@ -56,16 +55,11 @@ func serviceWith(t *testing.T, pack Pack, body []byte) (*Service, string, *[]Pro
 
 	data := t.TempDir()
 	progress := &[]Progress{}
-	shell := backend.Shell{
-		DataFolder: func() (string, error) { return data, nil },
-		Emit: func(name string, values ...any) {
-			if name == ProgressEvent {
-				*progress = append(*progress, values[0].(Progress))
-			}
-		},
-	}
-
-	service := New(shell)
+	service := New(func() (string, error) { return data, nil }, func(name string, values ...any) {
+		if name == ProgressEvent {
+			*progress = append(*progress, values[0].(Progress))
+		}
+	})
 	service.manifest = Manifest{Release: "fonts-test", Packs: []Pack{pack}}
 	service.baseURL = server.URL + "/"
 
@@ -232,5 +226,17 @@ func TestTheFontsReleaseIsAPreReleaseSoTheUpdateCheckNeverSeesIt(t *testing.T) {
 
 	if !strings.Contains(string(release), "startsWith(github.event.release.tag_name, 'v')") {
 		t.Error("release.yml would build installers for the fonts release")
+	}
+}
+
+func TestThePackToolBuildsWithoutTheDesktopApp(t *testing.T) {
+	// The Font Packs workflow runs it on a bare Linux runner, without the libraries Wails needs there.
+	out, err := exec.Command("go", "list", "-deps", "vitaena/tools/fontpacks").Output()
+	if err != nil {
+		t.Skip("go list isn't available:", err)
+	}
+
+	if strings.Contains(string(out), "wailsapp/wails") {
+		t.Error("tools/fontpacks depends on Wails, so the Font Packs workflow can't build it on Linux")
 	}
 }

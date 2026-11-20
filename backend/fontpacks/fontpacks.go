@@ -29,7 +29,6 @@ import (
 	"time"
 
 	"vitaena/appconfig"
-	"vitaena/backend"
 )
 
 // FolderName is where packs are kept, inside the app's own folder: one folder each.
@@ -120,8 +119,12 @@ type Progress struct {
 
 // Service keeps the downloaded packs.
 type Service struct {
-	shell    backend.Shell
-	manifest Manifest
+	// dataFolder is the app's own folder, and emit tells the interface something
+	// happened. They're plain functions, not the app's Shell, so tools/fontpacks can
+	// build this package without the desktop app and the libraries it needs.
+	dataFolder func() (string, error)
+	emit       func(name string, data ...any)
+	manifest   Manifest
 	// baseURL is where the packs are, ending in a slash. Tests point it at their own server.
 	baseURL string
 	// localDir, when set, holds the packs instead, as tools/fontpacks writes them.
@@ -132,21 +135,22 @@ type Service struct {
 }
 
 // New keeps packs in the app's own folder and downloads them from its GitHub release.
-func New(shell backend.Shell) *Service {
+func New(dataFolder func() (string, error), emit func(name string, data ...any)) *Service {
 	manifest := Packs()
 
 	return &Service{
-		shell:    shell,
-		manifest: manifest,
-		baseURL:  "https://github.com/" + appconfig.Current().Repository + "/releases/download/" + manifest.Release + "/",
-		client:   &http.Client{Timeout: 30 * time.Minute},
-		busy:     map[string]bool{},
-		localDir: os.Getenv(LocalEnv),
+		dataFolder: dataFolder,
+		emit:       emit,
+		manifest:   manifest,
+		baseURL:    "https://github.com/" + appconfig.Current().Repository + "/releases/download/" + manifest.Release + "/",
+		client:     &http.Client{Timeout: 30 * time.Minute},
+		busy:       map[string]bool{},
+		localDir:   os.Getenv(LocalEnv),
 	}
 }
 
 func (s *Service) folder() (string, error) {
-	data, err := s.shell.DataFolder()
+	data, err := s.dataFolder()
 	if err != nil {
 		return "", err
 	}
@@ -237,7 +241,7 @@ func (s *Service) DownloadFontPack(id string) error {
 		return fmt.Errorf("cannot keep the downloaded fonts: %w", err)
 	}
 
-	s.shell.Emit(ProgressEvent, Progress{ID: id, Fraction: 1})
+	s.emit(ProgressEvent, Progress{ID: id, Fraction: 1})
 
 	return nil
 }
@@ -281,7 +285,7 @@ func (s *Service) fetch(pack Pack, file string) error {
 
 	reader := &progressReader{reader: io.LimitReader(response.Body, limit+1), total: total, report: func(fraction float64) {
 		// The last step is unpacking, so the bar stops short of full until it's done.
-		s.shell.Emit(ProgressEvent, Progress{ID: pack.ID, Fraction: fraction * 0.95})
+		s.emit(ProgressEvent, Progress{ID: pack.ID, Fraction: fraction * 0.95})
 	}}
 
 	written, err := io.Copy(out, reader)
@@ -316,7 +320,7 @@ func (s *Service) copyLocal(pack Pack, file string) error {
 	}
 
 	reader := &progressReader{reader: source, total: info.Size(), report: func(fraction float64) {
-		s.shell.Emit(ProgressEvent, Progress{ID: pack.ID, Fraction: fraction * 0.95})
+		s.emit(ProgressEvent, Progress{ID: pack.ID, Fraction: fraction * 0.95})
 	}}
 
 	if _, err := io.Copy(out, reader); err != nil {
