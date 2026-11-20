@@ -112,23 +112,29 @@ func IsKeptFile(name string) bool {
 	return checkID(strings.TrimSuffix(name, InfoSuffix)) == nil
 }
 
+// fileName is the last part of a path, split at either slash: the interface may send a
+// Windows path, and filepath.Base splits only at the running system's own.
+func fileName(path string) string {
+	return path[strings.LastIndexAny(path, `/\`)+1:]
+}
+
 // AddFont keeps a font file and what the interface read from it, and returns it.
 func (s *Service) AddFont(name string, data []byte, info Info) (FontFile, error) {
 	ext := extensionOf(name)
 	if ext == "" {
-		return FontFile{}, fmt.Errorf("%s isn't a font file Vitaena reads. Add the .ttf or .otf file", filepath.Base(name))
+		return FontFile{}, fmt.Errorf("%s isn't a font file Vitaena reads. Add the .ttf or .otf file", fileName(name))
 	}
 
 	if len(data) == 0 {
-		return FontFile{}, fmt.Errorf("%s is empty", filepath.Base(name))
+		return FontFile{}, fmt.Errorf("%s is empty", fileName(name))
 	}
 
 	if len(data) > MaxBytes {
-		return FontFile{}, fmt.Errorf("%s is larger than %d MB", filepath.Base(name), MaxBytes>>20)
+		return FontFile{}, fmt.Errorf("%s is larger than %d MB", fileName(name), MaxBytes>>20)
 	}
 
 	if strings.TrimSpace(info.Family) == "" {
-		return FontFile{}, fmt.Errorf("%s has no family name inside it, so it can't be chosen", filepath.Base(name))
+		return FontFile{}, fmt.Errorf("%s has no family name inside it, so it can't be chosen", fileName(name))
 	}
 
 	sum := sha256.Sum256(data)
@@ -143,14 +149,14 @@ func (s *Service) AddFont(name string, data []byte, info Info) (FontFile, error)
 	}
 
 	if err := fsutil.WriteAtomic(filepath.Join(dir, id), data); err != nil {
-		return FontFile{}, fmt.Errorf("cannot keep %s: %w", filepath.Base(name), err)
+		return FontFile{}, fmt.Errorf("cannot keep %s: %w", fileName(name), err)
 	}
 
-	if err := writeInfo(dir, id, stored{Name: filepath.Base(name), Info: info}); err != nil {
+	if err := writeInfo(dir, id, stored{Name: fileName(name), Info: info}); err != nil {
 		return FontFile{}, err
 	}
 
-	return FontFile{ID: id, Name: filepath.Base(name), Size: int64(len(data)), Info: info, Known: true}, nil
+	return FontFile{ID: id, Name: fileName(name), Size: int64(len(data)), Info: info, Known: true}, nil
 }
 
 func writeInfo(dir string, id string, about stored) error {
