@@ -51,7 +51,7 @@ function loadFaces() {
     facesLoaded = true
 
     // CJK fonts are megabytes each, and offered only as Matching, so they aren't shown.
-    for (const font of [...CV_FONTS, ...SCRIPT_FONTS.filter((font) => font.script !== 'cjk')]) {
+    for (const font of [...CV_FONTS, ...SCRIPT_FONTS.filter((font) => font.script !== 'cjk' && font.script !== 'hangul')]) {
         const face = new FontFace(`vitaena-${font.id}`, `url(${fontUrl(font.files[0])})`)
 
         void face.load().then((loaded) => document.fonts.add(loaded)).catch(() => undefined)
@@ -198,9 +198,9 @@ function FontMessage({text, ok}: {text: string; ok: boolean}) {
 
 /** A line of Bangla to show each Bangla font in. */
 /** A few words in each script, to show a font for it in. */
-const SAMPLES: Readonly<Record<Script, string>> = {bengali: 'আমার নাম', devanagari: 'मेरा नाम', arabic: 'اسمي', cjk: '私の名前'}
+const SAMPLES: Readonly<Record<Script, string>> = {bengali: 'আমার নাম', devanagari: 'मेरा नाम', arabic: 'اسمي', cjk: '私の名前', hangul: '내 이름'}
 
-const SCRIPT_TITLES: Readonly<Record<Script, string>> = {bengali: 'Bangla', devanagari: 'Hindi', arabic: 'Arabic', cjk: 'Chinese and Japanese'}
+const SCRIPT_TITLES: Readonly<Record<Script, string>> = {bengali: 'Bangla', devanagari: 'Hindi', arabic: 'Arabic', cjk: 'Chinese and Japanese', hangul: 'Korean'}
 
 /**
  * The script whose font Style offers a choice for: the document language's own, else the

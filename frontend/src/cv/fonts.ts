@@ -21,7 +21,7 @@ export interface CvFont {
 }
 
 /** The writing systems the bundled fonts cover, beyond the Latin letters every font has. */
-export type Script = 'bengali' | 'devanagari' | 'arabic' | 'cjk'
+export type Script = 'bengali' | 'devanagari' | 'arabic' | 'cjk' | 'hangul'
 
 /** A font for a script other than Latin, used where the chosen font has no such letters. */
 export interface ScriptFont extends CvFont {
@@ -75,6 +75,8 @@ export const SCRIPT_FONTS: readonly ScriptFont[] = [
     {id: 'noto-sans-sc', family: 'Noto Sans SC', label: 'Noto Sans SC', kind: 'Sans serif', script: 'cjk', fallback: true, files: faces('noto-sans-sc', 'NotoSansSC', ['400Regular', '700Bold'])},
     {id: 'noto-sans-tc', family: 'Noto Sans TC', label: 'Noto Sans TC', kind: 'Sans serif', script: 'cjk', fallback: true, languages: ['zh-Hant'], files: faces('noto-sans-tc', 'NotoSansTC', ['400Regular', '700Bold'])},
     {id: 'noto-sans-jp', family: 'Noto Sans JP', label: 'Noto Sans JP', kind: 'Sans serif', script: 'cjk', fallback: true, languages: ['ja'], files: faces('noto-sans-jp', 'NotoSansJP', ['400Regular', '700Bold'])},
+    // Hangul, which the Chinese and Japanese fonts haven't.
+    {id: 'noto-sans-kr', family: 'Noto Sans KR', label: 'Noto Sans KR', kind: 'Sans serif', script: 'hangul', fallback: true, files: faces('noto-sans-kr', 'NotoSansKR', ['400Regular', '700Bold'])},
     {id: 'amiri', family: 'Amiri', label: 'Amiri', kind: 'Serif', script: 'arabic', fallback: false, files: faces('amiri', 'Amiri')},
 ]
 
@@ -84,6 +86,7 @@ const SCRIPT_LETTERS: Readonly<Record<Script, RegExp>> = {
     devanagari: /\p{Script=Devanagari}/u,
     arabic: /\p{Script=Arabic}/u,
     cjk: /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u,
+    hangul: /\p{Script=Hangul}/u,
 }
 
 /**

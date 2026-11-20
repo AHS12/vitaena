@@ -13,12 +13,13 @@ import {en} from './en'
 import {fa} from './fa'
 import {hi} from './hi'
 import {ja} from './ja'
+import {ko} from './ko'
 import {mr} from './mr'
 import {ur} from './ur'
 import {zhHans} from './zh-hans'
 import {zhHant} from './zh-hant'
 
-export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur', 'ar', 'fa', 'ja', 'zh-Hans', 'zh-Hant'] as const
+export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur', 'ar', 'fa', 'ja', 'zh-Hans', 'zh-Hant', 'ko'] as const
 
 export type DocumentLanguage = (typeof LANGUAGE_IDS)[number]
 
@@ -116,7 +117,7 @@ export interface LanguageInfo {
     /** Written right to left. */
     readonly rtl?: boolean
     /** The letters it's written in, when they aren't Latin: which script font Style offers. */
-    readonly script?: 'bengali' | 'devanagari' | 'arabic' | 'cjk'
+    readonly script?: 'bengali' | 'devanagari' | 'arabic' | 'cjk' | 'hangul'
     /**
      * Dates written year first, as East Asian languages write them: the word after the
      * year ("年") and after the day ("日"), and whether the parts are spaced.
@@ -136,10 +137,11 @@ export const LANGUAGES: readonly LanguageInfo[] = [
     {id: 'ja', name: 'Japanese', own: '日本語', lang: 'ja', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}, to: '～'},
     {id: 'zh-Hans', name: 'Chinese, simplified', own: '简体中文', lang: 'zh', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}},
     {id: 'zh-Hant', name: 'Chinese, traditional', own: '繁體中文', lang: 'zh', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}},
+    {id: 'ko', name: 'Korean', own: '한국어', lang: 'ko', latin: false, digits: null, script: 'hangul', yearFirst: {year: '년', day: '일', spaced: true}, to: ' ~ '},
     {id: 'fa', name: 'Persian', own: 'فارسی', lang: 'fa', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic'},
 ]
 
-const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur, ar, fa, ja, 'zh-Hans': zhHans, 'zh-Hant': zhHant}
+const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur, ar, fa, ja, 'zh-Hans': zhHans, 'zh-Hant': zhHant, ko}
 
 export const isLanguage = (value: string): value is DocumentLanguage => value in TABLES
 

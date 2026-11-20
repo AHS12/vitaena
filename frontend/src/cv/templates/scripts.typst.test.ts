@@ -282,3 +282,32 @@ describe('Chinese in every template', () => {
         }
     }, 120_000)
 })
+
+describe('Korean in every template', () => {
+    it.each(CV_TEMPLATES.map((template) => template.id))('sets a Korean CV in Noto Sans KR in %s, and its text reads back', async (template) => {
+        const cv = sampleCv('ko')
+        const pdf = await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel({...cv, person: {...cv.person, name: '김민준'}}))
+        const text = await read(pdf)
+
+        expect(text).toContain('김민준')
+        expect(text).toContain('경력')
+        expect(text).toContain('2022년3월~현재')
+        expect(embeddedFonts(pdf).some((font) => font.startsWith('NotoSansKR'))).toBe(true)
+    }, 60_000)
+
+    it.each(BIODATA_TEMPLATES.map((template) => template.id))('lays out the Korean biodata in %s', async (template) => {
+        const biodata = sampleBiodata('ko')
+        const pdf = await templatePdf(compiler, new URL(`../../biodata/templates/${template}.typ`, import.meta.url), '/biodata.json', biodataRenderModel({...biodata, person: {...biodata.person, name: '김민준'}}))
+
+        expect(await read(pdf)).toContain('생년월일')
+    }, 60_000)
+
+    it('comes back through import as a Korean CV', async () => {
+        const cv = sampleCv('ko')
+        const pdf = await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel(cv))
+        const {cv: imported} = cvFromLayout(await readPdfLayout(pdf))
+
+        expect(imported.design.language).toBe('ko')
+        expect(imported.sections.map((section) => section.title)).toEqual(cv.sections.map((section) => section.title))
+    }, 60_000)
+})

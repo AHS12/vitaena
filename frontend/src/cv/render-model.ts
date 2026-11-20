@@ -87,7 +87,7 @@ export interface RenderModel {
         readonly latin: boolean
         /** Written right to left, as Urdu is. */
         readonly rtl: boolean
-        /** Written in Chinese characters or kana, which read better with looser lines. */
+        /** Written in Chinese characters, kana or Hangul, which read better with looser lines. */
         readonly cjk: boolean
         readonly fontSize: number
         readonly paper: string
@@ -105,7 +105,7 @@ export interface RenderModel {
 export const pageLanguage = (language: string): {lang: string; latin: boolean; rtl: boolean; cjk: boolean} => {
     const info = languageInfo(language)
 
-    return {lang: info.lang, latin: info.latin, rtl: info.rtl ?? false, cjk: info.script === 'cjk'}
+    return {lang: info.lang, latin: info.latin, rtl: info.rtl ?? false, cjk: info.script === 'cjk' || info.script === 'hangul'}
 }
 
 /** Page margins in centimetres, and room between blocks, for the design's choices. */
@@ -148,9 +148,9 @@ export function tagItem(text: string, level?: number): RenderTagItem {
 }
 
 /** Sections that belong beside the main story in a two-column template. */
-const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training|দক্ষতা|ভাষা|আগ্রহ|শখ|প্রকল্প|পুরস্কার|স্বেচ্ছাসেবা|সনদ|প্রশিক্ষণ|कौशल|भाषा|रुचि|शौक|परियोजना|पुरस्कार|प्रमाणपत्र|स्वयंसेवा|छंद|आवडी|प्रकल्प|مہارت|زبان|دلچسپ|مشاغل|منصوب|اعزاز|اسناد|رضاکار|مهارات|لغات|هوايات|اهتمامات|مشاريع|جوائز|شهادات|دورات|تطوع|مهارت|علایق|سرگرمی|پروژه|افتخارات|گواهینامه|داوطلب|スキル|語学|趣味|興味|プロジェクト|資格|受賞|ボランティア|技能|语言|語言|兴趣|興趣|爱好|嗜好|项目|專案|证书|證照|荣誉|榮譽|志愿|志工/i
+const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training|দক্ষতা|ভাষা|আগ্রহ|শখ|প্রকল্প|পুরস্কার|স্বেচ্ছাসেবা|সনদ|প্রশিক্ষণ|कौशल|भाषा|रुचि|शौक|परियोजना|पुरस्कार|प्रमाणपत्र|स्वयंसेवा|छंद|आवडी|प्रकल्प|مہارت|زبان|دلچسپ|مشاغل|منصوب|اعزاز|اسناد|رضاکار|مهارات|لغات|هوايات|اهتمامات|مشاريع|جوائز|شهادات|دورات|تطوع|مهارت|علایق|سرگرمی|پروژه|افتخارات|گواهینامه|داوطلب|スキル|語学|趣味|興味|プロジェクト|資格|受賞|ボランティア|技能|语言|語言|兴趣|興趣|爱好|嗜好|项目|專案|证书|證照|荣誉|榮譽|志愿|志工|기술|어학|취미|관심|프로젝트|자격|수상|봉사/i
 
-const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education|অভিজ্ঞতা|শিক্ষা|अनुभव|शिक्षा|शैक्षणिक|تجربہ|تعلیم|خبرة|خبرات|تعليم|مؤهلات|سوابق|تجربه|تحصیلات|職歴|職務経歴|学歴|工作经历|工作經歷|教育|学历|學歷/i.test(title)) ? 'side' : 'main')
+const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education|অভিজ্ঞতা|শিক্ষা|अनुभव|शिक्षा|शैक्षणिक|تجربہ|تعلیم|خبرة|خبرات|تعليم|مؤهلات|سوابق|تجربه|تحصیلات|職歴|職務経歴|学歴|工作经历|工作經歷|教育|学历|學歷|경력|학력/i.test(title)) ? 'side' : 'main')
 
 /**
  * A section as a template is given it: hidden parts left out, and null when nothing in

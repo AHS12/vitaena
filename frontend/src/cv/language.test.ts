@@ -72,7 +72,7 @@ describe('a document in Bangla', () => {
     it('gets the Bangla font chosen for it, after the main font', () => {
         const cv = sampleCv('bn')
 
-        expect(renderModel({...cv, design: {...cv.design, scriptFont: 'tiro-bangla'}}).design.fonts).toEqual(['Inter', 'Tiro Bangla', 'Noto Sans Devanagari', 'Noto Sans Arabic', 'Noto Sans SC'])
+        expect(renderModel({...cv, design: {...cv.design, scriptFont: 'tiro-bangla'}}).design.fonts).toEqual(['Inter', 'Tiro Bangla', 'Noto Sans Devanagari', 'Noto Sans Arabic', 'Noto Sans SC', 'Noto Sans KR'])
     })
 
     it('is told in Check that screening software looks for English headings', () => {
@@ -278,5 +278,26 @@ describe('a document in Chinese', () => {
         expect(languageOfHeadings(['个人简介', '工作经历', '教育背景'])).toBe('zh-Hans')
         expect(languageOfHeadings(['個人簡介', '工作經歷', '學歷'])).toBe('zh-Hant')
         expect(languageOfHeadings(['職務要約', '職務経歴', '学歴'])).toBe('ja')
+    })
+})
+
+describe('a document in Korean', () => {
+    it('starts with its headings in Korean, set in Noto Sans KR with looser lines', () => {
+        expect(emptyCv('ko').sections.map((section) => section.title)).toEqual(['요약', '경력', '학력', '보유 기술'])
+        expect(renderModel(emptyCv('ko')).design).toMatchObject({lang: 'ko', cjk: true})
+        expect(renderModel(emptyCv('ko')).design.fonts).toContain('Noto Sans KR')
+    })
+
+    it('writes dates year first, spaced, with ~ between them', () => {
+        expect(datesText({start: '2020-01', end: '', current: true}, {language: 'ko', digits: 'latin'})).toBe('2020년 1월 ~ 현재')
+        expect(detailValue({id: 'r', visible: true, label: '', kind: 'date', date: '1996-03-12', show: 'both'}, new Date(2026, 10, 15), {language: 'ko', digits: 'latin'})).toBe('1996년 3월 12일 (30세)')
+    })
+
+    it('is read back on import', () => {
+        expect(knownHeading('경력')).toBe('entries')
+        expect(findDates('2020년 1월 ~ 현재')).toMatchObject({start: '2020-01', current: true})
+        expect(findDates('2018.03 ~ 2020.02')).toMatchObject({start: '2018-03', end: '2020-02'})
+        expect(dayOf('1996년 3월 12일')).toBe('1996-03-12')
+        expect(languageOfHeadings(['요약', '경력', '학력'])).toBe('ko')
     })
 })

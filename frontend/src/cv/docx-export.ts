@@ -24,8 +24,8 @@ export function wordFonts(design: {readonly font: string; readonly fonts: readon
 
     const own = added ?? bundled ?? design.font
 
-    // Word sets Chinese and Japanese in its East Asian font, and other scripts in its complex-script one.
-    return script === 'cjk' ? {ascii: design.font, hAnsi: design.font, eastAsia: own} : {ascii: design.font, hAnsi: design.font, cs: own}
+    // Word sets Chinese, Japanese and Korean in its East Asian font, and other scripts in its complex-script one.
+    return script === 'cjk' || script === 'hangul' ? {ascii: design.font, hAnsi: design.font, eastAsia: own} : {ascii: design.font, hAnsi: design.font, cs: own}
 }
 
 /** A right-to-left document's paragraphs run right to left in Word too. */

@@ -211,8 +211,8 @@ const ARABIC_LETTERS = /[ةيكى]|(?:^|\s)ال/u
  * Arabic letters are told apart by the letters only one of them uses. Marathi can't be
  * told from Hindi by its letters alone.
  */
-export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi' | 'ur' | 'ar' | 'fa' | 'ja' | 'zh-Hans' | 'zh-Hant' {
-    const count = (script: 'bengali' | 'devanagari' | 'arabic' | 'cjk') => titles.filter((title) => scriptsIn(title).includes(script)).length
+export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi' | 'ur' | 'ar' | 'fa' | 'ja' | 'zh-Hans' | 'zh-Hant' | 'ko' {
+    const count = (script: 'bengali' | 'devanagari' | 'arabic' | 'cjk' | 'hangul') => titles.filter((title) => scriptsIn(title).includes(script)).length
     const most = (found: number) => found > 0 && found * 2 >= titles.length
 
     if (most(count('arabic'))) {
@@ -227,7 +227,7 @@ export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi
         return JAPANESE.test(joined) ? 'ja' : (joined.match(TRADITIONAL)?.length ?? 0) > (joined.match(SIMPLIFIED)?.length ?? 0) ? 'zh-Hant' : 'zh-Hans'
     }
 
-    return most(count('bengali')) ? 'bn' : most(count('devanagari')) ? 'hi' : 'en'
+    return most(count('hangul')) ? 'ko' : most(count('bengali')) ? 'bn' : most(count('devanagari')) ? 'hi' : 'en'
 }
 
 export function textOf(lines: readonly PdfLine[]): string {
