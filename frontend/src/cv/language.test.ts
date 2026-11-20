@@ -72,7 +72,7 @@ describe('a document in Bangla', () => {
     it('gets the Bangla font chosen for it, after the main font', () => {
         const cv = sampleCv('bn')
 
-        expect(renderModel({...cv, design: {...cv.design, scriptFont: 'tiro-bangla'}}).design.fonts).toEqual(['Inter', 'Tiro Bangla', 'Noto Sans Devanagari', 'Noto Sans Arabic'])
+        expect(renderModel({...cv, design: {...cv.design, scriptFont: 'tiro-bangla'}}).design.fonts).toEqual(['Inter', 'Tiro Bangla', 'Noto Sans Devanagari', 'Noto Sans Arabic', 'Noto Sans JP'])
     })
 
     it('is told in Check that screening software looks for English headings', () => {
@@ -216,5 +216,33 @@ describe('a document in Persian', () => {
         expect(findDates('ژانویه ۲۰۲۰ – تاکنون')).toMatchObject({start: '2020-01', current: true})
         expect(heightOf('۱۶۳ سانتی‌متر')).toEqual({cm: 163, show: 'cm'})
         expect(languageOfHeadings(['سوابق کاری', 'تحصیلات', 'مهارت‌ها'])).toBe('fa')
+    })
+})
+
+describe('a document in Japanese', () => {
+    it('starts with its headings in Japanese, set in Noto Sans JP with looser lines', () => {
+        expect(emptyCv('ja').sections.map((section) => section.title)).toEqual(['職務要約', '職務経歴', '学歴', 'スキル'])
+        expect(renderModel(emptyCv('ja')).design).toMatchObject({lang: 'ja', latin: false, rtl: false, cjk: true})
+        expect(renderModel(emptyCv('ja')).design.fonts).toContain('Noto Sans JP')
+        expect(renderModel(emptyCv('en')).design.cjk).toBe(false)
+    })
+
+    it('writes dates year first, with 〜 between them', () => {
+        expect(datesText({start: '2020-04', end: '', current: true}, {language: 'ja', digits: 'latin'})).toBe('2020年4月～現在')
+        expect(datesText({start: '2018-10', end: '2020-03', current: false}, {language: 'ja', digits: 'latin'})).toBe('2018年10月～2020年3月')
+        expect(detailValue({id: 'r', visible: true, label: '', kind: 'date', date: '1996-03-12', show: 'both'}, new Date(2026, 10, 15), {language: 'ja', digits: 'latin'})).toBe('1996年3月12日 (30歳)')
+    })
+
+    it('is read back on import, as pdf.js gives it, with spaces around the numbers', () => {
+        expect(knownHeading('職務経歴')).toBe('entries')
+        expect(findDates('2020 年 4 月 ～ 現在')).toMatchObject({start: '2020-04', current: true})
+        expect(findDates('2018年10月〜2020年3月')).toMatchObject({start: '2018-10', end: '2020-03'})
+        expect(dayOf('1996年3月12日')).toBe('1996-03-12')
+        expect(languageOfHeadings(['職務要約', '職務経歴', 'スキル'])).toBe('ja')
+    })
+
+    it('leaves English dates with November alone, now that 1月 is a month name too', () => {
+        expect(dayOf('11 November 1996')).toBe('1996-11-11')
+        expect(findDates('Nov 2019 – Present')).toMatchObject({start: '2019-11', current: true})
     })
 })

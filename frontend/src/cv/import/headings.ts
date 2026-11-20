@@ -57,6 +57,9 @@ const MORE_BANGLA: readonly [HeadingKind, readonly string[]][] = [
     ['text', ['خلاصه سوابق', 'هدف شغلی']],
     ['entries', ['سوابق شغلی', 'تجربه کاری', 'سوابق تحصیلی', 'دوره‌های آموزشی']],
     ['contact', ['اطلاعات تماس']],
+    ['text', ['職務概要', '自己PR', '自己ＰＲ', '志望動機']],
+    ['entries', ['職歴', '学歴・職歴', '職務経歴詳細', '免許・資格']],
+    ['tags', ['活かせる経験・知識・技術', 'スキル・資格', 'PCスキル', '語学力']],
 ]
 
 const KNOWN: readonly [HeadingKind, readonly string[]][] = [

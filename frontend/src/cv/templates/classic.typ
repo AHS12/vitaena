@@ -65,6 +65,8 @@
 // each other stay level, and its joined letters keep the ligatures Latin text goes without.
 #set text(top-edge: 0.85em, bottom-edge: -0.35em, ligatures: true) if cv.design.rtl
 #set par(leading: 0.55em, spacing: gap(0.7), justify: false)
+// Chinese characters and kana are dense, and read better with more room between lines.
+#set par(leading: 0.85em) if cv.design.cjk
 #set list(marker: [•], indent: 0.2em, body-indent: 0.6em, spacing: gap(0.45))
 #set page(
   paper: cv.design.paper,

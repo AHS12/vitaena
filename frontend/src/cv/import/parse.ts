@@ -206,8 +206,8 @@ const ARABIC_LETTERS = /[ةيكى]|(?:^|\s)ال/u
  * Arabic letters are told apart by the letters only one of them uses. Marathi can't be
  * told from Hindi by its letters alone.
  */
-export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi' | 'ur' | 'ar' | 'fa' {
-    const count = (script: 'bengali' | 'devanagari' | 'arabic') => titles.filter((title) => scriptsIn(title).includes(script)).length
+export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi' | 'ur' | 'ar' | 'fa' | 'ja' {
+    const count = (script: 'bengali' | 'devanagari' | 'arabic' | 'cjk') => titles.filter((title) => scriptsIn(title).includes(script)).length
     const most = (found: number) => found > 0 && found * 2 >= titles.length
 
     if (most(count('arabic'))) {
@@ -216,7 +216,7 @@ export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi
         return URDU_LETTERS.test(joined) ? 'ur' : ARABIC_LETTERS.test(joined) ? 'ar' : PERSIAN_LETTERS.test(joined) ? 'fa' : 'ur'
     }
 
-    return most(count('bengali')) ? 'bn' : most(count('devanagari')) ? 'hi' : 'en'
+    return most(count('bengali')) ? 'bn' : most(count('devanagari')) ? 'hi' : most(count('cjk')) ? 'ja' : 'en'
 }
 
 export function textOf(lines: readonly PdfLine[]): string {

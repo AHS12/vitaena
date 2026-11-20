@@ -20,7 +20,9 @@ import {biodataRenderModel} from '../../biodata/render-model'
 import {withSecondLanguage} from '../../biodata/edit-ops'
 import {sampleBiodata} from '../../biodata/sample'
 import {BIODATA_TEMPLATES} from '../../biodata/templates/templates'
-import {emptyCv} from '../cv'
+import {emptyCv, type CvSection} from '../cv'
+import {cvFromLayout} from '../import/parse'
+import {readPdfLayout} from '../import/read-pdf'
 import {renderModel} from '../render-model'
 import {sampleCv} from '../sample'
 
@@ -206,5 +208,42 @@ describe('Persian in every template', () => {
 
         expect(await read(pdf)).toContain('jane.doe@example.com')
         expect(embeddedFonts(pdf).some((font) => font.startsWith('Vazirmatn'))).toBe(true)
+    }, 60_000)
+})
+
+describe('Japanese in every template', () => {
+    it.each(CV_TEMPLATES.map((template) => template.id))('sets a Japanese CV in Noto Sans JP in %s, and its text reads back', async (template) => {
+        const cv = sampleCv('ja')
+        const pdf = await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel({...cv, person: {...cv.person, name: '山田 花子', headline: 'ソフトウェアエンジニア'}}))
+        const text = await read(pdf)
+
+        // Chinese characters and kana map one to one, so unlike Bangla they copy out whole.
+        expect(text).toContain('山田花子')
+        expect(text).toContain('ソフトウェアエンジニア')
+        expect(text).toContain('職務経歴')
+        expect(text).toContain('2022年3月～現在')
+        expect(text).toContain('jane.doe@example.com')
+        expect(embeddedFonts(pdf).some((font) => font.startsWith('NotoSansJP'))).toBe(true)
+    }, 60_000)
+
+    it.each(BIODATA_TEMPLATES.map((template) => template.id))('lays out the Japanese biodata in %s', async (template) => {
+        const biodata = sampleBiodata('ja')
+        const pdf = await templatePdf(compiler, new URL(`../../biodata/templates/${template}.typ`, import.meta.url), '/biodata.json', biodataRenderModel({...biodata, person: {...biodata.person, name: '山田 花子'}}))
+
+        expect(await read(pdf)).toContain('生年月日')
+        expect(embeddedFonts(pdf).some((font) => font.startsWith('NotoSansJP'))).toBe(true)
+    }, 60_000)
+
+    it('comes back through import as a Japanese CV, with its headings and dates', async () => {
+        const cv = sampleCv('ja')
+        const pdf = await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel(cv))
+        const {cv: imported} = cvFromLayout(await readPdfLayout(pdf))
+        const experience = imported.sections.find((section) => section.title === '職務経歴')
+
+        expect(imported.design.language).toBe('ja')
+        expect(imported.sections.map((section) => section.title)).toEqual(cv.sections.map((section) => section.title))
+        expect(experience?.kind === 'entries' && experience.entries.map(({start, end, current}) => ({start, end, current}))).toEqual(
+            (cv.sections.find((section) => section.title === '職務経歴') as Extract<CvSection, {kind: 'entries'}>).entries.map(({start, end, current}) => ({start, end, current})),
+        )
     }, 60_000)
 })

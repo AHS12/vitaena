@@ -33,7 +33,7 @@ const pad = (value: number) => String(value).padStart(2, '0')
 export function dayOf(written: string): string {
     // Bangla and Devanagari digits and month names read as 0 to 9 and English month names.
     const text = OTHER_MONTHS.flatMap((months) => months.map((name, index) => [name, MONTHS[index]] as const)).reduce((line, [name, english]) => line.replace(name, english), asLatinDigits(written))
-    const iso = /\b((?:19|20)\d{2})-(\d{1,2})-(\d{1,2})\b/.exec(text)
+    const iso = /\b((?:19|20)\d{2})-(\d{1,2})-(\d{1,2})\b/.exec(text) ?? /((?:19|20)\d{2})\s*[年년]\s*(\d{1,2})\s*[月월]\s*(\d{1,2})\s*[日일]/.exec(text)
     const numbers = /\b(\d{1,2})[/.-](\d{1,2})[/.-]((?:19|20)\d{2})\b/.exec(text)
     const dayFirst = /\b(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?([a-z]{3,9})\.?,?\s+((?:19|20)\d{2})\b/i.exec(text)
     const monthFirst = /\b([a-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+((?:19|20)\d{2})\b/i.exec(text)
@@ -77,15 +77,15 @@ export function heightOf(written: string): {cm: number; show: 'ft-in' | 'cm' | '
 function rowOf(label: string, value: string): DetailRow {
     const base = {id: newId('row'), visible: true, label}
 
-    if (/\b(?:date of birth|birth ?date|born|d\.?o\.?b)\b|জন্ম ?তারিখ|जन्म ?(?:तिथि|तारीख)|تاریخِ? ?پیدائش|تاريخ الميلاد|تاریخ تولد/i.test(label)) {
+    if (/\b(?:date of birth|birth ?date|born|d\.?o\.?b)\b|জন্ম ?তারিখ|जन्म ?(?:तिथि|तारीख)|تاریخِ? ?پیدائش|تاريخ الميلاد|تاریخ تولد|生年月日|出生日期|생년월일/i.test(label)) {
         const date = dayOf(value)
 
         if (date) {
-            return {...base, kind: 'date', date, show: /\(\s*\d+\s*(?:years?|yrs?|বছর|वर्षे?|سال|سنة|سنوات|عامًا|عاما|عام)\s*\)/i.test(asLatinDigits(value)) ? 'both' : 'date'}
+            return {...base, kind: 'date', date, show: /\(\s*\d+\s*(?:years?|yrs?|বছর|वर्षे?|سال|سنة|سنوات|عامًا|عاما|عام|歳|岁|세)\s*\)/i.test(asLatinDigits(value)) ? 'both' : 'date'}
         }
     }
 
-    if (/\bheight\b|উচ্চতা|कद|उंची|ऊंचाई|قد|الطول/i.test(label)) {
+    if (/\bheight\b|উচ্চতা|कद|उंची|ऊंचाई|قد|الطول|身長|身高|키|신장/i.test(label)) {
         const height = heightOf(value)
 
         if (height) {

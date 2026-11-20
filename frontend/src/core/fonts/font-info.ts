@@ -5,7 +5,7 @@
  */
 
 /** Writing systems a font may cover, as the app talks about them. */
-export type FontScript = 'latin' | 'bengali' | 'devanagari' | 'arabic'
+export type FontScript = 'latin' | 'bengali' | 'devanagari' | 'arabic' | 'cjk'
 
 /** What the layout engine reads from one font in a file. */
 export interface FontFace {
@@ -23,9 +23,11 @@ const NEEDED: Readonly<Record<FontScript, readonly number[]>> = {
     bengali: [0x0985, 0x0995, 0x09be, 0x09bf, 0x09cd],
     devanagari: [0x0905, 0x0915, 0x093e, 0x093f, 0x094d],
     arabic: [0x0627, 0x0628, 0x0644, 0x0645],
+    // 一, 人, 中 and 日: in every Chinese and Japanese font.
+    cjk: [0x4e00, 0x4eba, 0x4e2d, 0x65e5],
 }
 
-export const SCRIPT_NAMES: Readonly<Record<FontScript, string>> = {latin: 'English', bengali: 'Bangla', devanagari: 'Hindi and Marathi', arabic: 'Arabic and Urdu'}
+export const SCRIPT_NAMES: Readonly<Record<FontScript, string>> = {latin: 'English', bengali: 'Bangla', devanagari: 'Hindi and Marathi', arabic: 'Arabic and Urdu', cjk: 'Chinese and Japanese'}
 
 /** The codepoints a coverage says a font has, as covered ranges [from, to). */
 export function coveredRanges(coverage: readonly number[]): [number, number][] {

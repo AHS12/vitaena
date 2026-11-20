@@ -12,7 +12,7 @@ import {ENGLISH, type Section, type Writing} from './sections'
 import {fontById, fontFamilies} from './fonts'
 import {parseRich, type Span} from './rich'
 import {levelOfWords, splitItem} from './levels'
-import {labelsFor, languageInfo} from '../core/labels/labels'
+import {dateRange, labelsFor, languageInfo, monthAndYear} from '../core/labels/labels'
 import {detailValue, numbersIn} from './details'
 
 export interface RenderEntry {
@@ -87,6 +87,8 @@ export interface RenderModel {
         readonly latin: boolean
         /** Written right to left, as Urdu is. */
         readonly rtl: boolean
+        /** Written in Chinese characters or kana, which read better with looser lines. */
+        readonly cjk: boolean
         readonly fontSize: number
         readonly paper: string
         /** Page margins, in centimetres. */
@@ -100,10 +102,10 @@ export interface RenderModel {
 }
 
 /** What a template is told about the document's language. */
-export const pageLanguage = (language: string): {lang: string; latin: boolean; rtl: boolean} => {
+export const pageLanguage = (language: string): {lang: string; latin: boolean; rtl: boolean; cjk: boolean} => {
     const info = languageInfo(language)
 
-    return {lang: info.lang, latin: info.latin, rtl: info.rtl ?? false}
+    return {lang: info.lang, latin: info.latin, rtl: info.rtl ?? false, cjk: info.script === 'cjk'}
 }
 
 /** Page margins in centimetres, and room between blocks, for the design's choices. */
@@ -114,7 +116,7 @@ export const SPACING = {compact: 0.8, normal: 1, relaxed: 1.2} as const
 export function monthText(value: string, writing: Writing = ENGLISH): string {
     const match = /^(\d{4})-(\d{2})$/.exec(value)
 
-    return match ? numbersIn(`${labelsFor(writing.language).page.monthsShort[Number(match[2]) - 1]} ${match[1]}`, writing) : ''
+    return match ? numbersIn(monthAndYear(writing.language, Number(match[2]), match[1]), writing) : ''
 }
 
 /** An entry's dates in one consistent form: "Jan 2020 – Present", "2019 – Mar 2021", "Jun 2018". */
@@ -123,7 +125,7 @@ export function datesText(entry: Pick<CvEntry, 'start' | 'end' | 'current'>, wri
     const end = entry.current ? labelsFor(writing.language).page.present : monthText(entry.end, writing)
 
     if (start && end) {
-        return start === end ? start : `${start} – ${end}`
+        return start === end ? start : dateRange(writing.language, start, end)
     }
 
     return start || end
@@ -146,9 +148,9 @@ export function tagItem(text: string, level?: number): RenderTagItem {
 }
 
 /** Sections that belong beside the main story in a two-column template. */
-const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training|দক্ষতা|ভাষা|আগ্রহ|শখ|প্রকল্প|পুরস্কার|স্বেচ্ছাসেবা|সনদ|প্রশিক্ষণ|कौशल|भाषा|रुचि|शौक|परियोजना|पुरस्कार|प्रमाणपत्र|स्वयंसेवा|छंद|आवडी|प्रकल्प|مہارت|زبان|دلچسپ|مشاغل|منصوب|اعزاز|اسناد|رضاکار|مهارات|لغات|هوايات|اهتمامات|مشاريع|جوائز|شهادات|دورات|تطوع|مهارت|علایق|سرگرمی|پروژه|افتخارات|گواهینامه|داوطلب/i
+const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training|দক্ষতা|ভাষা|আগ্রহ|শখ|প্রকল্প|পুরস্কার|স্বেচ্ছাসেবা|সনদ|প্রশিক্ষণ|कौशल|भाषा|रुचि|शौक|परियोजना|पुरस्कार|प्रमाणपत्र|स्वयंसेवा|छंद|आवडी|प्रकल्प|مہارت|زبان|دلچسپ|مشاغل|منصوب|اعزاز|اسناد|رضاکار|مهارات|لغات|هوايات|اهتمامات|مشاريع|جوائز|شهادات|دورات|تطوع|مهارت|علایق|سرگرمی|پروژه|افتخارات|گواهینامه|داوطلب|スキル|語学|趣味|興味|プロジェクト|資格|受賞|ボランティア/i
 
-const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education|অভিজ্ঞতা|শিক্ষা|अनुभव|शिक्षा|शैक्षणिक|تجربہ|تعلیم|خبرة|خبرات|تعليم|مؤهلات|سوابق|تجربه|تحصیلات/i.test(title)) ? 'side' : 'main')
+const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education|অভিজ্ঞতা|শিক্ষা|अनुभव|शिक्षा|शैक्षणिक|تجربہ|تعلیم|خبرة|خبرات|تعليم|مؤهلات|سوابق|تجربه|تحصیلات|職歴|職務経歴|学歴/i.test(title)) ? 'side' : 'main')
 
 /**
  * A section as a template is given it: hidden parts left out, and null when nothing in

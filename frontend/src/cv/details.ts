@@ -4,7 +4,7 @@
  * are written in the document's language and digits; the person's own words never change.
  */
 
-import {labelsFor, withDigits} from '../core/labels/labels'
+import {dayMonthYear, labelsFor, withDigits} from '../core/labels/labels'
 import {ENGLISH, newId, type DetailRow as CvDetailRow, type Writing} from './sections'
 
 /** Numbers the app writes, in the document's digits. */
@@ -16,11 +16,11 @@ const parseDay = (value: string): {year: number; month: number; day: number} | n
     return match ? {year: Number(match[1]), month: Number(match[2]), day: Number(match[3])} : null
 }
 
-/** "1996-03-12" as "12 March 1996", or "১২ মার্চ ১৯৯৬". */
+/** "1996-03-12" as "12 March 1996", "১২ মার্চ ১৯৯৬" or "1996年3月12日". */
 export function dayText(value: string, writing: Writing = ENGLISH): string {
     const day = parseDay(value)
 
-    return day ? numbersIn(`${day.day} ${labelsFor(writing.language).page.months[day.month - 1]} ${day.year}`, writing) : ''
+    return day ? numbersIn(dayMonthYear(writing.language, day.day, day.month, day.year), writing) : ''
 }
 
 /** Whole years from the date to `today`, or null for no date or one still to come. */

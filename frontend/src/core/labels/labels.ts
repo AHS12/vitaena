@@ -12,10 +12,11 @@ import {bn} from './bn'
 import {en} from './en'
 import {fa} from './fa'
 import {hi} from './hi'
+import {ja} from './ja'
 import {mr} from './mr'
 import {ur} from './ur'
 
-export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur', 'ar', 'fa'] as const
+export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur', 'ar', 'fa', 'ja'] as const
 
 export type DocumentLanguage = (typeof LANGUAGE_IDS)[number]
 
@@ -113,7 +114,14 @@ export interface LanguageInfo {
     /** Written right to left. */
     readonly rtl?: boolean
     /** The letters it's written in, when they aren't Latin: which script font Style offers. */
-    readonly script?: 'bengali' | 'devanagari' | 'arabic'
+    readonly script?: 'bengali' | 'devanagari' | 'arabic' | 'cjk'
+    /**
+     * Dates written year first, as East Asian languages write them: the word after the
+     * year ("年") and after the day ("日"), and whether the parts are spaced.
+     */
+    readonly yearFirst?: {readonly year: string; readonly day: string; readonly spaced: boolean}
+    /** Between the two dates of a range, when it isn't " – ". */
+    readonly to?: string
 }
 
 export const LANGUAGES: readonly LanguageInfo[] = [
@@ -123,10 +131,11 @@ export const LANGUAGES: readonly LanguageInfo[] = [
     {id: 'mr', name: 'Marathi', own: 'मराठी', lang: 'mr', latin: false, digits: '०१२३४५६७८९', script: 'devanagari'},
     {id: 'ur', name: 'Urdu', own: 'اردو', lang: 'ur', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic'},
     {id: 'ar', name: 'Arabic', own: 'العربية', lang: 'ar', latin: false, digits: '٠١٢٣٤٥٦٧٨٩', rtl: true, script: 'arabic'},
+    {id: 'ja', name: 'Japanese', own: '日本語', lang: 'ja', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}, to: '～'},
     {id: 'fa', name: 'Persian', own: 'فارسی', lang: 'fa', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic'},
 ]
 
-const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur, ar, fa}
+const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur, ar, fa, ja}
 
 export const isLanguage = (value: string): value is DocumentLanguage => value in TABLES
 
@@ -180,5 +189,27 @@ const MORE_ARABIC_MONTHS: readonly (readonly string[])[] = [
     ['يناير', 'فبراير', 'مارس', 'ابريل', 'مايو', 'يونيو', 'يوليو', 'اغسطس', 'سبتمبر', 'اكتوبر', 'نوفمبر', 'ديسمبر'],
 ]
 
-/** Every language's month names but English, January first, for reading dates written in them. */
-export const OTHER_MONTHS: readonly (readonly string[])[] = [...LANGUAGE_IDS.filter((language) => language !== 'en').map((language) => TABLES[language].page.months), ...MORE_ARABIC_MONTHS]
+/**
+ * Every language's month names but English, January first, for reading dates written in
+ * them. Languages that write months as numbers (1月) are read by their own pattern instead.
+ */
+export const OTHER_MONTHS: readonly (readonly string[])[] = [...LANGUAGE_IDS.filter((language) => language !== 'en' && !languageInfo(language).yearFirst).map((language) => TABLES[language].page.months), ...MORE_ARABIC_MONTHS]
+
+/** A month and year as the language writes them: "Mar 2022", "মার্চ 2022", "2022年3月". */
+export function monthAndYear(language: string, month: number, year: string): string {
+    const name = labelsFor(language).page.monthsShort[month - 1]
+    const first = languageInfo(language).yearFirst
+
+    return first ? [`${year}${first.year}`, name].join(first.spaced ? ' ' : '') : `${name} ${year}`
+}
+
+/** A day as the language writes it: "12 March 1996", "1996年3月12日". */
+export function dayMonthYear(language: string, day: number, month: number, year: number): string {
+    const name = labelsFor(language).page.months[month - 1]
+    const first = languageInfo(language).yearFirst
+
+    return first ? [`${year}${first.year}`, name, `${day}${first.day}`].join(first.spaced ? ' ' : '') : `${day} ${name} ${year}`
+}
+
+/** Two dates as a range: "Jan 2020 – Present", "2020年1月～現在". */
+export const dateRange = (language: string, start: string, end: string): string => `${start}${languageInfo(language).to ?? ' – '}${end}`

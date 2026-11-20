@@ -52,6 +52,8 @@ export interface BiodataRenderModel {
         readonly latin: boolean
         /** Written right to left, as Urdu is. */
         readonly rtl: boolean
+        /** Written in Chinese characters or kana, which read better with looser lines. */
+        readonly cjk: boolean
         readonly fontSize: number
         readonly paper: string
         /** Page margins, in centimetres. */

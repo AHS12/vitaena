@@ -21,7 +21,7 @@ export interface CvFont {
 }
 
 /** The writing systems the bundled fonts cover, beyond the Latin letters every font has. */
-export type Script = 'bengali' | 'devanagari' | 'arabic'
+export type Script = 'bengali' | 'devanagari' | 'arabic' | 'cjk'
 
 /** A font for a script other than Latin, used where the chosen font has no such letters. */
 export interface ScriptFont extends CvFont {
@@ -68,6 +68,9 @@ export const SCRIPT_FONTS: readonly ScriptFont[] = [
     {id: 'ibm-plex-sans-arabic', family: 'IBM Plex Sans Arabic', label: 'IBM Plex Sans Arabic', kind: 'Sans serif', script: 'arabic', fallback: false, files: faces('ibm-plex-sans-arabic', 'IBMPlexSansArabic', ['400Regular', '700Bold'])},
     // Persian is read in Vazirmatn, the font Iranian sites and apps use.
     {id: 'vazirmatn', family: 'Vazirmatn', label: 'Vazirmatn', kind: 'Sans serif', script: 'arabic', fallback: true, languages: ['fa'], files: faces('vazirmatn', 'Vazirmatn', ['400Regular', '700Bold'])},
+    // Chinese characters and kana. Sans only: a serif CJK font is three times the size, and
+    // a serif template beside a sans CJK font is how most Japanese CVs are printed anyway.
+    {id: 'noto-sans-jp', family: 'Noto Sans JP', label: 'Noto Sans JP', kind: 'Sans serif', script: 'cjk', fallback: true, files: faces('noto-sans-jp', 'NotoSansJP', ['400Regular', '700Bold'])},
     {id: 'amiri', family: 'Amiri', label: 'Amiri', kind: 'Serif', script: 'arabic', fallback: false, files: faces('amiri', 'Amiri')},
 ]
 
@@ -76,6 +79,7 @@ const SCRIPT_LETTERS: Readonly<Record<Script, RegExp>> = {
     bengali: /\p{Script=Bengali}/u,
     devanagari: /\p{Script=Devanagari}/u,
     arabic: /\p{Script=Arabic}/u,
+    cjk: /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u,
 }
 
 /**
