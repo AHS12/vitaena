@@ -198,3 +198,23 @@ describe('a document in Arabic', () => {
         expect(languageOfHeadings(['تجربہ', 'تعلیمی قابلیت'])).toBe('ur')
     })
 })
+
+describe('a document in Persian', () => {
+    it('starts with its headings in Persian, right to left, in Vazirmatn', () => {
+        expect(emptyCv('fa').sections.map((section) => section.title)).toEqual(['خلاصه', 'سوابق کاری', 'تحصیلات', 'مهارت‌ها'])
+        expect(renderModel(emptyCv('fa')).design.rtl).toBe(true)
+        expect(renderModel(emptyCv('fa')).design.fonts).toContain('Vazirmatn')
+        expect(renderModel(emptyCv('ar')).design.fonts).not.toContain('Vazirmatn')
+    })
+
+    it('writes dates with Persian month names and digits', () => {
+        expect(datesText({start: '2020-01', end: '', current: true}, {language: 'fa', digits: 'native'})).toBe('ژانویه ۲۰۲۰ – تاکنون')
+    })
+
+    it('is read back on import, and told apart from Urdu and Arabic', () => {
+        expect(knownHeading('سوابق کاری')).toBe('entries')
+        expect(findDates('ژانویه ۲۰۲۰ – تاکنون')).toMatchObject({start: '2020-01', current: true})
+        expect(heightOf('۱۶۳ سانتی‌متر')).toEqual({cm: 163, show: 'cm'})
+        expect(languageOfHeadings(['سوابق کاری', 'تحصیلات', 'مهارت‌ها'])).toBe('fa')
+    })
+})

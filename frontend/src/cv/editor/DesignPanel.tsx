@@ -7,9 +7,10 @@
 import {useEffect, useMemo, type ReactNode} from 'react'
 import {ColourRow} from '../../components/ColourRow'
 import {Segmented} from '../../components/Segmented'
+import {Select} from '../../components/controls'
 import type {Cv, CvDesign} from '../cv'
-import {LANGUAGES, labelsFor, languageInfo, type DocumentLanguage} from '../../core/labels/labels'
-import {CV_FONTS, isAddedFont, addedFamily, SCRIPT_FONTS, scriptFontById, scriptsIn, type Script} from '../fonts'
+import {LANGUAGES, languageChoice, labelsFor, languageInfo, type DocumentLanguage} from '../../core/labels/labels'
+import {CV_FONTS, isAddedFont, addedFamily, fontById, SCRIPT_FONTS, scriptFontById, scriptFontFor, scriptsIn, type Script} from '../fonts'
 import {addedFamilies, previewFamily, previewFont, useAddedFonts} from '../added-fonts'
 import {Plus} from 'lucide-react'
 import {CV_TEMPLATES, TEMPLATE_USE_LABELS} from '../templates/templates'
@@ -241,7 +242,9 @@ export function StyleGroups({
     const latinFamilies = families.filter((family) => family.scripts.includes('latin'))
     const script = choiceScript(design.language, scripts, design.scriptFont, families)
     const scriptFamilies = script ? families.filter((family) => family.scripts.includes(script)) : []
-    const scriptTitle = script ? `${SCRIPT_TITLES[script]} text in` : ''
+    // Named for the document's language when it's written in this script: "Persian text in".
+    const scriptTitle = script ? `${language.script === script ? language.name : SCRIPT_TITLES[script]} text in` : ''
+    const matching = script ? scriptFontFor(script, fontById(design.font).kind, design.language) : null
     const scriptLabel = script ? `${SCRIPT_TITLES[script]} font` : ''
 
     useEffect(() => families.forEach((family) => previewFont(family.files[0])), [families])
@@ -254,7 +257,7 @@ export function StyleGroups({
             <Group title="Language">
                 <div className="design-row">
                     <span className="design-row__label">Write in</span>
-                    <Segmented label="Write in" value={design.language} options={LANGUAGES.map((info) => ({value: info.id, label: info.own}))} onChange={onLanguage} />
+                    <Select<DocumentLanguage> label="Write in" value={design.language} options={LANGUAGES.map(languageChoice)} onChange={onLanguage} />
                 </div>
                 {language.digits ? (
                     <div className="design-row">
@@ -317,7 +320,7 @@ export function StyleGroups({
                         <div className="font-choices" role="radiogroup" aria-label={scriptTitle}>
                             <button type="button" role="radio" aria-checked={design.scriptFont === ''} className="font-choice" onClick={() => set('scriptFont', '', scriptLabel)}>
                                 <span className="font-choice__name">Matching</span>
-                                <span className="font-choice__kind">Noto, sans or serif to suit</span>
+                                <span className="font-choice__kind">{matching ? `${matching.label}, to suit the font` : ''}</span>
                             </button>
                             {SCRIPT_FONTS.filter((font) => font.script === script && (!font.languages || font.languages.includes(design.language))).map((font) => (
                                 <button key={font.id} type="button" role="radio" aria-checked={design.scriptFont === font.id} className="font-choice" onClick={() => set('scriptFont', font.id, scriptLabel)}>

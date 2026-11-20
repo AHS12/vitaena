@@ -74,6 +74,9 @@ importers:
       '@expo-google-fonts/tiro-bangla':
         specifier: 0.4.1
         version: 0.4.1
+      '@expo-google-fonts/vazirmatn':
+        specifier: 0.4.1
+        version: 0.4.1
       '@heroui/react':
         specifier: ^3.2.7
         version: 3.2.7(@internationalized/date@3.12.4)(@react-aria/ssr@3.10.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-aria/utils@3.34.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-spectrum/provider@3.11.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-aria-components@1.22.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-aria@3.53.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)
@@ -645,6 +648,9 @@ packages:
 
   '@expo-google-fonts/tiro-bangla@0.4.1':
     resolution: {integrity: sha512-BYuRzdoDnaw9VC9Jy6JDwZgFQl+c+FqK2kka1aaesdySyl2YziB2r2yunBHbSg1JDqKAn4Klnzh7aDXpS8TDvw==}
+
+  '@expo-google-fonts/vazirmatn@0.4.1':
+    resolution: {integrity: sha512-sznMvxt99C4bsEcWCebs3XWb/av8z9a/Y4OQo8F7VPFT0xzzn7Whkkw6dqxcAyLYEiNNpTpa3/vp8t1/koK6Jw==}
 
   '@heroui/react@3.2.7':
     resolution: {integrity: sha512-cFYqzjgkuni+UD8mKOzbUloi99DCFEt1bE7YLE/3/RpahdRsjzp10zjbNgDn7CJC0oES2AX81Siu/EeLk7bsVg==}
@@ -2778,6 +2784,8 @@ snapshots:
   '@expo-google-fonts/source-serif-4@0.4.2': {}
 
   '@expo-google-fonts/tiro-bangla@0.4.1': {}
+
+  '@expo-google-fonts/vazirmatn@0.4.1': {}
 
   '@heroui/react@3.2.7(@internationalized/date@3.12.4)(@react-aria/ssr@3.10.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-aria/utils@3.34.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-spectrum/provider@3.11.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-aria-components@1.22.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-aria@3.53.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)':
     dependencies:

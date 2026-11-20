@@ -9,8 +9,8 @@ import './cv-editor.css'
 import {Plus} from 'lucide-react'
 import {useMemo, useState, type KeyboardEvent, type ReactNode} from 'react'
 import {APP} from '../core/app'
-import {isLanguage, LANGUAGES, type DocumentLanguage} from '../core/labels/labels'
-import {Segmented} from '../components/Segmented'
+import {isLanguage, languageChoice, LANGUAGES, type DocumentLanguage} from '../core/labels/labels'
+import {Select} from '../components/controls'
 import {biodataType, DEFAULT_BIODATA_DESIGN, emptyBiodata} from '../biodata/biodata'
 import {biodataRenderModel} from '../biodata/render-model'
 import {sampleBiodata} from '../biodata/sample'
@@ -140,10 +140,10 @@ export function StartFromTemplate() {
                 <h2 className="home__section-title">Start something new</h2>
                 <div className="home__language">
                     <span className="home__language-label">Write in</span>
-                    <Segmented
+                    <Select<DocumentLanguage>
                         label="Write a new document in"
                         value={language}
-                        options={LANGUAGES.map((info) => ({value: info.id, label: info.own}))}
+                        options={LANGUAGES.map(languageChoice)}
                         onChange={(next) => {
                             setLanguage(next)
                             rememberLanguage(next)

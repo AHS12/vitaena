@@ -146,9 +146,9 @@ export function tagItem(text: string, level?: number): RenderTagItem {
 }
 
 /** Sections that belong beside the main story in a two-column template. */
-const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training|দক্ষতা|ভাষা|আগ্রহ|শখ|প্রকল্প|পুরস্কার|স্বেচ্ছাসেবা|সনদ|প্রশিক্ষণ|कौशल|भाषा|रुचि|शौक|परियोजना|पुरस्कार|प्रमाणपत्र|स्वयंसेवा|छंद|आवडी|प्रकल्प|مہارت|زبان|دلچسپ|مشاغل|منصوب|اعزاز|اسناد|رضاکار|مهارات|لغات|هوايات|اهتمامات|مشاريع|جوائز|شهادات|دورات|تطوع/i
+const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training|দক্ষতা|ভাষা|আগ্রহ|শখ|প্রকল্প|পুরস্কার|স্বেচ্ছাসেবা|সনদ|প্রশিক্ষণ|कौशल|भाषा|रुचि|शौक|परियोजना|पुरस्कार|प्रमाणपत्र|स्वयंसेवा|छंद|आवडी|प्रकल्प|مہارت|زبان|دلچسپ|مشاغل|منصوب|اعزاز|اسناد|رضاکار|مهارات|لغات|هوايات|اهتمامات|مشاريع|جوائز|شهادات|دورات|تطوع|مهارت|علایق|سرگرمی|پروژه|افتخارات|گواهینامه|داوطلب/i
 
-const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education|অভিজ্ঞতা|শিক্ষা|अनुभव|शिक्षा|शैक्षणिक|تجربہ|تعلیم|خبرة|خبرات|تعليم|مؤهلات/i.test(title)) ? 'side' : 'main')
+const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education|অভিজ্ঞতা|শিক্ষা|अनुभव|शिक्षा|शैक्षणिक|تجربہ|تعلیم|خبرة|خبرات|تعليم|مؤهلات|سوابق|تجربه|تحصیلات/i.test(title)) ? 'side' : 'main')
 
 /**
  * A section as a template is given it: hidden parts left out, and null when nothing in

@@ -8,13 +8,12 @@ import '../cv/cv-editor.css'
 import {ChevronRight} from 'lucide-react'
 import {useMemo, type ReactNode} from 'react'
 import {TextField} from '../components/fields'
-import {Switch} from '../components/controls'
+import {Select, Switch} from '../components/controls'
 import {PhotoField} from '../components/PhotoField'
 import {SplitPane} from '../components/SplitPane'
 import {APP} from '../core/app'
 import {useDocumentStore} from '../store/document-store'
-import {LANGUAGES, languageInfo} from '../core/labels/labels'
-import {Segmented} from '../components/Segmented'
+import {languageChoice, LANGUAGES, languageInfo, type DocumentLanguage} from '../core/labels/labels'
 import {SecondLabelsProvider, type SecondLabels} from '../cv/editor/second-labels-context'
 import {setSecondLabel, withSecondLanguage} from './edit-ops'
 import {Group, StyleGroups, TemplateGallery, type SharedStyle} from '../cv/editor/DesignPanel'
@@ -198,10 +197,10 @@ function DesignSidebar({biodata, edit}: {biodata: Biodata; edit: Edit}) {
                         <Group title="Two languages">
                             <div className="design-row">
                                 <span className="design-row__label">Second labels</span>
-                                <Segmented
+                                <Select<DocumentLanguage | ''>
                                     label="Second labels"
                                     value={biodata.second.language}
-                                    options={[{value: '' as const, label: 'Off'}, ...LANGUAGES.filter((info) => info.id !== biodata.design.language).map((info) => ({value: info.id, label: info.own}))]}
+                                    options={[{value: '' as const, label: 'Off'}, ...LANGUAGES.filter((info) => info.id !== biodata.design.language).map(languageChoice)]}
                                     onChange={(language) => edit.act(language ? `second labels in ${languageInfo(language).name}` : 'second labels off', (current) => withSecondLanguage(current, language))}
                                 />
                             </div>

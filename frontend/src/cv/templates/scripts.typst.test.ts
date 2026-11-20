@@ -198,3 +198,13 @@ describe('Arabic, right to left, in every template', () => {
         expect(embeddedFonts(pdf).some((font) => font.startsWith('Amiri'))).toBe(true)
     }, 60_000)
 })
+
+describe('Persian in every template', () => {
+    it.each(CV_TEMPLATES.map((template) => template.id))('sets a Persian CV in Vazirmatn in %s', async (template) => {
+        const cv = sampleCv('fa')
+        const pdf = await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel({...cv, person: {...cv.person, name: 'جین دو', headline: 'مهندس نرم‌افزار'}}))
+
+        expect(await read(pdf)).toContain('jane.doe@example.com')
+        expect(embeddedFonts(pdf).some((font) => font.startsWith('Vazirmatn'))).toBe(true)
+    }, 60_000)
+})

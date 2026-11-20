@@ -10,11 +10,12 @@
 import {ar} from './ar'
 import {bn} from './bn'
 import {en} from './en'
+import {fa} from './fa'
 import {hi} from './hi'
 import {mr} from './mr'
 import {ur} from './ur'
 
-export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur', 'ar'] as const
+export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur', 'ar', 'fa'] as const
 
 export type DocumentLanguage = (typeof LANGUAGE_IDS)[number]
 
@@ -122,11 +123,15 @@ export const LANGUAGES: readonly LanguageInfo[] = [
     {id: 'mr', name: 'Marathi', own: 'मराठी', lang: 'mr', latin: false, digits: '०१२३४५६७८९', script: 'devanagari'},
     {id: 'ur', name: 'Urdu', own: 'اردو', lang: 'ur', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic'},
     {id: 'ar', name: 'Arabic', own: 'العربية', lang: 'ar', latin: false, digits: '٠١٢٣٤٥٦٧٨٩', rtl: true, script: 'arabic'},
+    {id: 'fa', name: 'Persian', own: 'فارسی', lang: 'fa', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic'},
 ]
 
-const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur, ar}
+const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur, ar, fa}
 
 export const isLanguage = (value: string): value is DocumentLanguage => value in TABLES
+
+/** A language as a choice in the interface: its own name, and the English one beside it. */
+export const languageChoice = (info: LanguageInfo): {value: DocumentLanguage; label: string} => ({value: info.id, label: info.id === 'en' ? info.name : `${info.own} · ${info.name}`})
 
 export const languageInfo = (language: string): LanguageInfo => LANGUAGES.find((info) => info.id === language) ?? LANGUAGES[0]
 

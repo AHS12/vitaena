@@ -54,6 +54,9 @@ const MORE_BANGLA: readonly [HeadingKind, readonly string[]][] = [
     ['tags', ['المهارات التقنية', 'المهارات الشخصية']],
     ['details', ['المعلومات الشخصية']],
     ['contact', ['معلومات التواصل', 'بيانات الاتصال', 'معلومات الاتصال']],
+    ['text', ['خلاصه سوابق', 'هدف شغلی']],
+    ['entries', ['سوابق شغلی', 'تجربه کاری', 'سوابق تحصیلی', 'دوره‌های آموزشی']],
+    ['contact', ['اطلاعات تماس']],
 ]
 
 const KNOWN: readonly [HeadingKind, readonly string[]][] = [

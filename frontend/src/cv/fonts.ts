@@ -66,6 +66,8 @@ export const SCRIPT_FONTS: readonly ScriptFont[] = [
     {id: 'noto-naskh-arabic', family: 'Noto Naskh Arabic', label: 'Noto Naskh Arabic', kind: 'Serif', script: 'arabic', fallback: true, files: faces('noto-naskh-arabic', 'NotoNaskhArabic', ['400Regular', '700Bold'])},
     {id: 'cairo', family: 'Cairo', label: 'Cairo', kind: 'Sans serif', script: 'arabic', fallback: false, files: faces('cairo', 'Cairo', ['400Regular', '700Bold'])},
     {id: 'ibm-plex-sans-arabic', family: 'IBM Plex Sans Arabic', label: 'IBM Plex Sans Arabic', kind: 'Sans serif', script: 'arabic', fallback: false, files: faces('ibm-plex-sans-arabic', 'IBMPlexSansArabic', ['400Regular', '700Bold'])},
+    // Persian is read in Vazirmatn, the font Iranian sites and apps use.
+    {id: 'vazirmatn', family: 'Vazirmatn', label: 'Vazirmatn', kind: 'Sans serif', script: 'arabic', fallback: true, languages: ['fa'], files: faces('vazirmatn', 'Vazirmatn', ['400Regular', '700Bold'])},
     {id: 'amiri', family: 'Amiri', label: 'Amiri', kind: 'Serif', script: 'arabic', fallback: false, files: faces('amiri', 'Amiri')},
 ]
 
