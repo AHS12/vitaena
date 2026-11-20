@@ -62,7 +62,7 @@ export function dayOf(written: string): string {
 
 /** A height as written, "5′ 4″", "5 ft 4 in", "5'4"" or "163 cm", in centimetres and how it was shown; null if it isn't one. */
 export function heightOf(written: string): {cm: number; show: 'ft-in' | 'cm' | 'both'} | null {
-    const text = asLatinDigits(written).replace(/সেমি|सेमी|سینٹی میٹر|سانتی‌متر|سانتیمتر|سانتی متر|سم/g, 'cm')
+    const text = asLatinDigits(written).replace(/সেমি|सेमी|سینٹی میٹر|سانتی‌متر|سانتیمتر|سانتی متر|سم|厘米|公分/g, 'cm')
     const imperial = /(\d)\s*(?:['′’]|ft\.?|feet|foot)\s*(?:(\d{1,2})\s*(?:["″”]|''|in\.?|inch(?:es)?)?)?/i.exec(text)
     const metric = /(\d{2,3}(?:\.\d)?)\s*cm\b/i.exec(text)
 
@@ -81,7 +81,7 @@ function rowOf(label: string, value: string): DetailRow {
         const date = dayOf(value)
 
         if (date) {
-            return {...base, kind: 'date', date, show: /\(\s*\d+\s*(?:years?|yrs?|বছর|वर्षे?|سال|سنة|سنوات|عامًا|عاما|عام|歳|岁|세)\s*\)/i.test(asLatinDigits(value)) ? 'both' : 'date'}
+            return {...base, kind: 'date', date, show: /\(\s*\d+\s*(?:years?|yrs?|বছর|वर्षे?|سال|سنة|سنوات|عامًا|عاما|عام|歳|岁|歲|세)\s*\)/i.test(asLatinDigits(value)) ? 'both' : 'date'}
         }
     }
 

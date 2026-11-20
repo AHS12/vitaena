@@ -72,7 +72,7 @@ describe('a document in Bangla', () => {
     it('gets the Bangla font chosen for it, after the main font', () => {
         const cv = sampleCv('bn')
 
-        expect(renderModel({...cv, design: {...cv.design, scriptFont: 'tiro-bangla'}}).design.fonts).toEqual(['Inter', 'Tiro Bangla', 'Noto Sans Devanagari', 'Noto Sans Arabic', 'Noto Sans JP'])
+        expect(renderModel({...cv, design: {...cv.design, scriptFont: 'tiro-bangla'}}).design.fonts).toEqual(['Inter', 'Tiro Bangla', 'Noto Sans Devanagari', 'Noto Sans Arabic', 'Noto Sans SC'])
     })
 
     it('is told in Check that screening software looks for English headings', () => {
@@ -244,5 +244,39 @@ describe('a document in Japanese', () => {
     it('leaves English dates with November alone, now that 1月 is a month name too', () => {
         expect(dayOf('11 November 1996')).toBe('1996-11-11')
         expect(findDates('Nov 2019 – Present')).toMatchObject({start: '2019-11', current: true})
+    })
+})
+
+describe('a document in Chinese', () => {
+    it('starts with its headings in simplified or traditional characters, each in its own font', () => {
+        expect(emptyCv('zh-Hans').sections.map((section) => section.title)).toEqual(['个人简介', '工作经历', '教育背景', '专业技能'])
+        expect(emptyCv('zh-Hant').sections.map((section) => section.title)).toEqual(['個人簡介', '工作經歷', '學歷', '專業技能'])
+        expect(renderModel(emptyCv('zh-Hans')).design).toMatchObject({lang: 'zh', cjk: true})
+        expect(renderModel(emptyCv('zh-Hans')).design.fonts).toContain('Noto Sans SC')
+        expect(renderModel(emptyCv('zh-Hans')).design.fonts).not.toContain('Noto Sans TC')
+    })
+
+    it('sets traditional characters and Japanese in their own fonts, with the simplified one after for any they lack', () => {
+        const families = (language: 'zh-Hant' | 'ja') => renderModel(emptyCv(language)).design.fonts
+
+        expect(families('zh-Hant').indexOf('Noto Sans TC')).toBeLessThan(families('zh-Hant').indexOf('Noto Sans SC'))
+        expect(families('ja').indexOf('Noto Sans JP')).toBeLessThan(families('ja').indexOf('Noto Sans SC'))
+        expect(families('ja')).not.toContain('Noto Sans TC')
+    })
+
+    it('writes dates year first', () => {
+        expect(datesText({start: '2020-01', end: '', current: true}, {language: 'zh-Hans', digits: 'latin'})).toBe('2020年1月 – 至今')
+        expect(detailValue({id: 'r', visible: true, label: '', kind: 'date', date: '1996-03-12', show: 'both'}, new Date(2026, 10, 15), {language: 'zh-Hant', digits: 'latin'})).toBe('1996年3月12日 (30歲)')
+    })
+
+    it('is read back on import, with dates as 2020.01 – 至今 too, and told apart from Japanese', () => {
+        expect(knownHeading('工作经历')).toBe('entries')
+        expect(knownHeading('工作經歷')).toBe('entries')
+        expect(findDates('2020.01 - 至今')).toMatchObject({start: '2020-01', current: true})
+        expect(findDates('2018年9月 – 2022年6月')).toMatchObject({start: '2018-09', end: '2022-06'})
+        expect(heightOf('163厘米')).toEqual({cm: 163, show: 'cm'})
+        expect(languageOfHeadings(['个人简介', '工作经历', '教育背景'])).toBe('zh-Hans')
+        expect(languageOfHeadings(['個人簡介', '工作經歷', '學歷'])).toBe('zh-Hant')
+        expect(languageOfHeadings(['職務要約', '職務経歴', '学歴'])).toBe('ja')
     })
 })

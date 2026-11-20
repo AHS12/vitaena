@@ -65,6 +65,12 @@ importers:
       '@expo-google-fonts/noto-sans-jp':
         specifier: 0.4.4
         version: 0.4.4
+      '@expo-google-fonts/noto-sans-sc':
+        specifier: 0.4.4
+        version: 0.4.4
+      '@expo-google-fonts/noto-sans-tc':
+        specifier: 0.4.4
+        version: 0.4.4
       '@expo-google-fonts/noto-serif-bengali':
         specifier: 0.4.4
         version: 0.4.4
@@ -642,6 +648,12 @@ packages:
 
   '@expo-google-fonts/noto-sans-jp@0.4.4':
     resolution: {integrity: sha512-1vl2U7uYG5JAXGERZaLMXtfOSgyOU4Qhq30OOPrbAHjOu8AW9Pral/qN9Anta9fjd6eVRTijiNqcgy2TowzrDA==}
+
+  '@expo-google-fonts/noto-sans-sc@0.4.4':
+    resolution: {integrity: sha512-LF4+p6xdtgUArufW0K+l9/FeDiXrW8FcEkEbOPIUC5ZnPupeFVA6yY9qCZ0sBrdAeLdlusDhv0R7q2x3onXo3w==}
+
+  '@expo-google-fonts/noto-sans-tc@0.4.4':
+    resolution: {integrity: sha512-mTYARqbwmV05CyyMFEpPtRz2QdtBZCIL3AgT1nzE2QyB2uhA7KdBBzr49ON41aIP+1xnJ6z8AtWYICk4DjygAQ==}
 
   '@expo-google-fonts/noto-serif-bengali@0.4.4':
     resolution: {integrity: sha512-NfoAaM38zg3ziaKJDfOEAg92WIUM8qZYsauSt4O9ySgzmJclPMuIb2BCqOLHrbiegbI8tDPw7lfsQUc/L3ZYgA==}
@@ -2784,6 +2796,10 @@ snapshots:
   '@expo-google-fonts/noto-sans-devanagari@0.4.2': {}
 
   '@expo-google-fonts/noto-sans-jp@0.4.4': {}
+
+  '@expo-google-fonts/noto-sans-sc@0.4.4': {}
+
+  '@expo-google-fonts/noto-sans-tc@0.4.4': {}
 
   '@expo-google-fonts/noto-serif-bengali@0.4.4': {}
 

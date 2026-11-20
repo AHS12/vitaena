@@ -247,3 +247,38 @@ describe('Japanese in every template', () => {
         )
     }, 60_000)
 })
+
+describe('Chinese in every template', () => {
+    it.each(CV_TEMPLATES.flatMap((template) => [[template.id, 'zh-Hans', 'NotoSansSC', '工作经历'], [template.id, 'zh-Hant', 'NotoSansTC', '工作經歷']] as const))('sets a CV in %s in %s, in its own font, and its text reads back', async (template, language, font, heading) => {
+        const cv = sampleCv(language)
+        const pdf = await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel({...cv, person: {...cv.person, name: '张伟'}}))
+        const text = await read(pdf)
+
+        expect(text).toContain('张伟')
+        expect(text).toContain(heading)
+        expect(text).toContain('2022年3月–至今')
+        expect(embeddedFonts(pdf).some((name) => name.startsWith(font))).toBe(true)
+    }, 60_000)
+
+    it('draws the same character the Chinese way in a Chinese CV and the Japanese way in a Japanese one', async () => {
+        const fontsFor = async (language: 'zh-Hans' | 'ja') => {
+            const cv = sampleCv(language)
+
+            return embeddedFonts(await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel({...cv, person: {...cv.person, name: '直'}})))
+        }
+
+        expect((await fontsFor('zh-Hans')).some((name) => name.startsWith('NotoSansJP'))).toBe(false)
+        expect((await fontsFor('ja')).some((name) => name.startsWith('NotoSansJP'))).toBe(true)
+    }, 60_000)
+
+    it('comes back through import as a Chinese CV of the same kind', async () => {
+        for (const language of ['zh-Hans', 'zh-Hant'] as const) {
+            const cv = sampleCv(language)
+            const pdf = await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel(cv))
+            const {cv: imported} = cvFromLayout(await readPdfLayout(pdf))
+
+            expect(imported.design.language).toBe(language)
+            expect(imported.sections.map((section) => section.title)).toEqual(cv.sections.map((section) => section.title))
+        }
+    }, 120_000)
+})

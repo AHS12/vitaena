@@ -68,9 +68,13 @@ export const SCRIPT_FONTS: readonly ScriptFont[] = [
     {id: 'ibm-plex-sans-arabic', family: 'IBM Plex Sans Arabic', label: 'IBM Plex Sans Arabic', kind: 'Sans serif', script: 'arabic', fallback: false, files: faces('ibm-plex-sans-arabic', 'IBMPlexSansArabic', ['400Regular', '700Bold'])},
     // Persian is read in Vazirmatn, the font Iranian sites and apps use.
     {id: 'vazirmatn', family: 'Vazirmatn', label: 'Vazirmatn', kind: 'Sans serif', script: 'arabic', fallback: true, languages: ['fa'], files: faces('vazirmatn', 'Vazirmatn', ['400Regular', '700Bold'])},
-    // Chinese characters and kana. Sans only: a serif CJK font is three times the size, and
-    // a serif template beside a sans CJK font is how most Japanese CVs are printed anyway.
-    {id: 'noto-sans-jp', family: 'Noto Sans JP', label: 'Noto Sans JP', kind: 'Sans serif', script: 'cjk', fallback: true, files: faces('noto-sans-jp', 'NotoSansJP', ['400Regular', '700Bold'])},
+    // Chinese characters and kana, drawn as each place draws them: Japan, Taiwan and Hong
+    // Kong, and mainland China, whose font also has every character the others lack, so it
+    // follows them for any. Sans only: a serif CJK font is three times the size, and sans
+    // CJK beside a serif template is how most CVs there are printed anyway.
+    {id: 'noto-sans-sc', family: 'Noto Sans SC', label: 'Noto Sans SC', kind: 'Sans serif', script: 'cjk', fallback: true, files: faces('noto-sans-sc', 'NotoSansSC', ['400Regular', '700Bold'])},
+    {id: 'noto-sans-tc', family: 'Noto Sans TC', label: 'Noto Sans TC', kind: 'Sans serif', script: 'cjk', fallback: true, languages: ['zh-Hant'], files: faces('noto-sans-tc', 'NotoSansTC', ['400Regular', '700Bold'])},
+    {id: 'noto-sans-jp', family: 'Noto Sans JP', label: 'Noto Sans JP', kind: 'Sans serif', script: 'cjk', fallback: true, languages: ['ja'], files: faces('noto-sans-jp', 'NotoSansJP', ['400Regular', '700Bold'])},
     {id: 'amiri', family: 'Amiri', label: 'Amiri', kind: 'Serif', script: 'arabic', fallback: false, files: faces('amiri', 'Amiri')},
 ]
 
@@ -117,11 +121,16 @@ export const scriptFontById = (id: string): ScriptFont | undefined => SCRIPT_FON
 /**
  * The families a template is given, in the order Typst looks for each letter in them:
  * the main font, the script font chosen (or the one that suits the main font), then Inter.
+ * A language's own font is followed by its script's general one, for any letter it lacks.
  */
 export function fontFamilies(id: string, scriptFont = '', language = 'en'): string[] {
     const main = fontById(id)
     const chosen = scriptFontById(scriptFont)
-    const scripts = [...new Set(SCRIPT_FONTS.map((font) => font.script))].map((script) => (chosen?.script === script ? chosen : scriptFontFor(script, main.kind, language)).family)
+    const scripts = [...new Set(SCRIPT_FONTS.map((font) => font.script))].flatMap((script) => {
+        const font = chosen?.script === script ? chosen : scriptFontFor(script, main.kind, language)
+
+        return font.languages ? [font.family, scriptFontFor(script, main.kind).family] : [font.family]
+    })
     // A script font the person added comes first, with the bundled one behind it for any
     // letter it lacks, or for a computer that hasn't it.
     const added = isAddedFont(scriptFont) ? [addedFamily(scriptFont)] : []

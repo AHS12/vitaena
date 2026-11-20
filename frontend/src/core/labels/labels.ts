@@ -15,8 +15,10 @@ import {hi} from './hi'
 import {ja} from './ja'
 import {mr} from './mr'
 import {ur} from './ur'
+import {zhHans} from './zh-hans'
+import {zhHant} from './zh-hant'
 
-export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur', 'ar', 'fa', 'ja'] as const
+export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur', 'ar', 'fa', 'ja', 'zh-Hans', 'zh-Hant'] as const
 
 export type DocumentLanguage = (typeof LANGUAGE_IDS)[number]
 
@@ -132,10 +134,12 @@ export const LANGUAGES: readonly LanguageInfo[] = [
     {id: 'ur', name: 'Urdu', own: 'اردو', lang: 'ur', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic'},
     {id: 'ar', name: 'Arabic', own: 'العربية', lang: 'ar', latin: false, digits: '٠١٢٣٤٥٦٧٨٩', rtl: true, script: 'arabic'},
     {id: 'ja', name: 'Japanese', own: '日本語', lang: 'ja', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}, to: '～'},
+    {id: 'zh-Hans', name: 'Chinese, simplified', own: '简体中文', lang: 'zh', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}},
+    {id: 'zh-Hant', name: 'Chinese, traditional', own: '繁體中文', lang: 'zh', latin: false, digits: null, script: 'cjk', yearFirst: {year: '年', day: '日', spaced: false}},
     {id: 'fa', name: 'Persian', own: 'فارسی', lang: 'fa', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic'},
 ]
 
-const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur, ar, fa, ja}
+const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur, ar, fa, ja, 'zh-Hans': zhHans, 'zh-Hant': zhHant}
 
 export const isLanguage = (value: string): value is DocumentLanguage => value in TABLES
 

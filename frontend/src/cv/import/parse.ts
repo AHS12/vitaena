@@ -198,6 +198,11 @@ function addLinks(targets: readonly string[], contact: Contact): void {
 /** Letters Urdu has and Arabic and Persian haven't; Arabic's own; and Persian's heh and zhe, which Urdu writes otherwise. */
 const URDU_LETTERS = /[ٹڈڑںےۓہھۂ]/u
 const PERSIAN_LETTERS = /[هژ]/u
+/** Kana, and the characters Japan writes its own way (経, 歴), mean Japanese. */
+const JAPANESE = /[\p{Script=Hiragana}\p{Script=Katakana}経歴験]/u
+/** Characters that are written one way in simplified Chinese and another in traditional, as each writes them. */
+const SIMPLIFIED = /[经历简业专项证们这习语书联实际验织关于试别发长东车门问时个资讯荣奖誉愿务爱兴]/gu
+const TRADITIONAL = /[經歷簡業專項證們這習語書聯實際驗織關於試別發長東車門問時個資訊榮獎譽願務愛興]/gu
 const ARABIC_LETTERS = /[ةيكى]|(?:^|\s)ال/u
 
 /**
@@ -206,7 +211,7 @@ const ARABIC_LETTERS = /[ةيكى]|(?:^|\s)ال/u
  * Arabic letters are told apart by the letters only one of them uses. Marathi can't be
  * told from Hindi by its letters alone.
  */
-export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi' | 'ur' | 'ar' | 'fa' | 'ja' {
+export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi' | 'ur' | 'ar' | 'fa' | 'ja' | 'zh-Hans' | 'zh-Hant' {
     const count = (script: 'bengali' | 'devanagari' | 'arabic' | 'cjk') => titles.filter((title) => scriptsIn(title).includes(script)).length
     const most = (found: number) => found > 0 && found * 2 >= titles.length
 
@@ -216,7 +221,13 @@ export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi
         return URDU_LETTERS.test(joined) ? 'ur' : ARABIC_LETTERS.test(joined) ? 'ar' : PERSIAN_LETTERS.test(joined) ? 'fa' : 'ur'
     }
 
-    return most(count('bengali')) ? 'bn' : most(count('devanagari')) ? 'hi' : most(count('cjk')) ? 'ja' : 'en'
+    if (most(count('cjk'))) {
+        const joined = titles.join(' ')
+
+        return JAPANESE.test(joined) ? 'ja' : (joined.match(TRADITIONAL)?.length ?? 0) > (joined.match(SIMPLIFIED)?.length ?? 0) ? 'zh-Hant' : 'zh-Hans'
+    }
+
+    return most(count('bengali')) ? 'bn' : most(count('devanagari')) ? 'hi' : 'en'
 }
 
 export function textOf(lines: readonly PdfLine[]): string {
