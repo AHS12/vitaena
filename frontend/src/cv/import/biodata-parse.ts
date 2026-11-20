@@ -62,7 +62,7 @@ export function dayOf(written: string): string {
 
 /** A height as written, "5′ 4″", "5 ft 4 in", "5'4"" or "163 cm", in centimetres and how it was shown; null if it isn't one. */
 export function heightOf(written: string): {cm: number; show: 'ft-in' | 'cm' | 'both'} | null {
-    const text = asLatinDigits(written).replace(/সেমি|सेमी|سینٹی میٹر/g, 'cm')
+    const text = asLatinDigits(written).replace(/সেমি|सेमी|سینٹی میٹر|سم/g, 'cm')
     const imperial = /(\d)\s*(?:['′’]|ft\.?|feet|foot)\s*(?:(\d{1,2})\s*(?:["″”]|''|in\.?|inch(?:es)?)?)?/i.exec(text)
     const metric = /(\d{2,3}(?:\.\d)?)\s*cm\b/i.exec(text)
 
@@ -77,15 +77,15 @@ export function heightOf(written: string): {cm: number; show: 'ft-in' | 'cm' | '
 function rowOf(label: string, value: string): DetailRow {
     const base = {id: newId('row'), visible: true, label}
 
-    if (/\b(?:date of birth|birth ?date|born|d\.?o\.?b)\b|জন্ম ?তারিখ|जन्म ?(?:तिथि|तारीख)|تاریخِ? ?پیدائش/i.test(label)) {
+    if (/\b(?:date of birth|birth ?date|born|d\.?o\.?b)\b|জন্ম ?তারিখ|जन्म ?(?:तिथि|तारीख)|تاریخِ? ?پیدائش|تاريخ الميلاد/i.test(label)) {
         const date = dayOf(value)
 
         if (date) {
-            return {...base, kind: 'date', date, show: /\(\s*\d+\s*(?:years?|yrs?|বছর|वर्षे?|سال)\s*\)/i.test(asLatinDigits(value)) ? 'both' : 'date'}
+            return {...base, kind: 'date', date, show: /\(\s*\d+\s*(?:years?|yrs?|বছর|वर्षे?|سال|سنة|سنوات|عامًا|عاما|عام)\s*\)/i.test(asLatinDigits(value)) ? 'both' : 'date'}
         }
     }
 
-    if (/\bheight\b|উচ্চতা|कद|उंची|ऊंचाई|قد/i.test(label)) {
+    if (/\bheight\b|উচ্চতা|कद|उंची|ऊंचाई|قد|الطول/i.test(label)) {
         const height = heightOf(value)
 
         if (height) {

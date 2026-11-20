@@ -60,7 +60,7 @@ const ACCENT = /^#[0-9a-fA-F]{6}$/
 export const setDesignTool = defineTool({
     name: 'set_design',
     title: 'Change the design',
-    description: `Changes how a document looks: its template, accent colour, font, text size, paper, margins and spacing; for a CV, ATS mode (one column for screening systems) and how levels are drawn; for a biodata, the border. Also the language the app writes the headings, labels and dates in (${LANGUAGES.map((info) => `${info.id} for ${info.name}`).join(', ')}): changing it carries the app's own headings and labels across and leaves the person's words alone. Give only what to change. Fonts: ${CV_FONTS.map((font) => `${font.id} (${font.label}, ${font.kind.toLowerCase()})`).join(', ')}. Fonts for Bangla text (scriptFont, "" for the one that suits the font): ${SCRIPT_FONTS.map((font) => font.id).join(', ')}. list_templates gives the template ids.`,
+    description: `Changes how a document looks: its template, accent colour, font, text size, paper, margins and spacing; for a CV, ATS mode (one column for screening systems) and how levels are drawn; for a biodata, the border. Also the language the app writes the headings, labels and dates in (${LANGUAGES.map((info) => `${info.id} for ${info.name}`).join(', ')}): changing it carries the app's own headings and labels across and leaves the person's words alone. Give only what to change. Fonts: ${CV_FONTS.map((font) => `${font.id} (${font.label}, ${font.kind.toLowerCase()})`).join(', ')}. Fonts for Bangla or Arabic text (scriptFont, "" for the one that suits the font and language): ${SCRIPT_FONTS.map((font) => font.id).join(', ')}. list_templates gives the template ids.`,
     input: z.object({
         id: idInput,
         template: z.string().optional(),
@@ -109,7 +109,7 @@ export const setDesignTool = defineTool({
         }
 
         if (design.scriptFont !== undefined && design.scriptFont !== '' && !SCRIPT_FONTS.some((font) => font.id === design.scriptFont) && !added.includes(design.scriptFont)) {
-            throw new Error(`There's no Bangla font "${design.scriptFont}". They are: "" (matching), ${[...SCRIPT_FONTS.map((font) => font.id), ...added].join(', ')}.`)
+            throw new Error(`There's no script font "${design.scriptFont}". They are: "" (matching), ${[...SCRIPT_FONTS.map((font) => font.id), ...added].join(', ')}.`)
         }
 
         if (design.fontSize !== undefined && design.fontSize * 2 !== Math.round(design.fontSize * 2)) {
@@ -117,7 +117,7 @@ export const setDesignTool = defineTool({
         }
 
         const content = document.content as Sectioned & {design: {language: string}}
-        const words: Record<string, string> = {fontSize: 'text size', atsMode: 'ATS mode', levelStyle: 'level style', scriptFont: 'Bangla font'}
+        const words: Record<string, string> = {fontSize: 'text size', atsMode: 'ATS mode', levelStyle: 'level style', scriptFont: 'script font'}
         const changes = Object.keys(given).map((key) => `set the ${words[key] ?? key}`)
         // A new language carries the app's own headings and labels across, as Style does.
         const moved = design.language !== undefined && design.language !== content.design.language ? inLanguage(content, design.language) : content

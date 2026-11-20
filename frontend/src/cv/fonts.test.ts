@@ -3,15 +3,15 @@ import {fontFamilies, scriptFilesFor, scriptsIn} from './fonts'
 
 describe('the fonts a template is given', () => {
     it('starts with the chosen font and follows a sans with the sans Bangla font', () => {
-        expect(fontFamilies('lato')).toEqual(['Lato', 'Noto Sans Bengali', 'Noto Sans Devanagari', 'Noto Nastaliq Urdu', 'Inter'])
+        expect(fontFamilies('lato')).toEqual(['Lato', 'Noto Sans Bengali', 'Noto Sans Devanagari', 'Noto Sans Arabic', 'Inter'])
     })
 
     it('follows a serif with the serif Bangla font', () => {
-        expect(fontFamilies('eb-garamond')).toEqual(['EB Garamond', 'Noto Serif Bengali', 'Noto Serif Devanagari', 'Noto Nastaliq Urdu', 'Inter'])
+        expect(fontFamilies('eb-garamond')).toEqual(['EB Garamond', 'Noto Serif Bengali', 'Noto Serif Devanagari', 'Noto Naskh Arabic', 'Inter'])
     })
 
     it('names Inter only once when it is the chosen font', () => {
-        expect(fontFamilies('inter')).toEqual(['Inter', 'Noto Sans Bengali', 'Noto Sans Devanagari', 'Noto Nastaliq Urdu'])
+        expect(fontFamilies('inter')).toEqual(['Inter', 'Noto Sans Bengali', 'Noto Sans Devanagari', 'Noto Sans Arabic'])
     })
 
     it('falls back to Inter for a font it does not know', () => {
@@ -39,10 +39,10 @@ describe('the scripts in a document', () => {
 
 describe('a font the person added', () => {
     it('is named by its family, before the bundled fonts', () => {
-        expect(fontFamilies('custom:Merriweather')).toEqual(['Merriweather', 'Noto Sans Bengali', 'Noto Sans Devanagari', 'Noto Nastaliq Urdu', 'Inter'])
+        expect(fontFamilies('custom:Merriweather')).toEqual(['Merriweather', 'Noto Sans Bengali', 'Noto Sans Devanagari', 'Noto Sans Arabic', 'Inter'])
     })
 
     it('for Bangla, comes before the bundled Bangla font, which takes any letter it lacks', () => {
-        expect(fontFamilies('inter', 'custom:Kalpurush')).toEqual(['Inter', 'Kalpurush', 'Noto Sans Bengali', 'Noto Sans Devanagari', 'Noto Nastaliq Urdu'])
+        expect(fontFamilies('inter', 'custom:Kalpurush')).toEqual(['Inter', 'Kalpurush', 'Noto Sans Bengali', 'Noto Sans Devanagari', 'Noto Sans Arabic'])
     })
 })

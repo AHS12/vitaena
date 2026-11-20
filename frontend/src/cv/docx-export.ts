@@ -4,15 +4,29 @@
  * Built from the same render model as the PDF, so dates and hidden items match.
  */
 
+import {languageInfo} from '../core/labels/labels'
+import {SCRIPT_FONTS} from './fonts'
 import type {RenderEntry, RenderModel} from './render-model'
 import type {Span} from './rich'
 
 /**
- * The fonts Word is told: the main one for Latin letters, and the Bangla one for Bangla,
- * which Word treats as a complex script and sets in its own font. Word uses them where
- * they're installed; a Word file names fonts but doesn't carry them.
+ * The fonts Word is told: the main one for Latin letters, and the font for the document's
+ * script, such as Bangla or Arabic, which Word treats as a complex script and sets in its
+ * own font. Word uses them where they're installed; a Word file names fonts but doesn't
+ * carry them.
  */
-export const wordFonts = (design: {readonly font: string; readonly fonts: readonly string[]}) => ({ascii: design.font, hAnsi: design.font, cs: design.fonts[1] ?? design.font})
+export function wordFonts(design: {readonly font: string; readonly fonts: readonly string[]; readonly lang: string}) {
+    const script = languageInfo(design.lang).script ?? 'bengali'
+    const others = design.fonts.slice(1)
+    // A font the person added comes right after the main one, before every bundled font.
+    const added = others[0] && !SCRIPT_FONTS.some((font) => font.family === others[0]) ? others[0] : undefined
+    const bundled = others.find((family) => SCRIPT_FONTS.some((font) => font.family === family && font.script === script))
+
+    return {ascii: design.font, hAnsi: design.font, cs: added ?? bundled ?? design.font}
+}
+
+/** A right-to-left document's paragraphs run right to left in Word too. */
+export const wordParagraph = (design: {readonly rtl: boolean}) => ({spacing: {after: 60, line: 276}, ...(design.rtl ? {bidirectional: true} : {})})
 
 const BULLETS = 'cv-bullets'
 
@@ -90,14 +104,14 @@ export async function cvDocx(model: RenderModel): Promise<Uint8Array> {
         title: model.name ? `${model.name} – CV` : 'CV',
         creator: model.name || undefined,
         styles: {
-            default: {document: {run: {font: wordFonts(model.design), size}, paragraph: {spacing: {after: 60, line: 276}}}},
+            default: {document: {run: {font: wordFonts(model.design), size}, paragraph: wordParagraph(model.design)}},
             paragraphStyles: [{id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: {size: Math.round(size * 1.1)}, paragraph: {spacing: {before: 280, after: 100}}}],
         },
         numbering: {
             config: [
                 {
                     reference: BULLETS,
-                    levels: [{level: 0, format: LevelFormat.BULLET, text: '•', alignment: AlignmentType.LEFT, style: {paragraph: {indent: {left: 360, hanging: 240}}}}],
+                    levels: [{level: 0, format: LevelFormat.BULLET, text: '•', alignment: AlignmentType.START, style: {paragraph: {indent: {start: 360, hanging: 240}}}}],
                 },
             ],
         },

@@ -8,8 +8,8 @@ import {useEffect, useMemo, type ReactNode} from 'react'
 import {ColourRow} from '../../components/ColourRow'
 import {Segmented} from '../../components/Segmented'
 import type {Cv, CvDesign} from '../cv'
-import {LANGUAGES, languageInfo, type DocumentLanguage} from '../../core/labels/labels'
-import {CV_FONTS, isAddedFont, addedFamily, SCRIPT_FONTS, scriptsIn} from '../fonts'
+import {LANGUAGES, labelsFor, languageInfo, type DocumentLanguage} from '../../core/labels/labels'
+import {CV_FONTS, isAddedFont, addedFamily, SCRIPT_FONTS, scriptFontById, scriptsIn, type Script} from '../fonts'
 import {addedFamilies, previewFamily, previewFont, useAddedFonts} from '../added-fonts'
 import {Plus} from 'lucide-react'
 import {CV_TEMPLATES, TEMPLATE_USE_LABELS} from '../templates/templates'
@@ -195,24 +195,41 @@ function FontMessage({text, ok}: {text: string; ok: boolean}) {
 }
 
 /** A line of Bangla to show each Bangla font in. */
-const BANGLA_SAMPLE = 'আমার নাম'
+/** A few words in each script, to show a font for it in. */
+const SAMPLES: Readonly<Record<Script, string>> = {bengali: 'আমার নাম', devanagari: 'मेरा नाम', arabic: 'اسمي'}
+
+const SCRIPT_TITLES: Readonly<Record<Script, string>> = {bengali: 'Bangla', devanagari: 'Hindi', arabic: 'Arabic'}
+
+/**
+ * The script whose font Style offers a choice for: the document language's own, else the
+ * first one in the text that has fonts to choose from, else the chosen font's.
+ */
+function choiceScript(language: string, scripts: readonly Script[], scriptFont: string, added: readonly {id: string; scripts: readonly string[]}[]): Script | null {
+    const choosable = (script: Script) => SCRIPT_FONTS.some((font) => font.script === script && !font.fallback) || added.some((family) => family.scripts.includes(script))
+    const own = languageInfo(language).script
+    const chosen = scriptFontById(scriptFont)?.script ?? (added.find((family) => family.id === scriptFont)?.scripts.find((script) => script !== 'latin') as Script | undefined)
+    // A font the person added that isn't on this computer still shows, so it can be changed.
+    const named = isAddedFont(scriptFont) ? (chosen ?? own ?? 'bengali') : null
+
+    return [own, ...scripts, chosen].find((script): script is Script => script !== undefined && choosable(script)) ?? named
+}
 
 /**
  * Colour, font, size and the page, for any type; `children` adds the type's own groups.
  * Changing the language goes through `onLanguage`, since it changes headings as well.
- * `hasBangla` says the document has Bangla letters, so the font for them is worth choosing.
+ * `scripts` are the scripts the document has letters in, so a font for them is worth choosing.
  */
 export function StyleGroups({
     design,
     set,
     onLanguage,
-    hasBangla,
+    scripts,
     children,
 }: {
     design: SharedStyle
     set<K extends keyof SharedStyle>(key: K, value: SharedStyle[K], label: string): void
     onLanguage(language: DocumentLanguage): void
-    hasBangla: boolean
+    scripts: readonly Script[]
     children?: ReactNode
 }) {
     useEffect(loadFaces, [])
@@ -222,8 +239,10 @@ export function StyleGroups({
     const message = useAddedFonts((state) => state.message)
     const families = useMemo(() => addedFamilies(added), [added])
     const latinFamilies = families.filter((family) => family.scripts.includes('latin'))
-    const banglaFamilies = families.filter((family) => family.scripts.includes('bengali'))
-    const showBanglaFont = hasBangla || design.language === 'bn' || isAddedFont(design.scriptFont)
+    const script = choiceScript(design.language, scripts, design.scriptFont, families)
+    const scriptFamilies = script ? families.filter((family) => family.scripts.includes(script)) : []
+    const scriptTitle = script ? `${SCRIPT_TITLES[script]} text in` : ''
+    const scriptLabel = script ? `${SCRIPT_TITLES[script]} font` : ''
 
     useEffect(() => families.forEach((family) => previewFont(family.files[0])), [families])
 
@@ -254,7 +273,7 @@ export function StyleGroups({
                 <p className="design-panel__tip">
                     {language.id === 'en'
                         ? 'The headings, labels and dates Vitaena writes. Your own words stay as you wrote them.'
-                        : `Headings, labels, dates and "${language.id === 'bn' ? 'বর্তমান' : 'Present'}" are written in ${language.name}. Headings you wrote yourself stay as they are.`}
+                        : `Headings, labels, dates and "${labelsFor(language.id).page.present}" are written in ${language.name}. Headings you wrote yourself stay as they are.`}
                 </p>
             </Group>
 
@@ -292,28 +311,28 @@ export function StyleGroups({
                     <span className="design-row__label">Size</span>
                     <Segmented label="Text size" value={design.fontSize} options={SIZES} onChange={(size) => set('fontSize', size, 'text size')} />
                 </div>
-                {showBanglaFont ? (
+                {script ? (
                     <>
-                        <h4 className="design-group__subtitle">Bangla text in</h4>
-                        <div className="font-choices" role="radiogroup" aria-label="Bangla text in">
-                            <button type="button" role="radio" aria-checked={design.scriptFont === ''} className="font-choice" onClick={() => set('scriptFont', '', 'Bangla font')}>
+                        <h4 className="design-group__subtitle">{scriptTitle}</h4>
+                        <div className="font-choices" role="radiogroup" aria-label={scriptTitle}>
+                            <button type="button" role="radio" aria-checked={design.scriptFont === ''} className="font-choice" onClick={() => set('scriptFont', '', scriptLabel)}>
                                 <span className="font-choice__name">Matching</span>
                                 <span className="font-choice__kind">Noto, sans or serif to suit</span>
                             </button>
-                            {SCRIPT_FONTS.filter((font) => font.script === 'bengali').map((font) => (
-                                <button key={font.id} type="button" role="radio" aria-checked={design.scriptFont === font.id} className="font-choice" onClick={() => set('scriptFont', font.id, 'Bangla font')}>
+                            {SCRIPT_FONTS.filter((font) => font.script === script && (!font.languages || font.languages.includes(design.language))).map((font) => (
+                                <button key={font.id} type="button" role="radio" aria-checked={design.scriptFont === font.id} className="font-choice" onClick={() => set('scriptFont', font.id, scriptLabel)}>
                                     <span className="font-choice__name" style={{fontFamily: `vitaena-${font.id}, var(--font-sans)`}}>
-                                        {BANGLA_SAMPLE}
+                                        {SAMPLES[script]}
                                     </span>
                                     <span className="font-choice__kind">
                                         {font.label} · {font.kind}
                                     </span>
                                 </button>
                             ))}
-                            {banglaFamilies.map((family) => (
-                                <button key={family.id} type="button" role="radio" aria-checked={design.scriptFont === family.id} className="font-choice" onClick={() => set('scriptFont', family.id, 'Bangla font')}>
+                            {scriptFamilies.map((family) => (
+                                <button key={family.id} type="button" role="radio" aria-checked={design.scriptFont === family.id} className="font-choice" onClick={() => set('scriptFont', family.id, scriptLabel)}>
                                     <span className="font-choice__name" style={{fontFamily: `${previewFamily(family.files[0])}, var(--font-sans)`}}>
-                                        {BANGLA_SAMPLE}
+                                        {SAMPLES[script]}
                                     </span>
                                     <span className="font-choice__kind">{family.family} · Your font</span>
                                 </button>
@@ -375,11 +394,11 @@ export function StylePanel({cv, edit}: {cv: Cv; edit: Edit}) {
     const set = setter(edit)
     // Only worth asking about once some list shows levels.
     const hasLevels = cv.sections.some((section) => section.kind === 'tags' && section.groups.some((group) => group.showLevels))
-    const hasBangla = useMemo(() => scriptsIn(JSON.stringify([cv.person, cv.sections])).includes('bengali'), [cv.person, cv.sections])
+    const scripts = useMemo(() => scriptsIn(JSON.stringify([cv.person, cv.sections])), [cv.person, cv.sections])
     const onLanguage = (language: DocumentLanguage) => edit.act(`write in ${languageInfo(language).name}`, (current) => inLanguage(current, language))
 
     return (
-        <StyleGroups design={design} set={set} onLanguage={onLanguage} hasBangla={hasBangla}>
+        <StyleGroups design={design} set={set} onLanguage={onLanguage} scripts={scripts}>
             {hasLevels ? (
                 <Group title="Levels">
                     <div className="design-row">

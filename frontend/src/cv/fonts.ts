@@ -28,6 +28,11 @@ export interface ScriptFont extends CvFont {
     readonly script: Script
     /** Used for its script when nothing else is chosen, beside main fonts of its kind. */
     readonly fallback: boolean
+    /**
+     * The document languages it's the fallback for, when it isn't for every one: Urdu is
+     * read in Nastaliq, while Arabic in the same letters is read in Naskh.
+     */
+    readonly languages?: readonly string[]
 }
 
 const face = (pkg: string, prefix: string, name: string): string => `@expo-google-fonts/${pkg}/${name}/${prefix}_${name}.ttf`
@@ -56,7 +61,12 @@ export const SCRIPT_FONTS: readonly ScriptFont[] = [
     {id: 'noto-sans-devanagari', family: 'Noto Sans Devanagari', label: 'Noto Sans Devanagari', kind: 'Sans serif', script: 'devanagari', fallback: true, files: faces('noto-sans-devanagari', 'NotoSansDevanagari', ['400Regular', '700Bold'])},
     {id: 'noto-serif-devanagari', family: 'Noto Serif Devanagari', label: 'Noto Serif Devanagari', kind: 'Serif', script: 'devanagari', fallback: true, files: faces('noto-serif-devanagari', 'NotoSerifDevanagari', ['400Regular', '700Bold'])},
     // Urdu is read in Nastaliq, whether the Latin font beside it is sans or serif.
-    {id: 'noto-nastaliq-urdu', family: 'Noto Nastaliq Urdu', label: 'Noto Nastaliq Urdu', kind: 'Serif', script: 'arabic', fallback: true, files: faces('noto-nastaliq-urdu', 'NotoNastaliqUrdu', ['400Regular', '700Bold'])},
+    {id: 'noto-nastaliq-urdu', family: 'Noto Nastaliq Urdu', label: 'Noto Nastaliq Urdu', kind: 'Serif', script: 'arabic', fallback: true, languages: ['ur'], files: faces('noto-nastaliq-urdu', 'NotoNastaliqUrdu', ['400Regular', '700Bold'])},
+    {id: 'noto-sans-arabic', family: 'Noto Sans Arabic', label: 'Noto Sans Arabic', kind: 'Sans serif', script: 'arabic', fallback: true, files: faces('noto-sans-arabic', 'NotoSansArabic', ['400Regular', '700Bold'])},
+    {id: 'noto-naskh-arabic', family: 'Noto Naskh Arabic', label: 'Noto Naskh Arabic', kind: 'Serif', script: 'arabic', fallback: true, files: faces('noto-naskh-arabic', 'NotoNaskhArabic', ['400Regular', '700Bold'])},
+    {id: 'cairo', family: 'Cairo', label: 'Cairo', kind: 'Sans serif', script: 'arabic', fallback: false, files: faces('cairo', 'Cairo', ['400Regular', '700Bold'])},
+    {id: 'ibm-plex-sans-arabic', family: 'IBM Plex Sans Arabic', label: 'IBM Plex Sans Arabic', kind: 'Sans serif', script: 'arabic', fallback: false, files: faces('ibm-plex-sans-arabic', 'IBMPlexSansArabic', ['400Regular', '700Bold'])},
+    {id: 'amiri', family: 'Amiri', label: 'Amiri', kind: 'Serif', script: 'arabic', fallback: false, files: faces('amiri', 'Amiri')},
 ]
 
 /** The letters of each script, by Unicode script. */
@@ -83,9 +93,18 @@ export const addedFontId = (family: string): string => ADDED + family
 export const fontById = (id: string): CvFont =>
     isAddedFont(id) ? {id, family: addedFamily(id), label: addedFamily(id), kind: 'Sans serif', files: []} : (CV_FONTS.find((font) => font.id === id) ?? CV_FONTS[0])
 
-/** The script font that suits a main font: sans with sans, serif with serif. */
-export const scriptFontFor = (script: Script, kind: FontKind): ScriptFont =>
-    SCRIPT_FONTS.find((font) => font.script === script && font.fallback && font.kind === kind) ?? SCRIPT_FONTS.find((font) => font.script === script && font.fallback)!
+/**
+ * The script font that suits a main font, sans with sans and serif with serif, among the
+ * fallbacks for the document's language: its own when it has them (Nastaliq for Urdu),
+ * else those for every language.
+ */
+export function scriptFontFor(script: Script, kind: FontKind, language = 'en'): ScriptFont {
+    const fallbacks = SCRIPT_FONTS.filter((font) => font.script === script && font.fallback)
+    const own = fallbacks.filter((font) => font.languages?.includes(language))
+    const pool = own.length > 0 ? own : fallbacks.filter((font) => !font.languages)
+
+    return pool.find((font) => font.kind === kind) ?? pool[0]
+}
 
 export const scriptFontById = (id: string): ScriptFont | undefined => SCRIPT_FONTS.find((font) => font.id === id)
 
@@ -93,11 +112,11 @@ export const scriptFontById = (id: string): ScriptFont | undefined => SCRIPT_FON
  * The families a template is given, in the order Typst looks for each letter in them:
  * the main font, the script font chosen (or the one that suits the main font), then Inter.
  */
-export function fontFamilies(id: string, scriptFont = ''): string[] {
+export function fontFamilies(id: string, scriptFont = '', language = 'en'): string[] {
     const main = fontById(id)
     const chosen = scriptFontById(scriptFont)
-    const scripts = [...new Set(SCRIPT_FONTS.map((font) => font.script))].map((script) => (chosen?.script === script ? chosen : scriptFontFor(script, main.kind)).family)
-    // A Bangla font the person added comes first, with the bundled one behind it for any
+    const scripts = [...new Set(SCRIPT_FONTS.map((font) => font.script))].map((script) => (chosen?.script === script ? chosen : scriptFontFor(script, main.kind, language)).family)
+    // A script font the person added comes first, with the bundled one behind it for any
     // letter it lacks, or for a computer that hasn't it.
     const added = isAddedFont(scriptFont) ? [addedFamily(scriptFont)] : []
 
@@ -109,10 +128,11 @@ export const scriptsIn = (text: string): Script[] => (Object.keys(SCRIPT_LETTERS
 
 /**
  * The script fonts' files a render model needs, given as JSON: for each script in it, the
- * fallbacks of both kinds, since a template may pick either, and any it names.
+ * fallbacks of both kinds, since a template may pick either, and any it names, such as
+ * a language's own fallback.
  */
 export const scriptFilesFor = (text: string): string[] => {
     const scripts = new Set(scriptsIn(text))
 
-    return SCRIPT_FONTS.filter((font) => scripts.has(font.script) && (font.fallback || text.includes(`"${font.family}"`))).flatMap((font) => font.files)
+    return SCRIPT_FONTS.filter((font) => scripts.has(font.script) && ((font.fallback && !font.languages) || text.includes(`"${font.family}"`))).flatMap((font) => font.files)
 }

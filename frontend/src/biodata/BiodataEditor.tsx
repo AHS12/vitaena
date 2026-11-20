@@ -168,7 +168,7 @@ function DesignSidebar({biodata, edit}: {biodata: Biodata; edit: Edit}) {
         return biodataRenderModel({...example, person: {...example.person, name: model.name || example.person.name, photo: biodata.person.photo || silhouettePhoto()}, design: biodata.design})
     }, [blank, biodata, model])
     const previews = useTemplatePreviews(shown, BIODATA_TEMPLATE_IDS, 900)
-    const hasBangla = useMemo(() => scriptsIn(JSON.stringify([biodata.heading, biodata.person.name, biodata.sections])).includes('bengali'), [biodata.heading, biodata.person.name, biodata.sections])
+    const scripts = useMemo(() => scriptsIn(JSON.stringify([biodata.heading, biodata.person.name, biodata.sections])), [biodata.heading, biodata.person.name, biodata.sections])
 
     return (
         <div className="cv-side cv-side--design" data-coach="design">
@@ -193,7 +193,7 @@ function DesignSidebar({biodata, edit}: {biodata: Biodata; edit: Edit}) {
                         design={biodata.design}
                         set={set as <K extends keyof SharedStyle>(key: K, value: SharedStyle[K], label: string) => void}
                         onLanguage={(language) => edit.act(`write in ${languageInfo(language).name}`, (current) => inLanguage(current, language))}
-                        hasBangla={hasBangla}
+                        scripts={scripts}
                     >
                         <Group title="Two languages">
                             <div className="design-row">

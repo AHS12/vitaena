@@ -5,7 +5,7 @@
  * age, the height and what's hidden all match.
  */
 
-import {wordFonts} from '../cv/docx-export'
+import {wordFonts, wordParagraph} from '../cv/docx-export'
 import type {RenderEntry} from '../cv/render-model'
 import type {Span} from '../cv/rich'
 import type {BiodataRenderModel} from './render-model'
@@ -126,7 +126,7 @@ export async function biodataDocx(model: BiodataRenderModel): Promise<Uint8Array
     const document = new Document({
         title: model.name ? `${model.name} – Biodata` : 'Biodata',
         creator: model.name || undefined,
-        styles: {default: {document: {run: {font: wordFonts(model.design), size}, paragraph: {spacing: {after: 60, line: 276}}}}},
+        styles: {default: {document: {run: {font: wordFonts(model.design), size}, paragraph: wordParagraph(model.design)}}},
         sections: [
             {
                 properties: {

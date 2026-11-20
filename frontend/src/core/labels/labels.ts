@@ -7,13 +7,14 @@
  * another, and a test checks none is missing.
  */
 
+import {ar} from './ar'
 import {bn} from './bn'
 import {en} from './en'
 import {hi} from './hi'
 import {mr} from './mr'
 import {ur} from './ur'
 
-export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur'] as const
+export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur', 'ar'] as const
 
 export type DocumentLanguage = (typeof LANGUAGE_IDS)[number]
 
@@ -110,17 +111,20 @@ export interface LanguageInfo {
     readonly digits: string | null
     /** Written right to left. */
     readonly rtl?: boolean
+    /** The letters it's written in, when they aren't Latin: which script font Style offers. */
+    readonly script?: 'bengali' | 'devanagari' | 'arabic'
 }
 
 export const LANGUAGES: readonly LanguageInfo[] = [
     {id: 'en', name: 'English', own: 'English', lang: 'en', latin: true, digits: null},
-    {id: 'bn', name: 'Bangla', own: 'বাংলা', lang: 'bn', latin: false, digits: '০১২৩৪৫৬৭৮৯'},
-    {id: 'hi', name: 'Hindi', own: 'हिन्दी', lang: 'hi', latin: false, digits: '०१२३४५६७८९'},
-    {id: 'mr', name: 'Marathi', own: 'मराठी', lang: 'mr', latin: false, digits: '०१२३४५६७८९'},
-    {id: 'ur', name: 'Urdu', own: 'اردو', lang: 'ur', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true},
+    {id: 'bn', name: 'Bangla', own: 'বাংলা', lang: 'bn', latin: false, digits: '০১২৩৪৫৬৭৮৯', script: 'bengali'},
+    {id: 'hi', name: 'Hindi', own: 'हिन्दी', lang: 'hi', latin: false, digits: '०१२३४५६७८९', script: 'devanagari'},
+    {id: 'mr', name: 'Marathi', own: 'मराठी', lang: 'mr', latin: false, digits: '०१२३४५६७८९', script: 'devanagari'},
+    {id: 'ur', name: 'Urdu', own: 'اردو', lang: 'ur', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic'},
+    {id: 'ar', name: 'Arabic', own: 'العربية', lang: 'ar', latin: false, digits: '٠١٢٣٤٥٦٧٨٩', rtl: true, script: 'arabic'},
 ]
 
-const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur}
+const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur, ar}
 
 export const isLanguage = (value: string): value is DocumentLanguage => value in TABLES
 
@@ -161,5 +165,15 @@ export const asLatinDigits = (text: string): string =>
         .replace(/[۰-۹]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
         .replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
 
+/**
+ * Arabic's other month names: the Levant's and Iraq's, Algeria's and Tunisia's, and the
+ * common ones spelt without hamzas, as they're often typed.
+ */
+const MORE_ARABIC_MONTHS: readonly (readonly string[])[] = [
+    ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'],
+    ['جانفي', 'فيفري', 'مارس', 'أفريل', 'ماي', 'جوان', 'جويلية', 'أوت', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+    ['يناير', 'فبراير', 'مارس', 'ابريل', 'مايو', 'يونيو', 'يوليو', 'اغسطس', 'سبتمبر', 'اكتوبر', 'نوفمبر', 'ديسمبر'],
+]
+
 /** Every language's month names but English, January first, for reading dates written in them. */
-export const OTHER_MONTHS: readonly (readonly string[])[] = LANGUAGE_IDS.filter((language) => language !== 'en').map((language) => TABLES[language].page.months)
+export const OTHER_MONTHS: readonly (readonly string[])[] = [...LANGUAGE_IDS.filter((language) => language !== 'en').map((language) => TABLES[language].page.months), ...MORE_ARABIC_MONTHS]

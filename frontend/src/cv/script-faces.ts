@@ -9,7 +9,7 @@ import {SCRIPT_FONTS, scriptFontFor, type Script} from './fonts'
 import {fontUrl} from './typst/font-urls'
 
 /** The family name the interface's font list names, in styles/tokens.css. */
-export const INTERFACE_FAMILY: Readonly<Record<Script, string>> = {bengali: 'Vitaena Bangla', devanagari: 'Vitaena Devanagari', arabic: 'Vitaena Urdu'}
+export const INTERFACE_FAMILY: Readonly<Record<Script, string>> = {bengali: 'Vitaena Bangla', devanagari: 'Vitaena Devanagari', arabic: 'Vitaena Arabic'}
 
 const RANGES: Readonly<Record<Script, string>> = {bengali: 'U+0980-09FF, U+200C-200D, U+25CC', devanagari: 'U+0900-097F, U+A8E0-A8FF, U+200C-200D, U+25CC', arabic: 'U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F'}
 
@@ -23,6 +23,8 @@ export function addScriptFaces(): void {
     added = true
 
     for (const script of new Set(SCRIPT_FONTS.map((font) => font.script))) {
+        // Fields show Arabic letters in Naskh-style sans, for Urdu as well: Nastaliq's tall
+        // lines would crowd a text field.
         const font = scriptFontFor(script, 'Sans serif')
 
         for (const file of font.files) {

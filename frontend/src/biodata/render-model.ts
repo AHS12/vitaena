@@ -100,7 +100,7 @@ export function biodataRenderModel(biodata: Biodata, today: Date = new Date()): 
         design: {
             accent: design.accent,
             font: fontById(design.font).family,
-            fonts: fontFamilies(design.font, design.scriptFont),
+            fonts: fontFamilies(design.font, design.scriptFont, design.language),
             ...pageLanguage(design.language),
             fontSize: design.fontSize,
             paper: design.paper,

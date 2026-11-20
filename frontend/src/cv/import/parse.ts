@@ -195,16 +195,27 @@ function addLinks(targets: readonly string[], contact: Contact): void {
 // ---------------------------------------------------------------- sections
 
 
+/** Letters Urdu has and Arabic hasn't, and the other way round. */
+const URDU_LETTERS = /[ٹڈڑںےۓہھۂ]/u
+const ARABIC_LETTERS = /[ةيكى]|(?:^|\s)ال/u
+
 /**
- * Bangla, Hindi for Devanagari or Urdu for Arabic letters, when most headings are written
- * in it, so the app's own words follow; else English. Marathi can't be told from Hindi by
- * its letters alone.
+ * Bangla, Hindi for Devanagari, or Urdu or Arabic for Arabic letters, when most headings
+ * are written in it, so the app's own words follow; else English. Urdu and Arabic are
+ * told apart by the letters only one of them uses. Marathi can't be told from Hindi by its
+ * letters alone.
  */
-export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi' | 'ur' {
+export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi' | 'ur' | 'ar' {
     const count = (script: 'bengali' | 'devanagari' | 'arabic') => titles.filter((title) => scriptsIn(title).includes(script)).length
     const most = (found: number) => found > 0 && found * 2 >= titles.length
 
-    return most(count('bengali')) ? 'bn' : most(count('devanagari')) ? 'hi' : most(count('arabic')) ? 'ur' : 'en'
+    if (most(count('arabic'))) {
+        const joined = titles.join(' ')
+
+        return URDU_LETTERS.test(joined) || !ARABIC_LETTERS.test(joined) ? 'ur' : 'ar'
+    }
+
+    return most(count('bengali')) ? 'bn' : most(count('devanagari')) ? 'hi' : 'en'
 }
 
 export function textOf(lines: readonly PdfLine[]): string {

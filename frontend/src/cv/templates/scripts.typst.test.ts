@@ -170,3 +170,31 @@ describe('Urdu, right to left, in every template', () => {
         expect(embeddedFonts(pdf).some((font) => font.startsWith('NotoNastaliqUrdu'))).toBe(true)
     }, 60_000)
 })
+
+describe('Arabic, right to left, in every template', () => {
+    it.each(CV_TEMPLATES.map((template) => template.id))('sets an Arabic CV in Naskh in %s, with its English intact', async (template) => {
+        const cv = sampleCv('ar')
+        const pdf = await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel({...cv, person: {...cv.person, name: 'جين دو', headline: 'مهندسة برمجيات'}}))
+        const fonts = embeddedFonts(pdf)
+
+        expect(await read(pdf)).toContain('jane.doe@example.com')
+        expect(fonts.some((font) => font.startsWith('NotoSansArabic') || font.startsWith('NotoNaskhArabic'))).toBe(true)
+        expect(fonts.some((font) => font.startsWith('NotoNastaliqUrdu'))).toBe(false)
+    }, 60_000)
+
+    it.each(BIODATA_TEMPLATES.map((template) => template.id))('lays out the Arabic biodata in %s on at most two pages', async (template) => {
+        const biodata = sampleBiodata('ar')
+        const pdf = await templatePdf(compiler, new URL(`../../biodata/templates/${template}.typ`, import.meta.url), '/biodata.json', biodataRenderModel({...biodata, person: {...biodata.person, name: 'جين دو'}}))
+        const document = await getDocument({data: pdf.slice(), useSystemFonts: false}).promise
+
+        expect(document.numPages).toBeLessThanOrEqual(2)
+        expect(embeddedFonts(pdf).some((font) => font.includes('Arabic'))).toBe(true)
+    }, 60_000)
+
+    it('sets Arabic in a chosen Arabic font', async () => {
+        const cv = sampleCv('ar')
+        const pdf = await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel({...cv, design: {...cv.design, scriptFont: 'amiri'}}))
+
+        expect(embeddedFonts(pdf).some((font) => font.startsWith('Amiri'))).toBe(true)
+    }, 60_000)
+})

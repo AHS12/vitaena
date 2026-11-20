@@ -72,7 +72,7 @@ describe('a document in Bangla', () => {
     it('gets the Bangla font chosen for it, after the main font', () => {
         const cv = sampleCv('bn')
 
-        expect(renderModel({...cv, design: {...cv.design, scriptFont: 'tiro-bangla'}}).design.fonts).toEqual(['Inter', 'Tiro Bangla', 'Noto Sans Devanagari', 'Noto Nastaliq Urdu'])
+        expect(renderModel({...cv, design: {...cv.design, scriptFont: 'tiro-bangla'}}).design.fonts).toEqual(['Inter', 'Tiro Bangla', 'Noto Sans Devanagari', 'Noto Sans Arabic'])
     })
 
     it('is told in Check that screening software looks for English headings', () => {
@@ -160,6 +160,41 @@ describe('a document in Urdu', () => {
     it('is read back on import', () => {
         expect(knownHeading('تعلیمی قابلیت')).toBe('entries')
         expect(findDates('جنوری ۲۰۲۰ – تاحال')).toMatchObject({start: '2020-01', current: true})
+        expect(languageOfHeadings(['تجربہ', 'تعلیمی قابلیت'])).toBe('ur')
+    })
+})
+
+describe('a document in Arabic', () => {
+    it('starts with its headings in Arabic, right to left, in Naskh rather than Nastaliq', () => {
+        expect(emptyCv('ar').sections.map((section) => section.title)).toEqual(['الملخص المهني', 'الخبرة العملية', 'المؤهلات العلمية', 'المهارات'])
+        expect(renderModel(emptyCv('ar')).design.rtl).toBe(true)
+        expect(renderModel(emptyCv('ar')).design.fonts).toContain('Noto Sans Arabic')
+        expect(renderModel(emptyCv('ar')).design.fonts).not.toContain('Noto Nastaliq Urdu')
+        expect(renderModel(emptyCv('ur')).design.fonts).toContain('Noto Nastaliq Urdu')
+    })
+
+    it('writes dates with Arabic months, and Arabic-Indic digits when asked', () => {
+        expect(datesText({start: '2020-01', end: '', current: true}, {language: 'ar', digits: 'native'})).toBe('يناير ٢٠٢٠ – حتى الآن')
+        expect(datesText({start: '2020-01', end: '2021-09', current: false}, {language: 'ar', digits: 'latin'})).toBe('يناير 2020 – سبتمبر 2021')
+    })
+
+    it('counts years in the form Arabic uses for the number', () => {
+        const years = (count: number) => detailValue({id: 'r', visible: true, label: '', kind: 'date', date: `${2026 - count}-01-01`, show: 'age'}, new Date(2026, 5, 1), {language: 'ar', digits: 'latin'})
+
+        expect([1, 2, 5, 30].map(years)).toEqual(['سنة واحدة', 'سنتان', '5 سنوات', '30 سنة'])
+    })
+
+    it('is read back on import, with the months of the Levant and the Maghreb too', () => {
+        expect(knownHeading('الخبرة العملية')).toBe('entries')
+        expect(findDates('يناير ٢٠٢٠ – حتى الآن')).toMatchObject({start: '2020-01', current: true})
+        expect(findDates('شباط 2019 – أيلول 2021')).toMatchObject({start: '2019-02', end: '2021-09'})
+        expect(findDates('جانفي 2018 – أوت 2019')).toMatchObject({start: '2018-01', end: '2019-08'})
+        expect(dayOf('١٢ مارس ١٩٩٦')).toBe('1996-03-12')
+        expect(heightOf('١٦٣ سم')).toEqual({cm: 163, show: 'cm'})
+    })
+
+    it('is told apart from Urdu by its letters', () => {
+        expect(languageOfHeadings(['الخبرة العملية', 'المؤهلات العلمية'])).toBe('ar')
         expect(languageOfHeadings(['تجربہ', 'تعلیمی قابلیت'])).toBe('ur')
     })
 })

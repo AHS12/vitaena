@@ -25,7 +25,7 @@ const NEEDED: Readonly<Record<FontScript, readonly number[]>> = {
     arabic: [0x0627, 0x0628, 0x0644, 0x0645],
 }
 
-export const SCRIPT_NAMES: Readonly<Record<FontScript, string>> = {latin: 'English', bengali: 'Bangla', devanagari: 'Hindi and Marathi', arabic: 'Urdu'}
+export const SCRIPT_NAMES: Readonly<Record<FontScript, string>> = {latin: 'English', bengali: 'Bangla', devanagari: 'Hindi and Marathi', arabic: 'Arabic and Urdu'}
 
 /** The codepoints a coverage says a font has, as covered ranges [from, to). */
 export function coveredRanges(coverage: readonly number[]): [number, number][] {

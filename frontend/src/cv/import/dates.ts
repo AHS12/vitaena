@@ -19,12 +19,12 @@ export interface DateRange {
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 const MONTH_NAME = `(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|${[...new Set(OTHER_MONTHS.flat())].join('|')})\\.?`
 
-/** A month written in Bangla, Hindi, Marathi or Urdu, 1 to 12, or 0. */
+/** A month written in Bangla, Hindi, Marathi, Urdu or Arabic, 1 to 12, or 0. */
 const otherMonth = (name: string): number => OTHER_MONTHS.map((months) => months.indexOf(name) + 1).find((month) => month > 0) ?? 0
 const YEAR = '(?:19|20)\\d{2}'
 /** One date: "Mar 2022", "March, 2022", "03/2022", "03.2022", "2022-03" or "2022". */
 const ONE = `(?:${MONTH_NAME},?\\s+${YEAR}|(?:0?[1-9]|1[0-2])[/.]${YEAR}|${YEAR}[-/](?:0[1-9]|1[0-2])(?!\\d)|${YEAR})`
-const NOW = '(?:present|current(?:ly)?|now|today|ongoing|to date|বর্তমান|চলমান|এখন পর্যন্ত|वर्तमान|अब तक|सध्या|आजपर्यंत|تاحال|اب تک|جاری)'
+const NOW = '(?:present|current(?:ly)?|now|today|ongoing|to date|বর্তমান|চলমান|এখন পর্যন্ত|वर्तमान|अब तक|सध्या|आजपर्यंत|تاحال|اب تک|جاری|حتى الآن|حتى الان|حاليا|حالياً|الآن|حتى اليوم)'
 const RANGE = new RegExp(`(?<![\\w/.-])(${ONE})(?:\\s*(?:[–—-]|to|until)\\s*(${ONE}|${NOW}))?(?![\\w/])`, 'i')
 
 /** One date as "2022-03". A year alone is January when it starts and December when it ends. */
