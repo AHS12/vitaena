@@ -3,15 +3,17 @@
 import {newSection} from '../cv/editor/edit-ops'
 import type {SectionChoice} from '../cv/editor/AddSection'
 import {emptyFamilyMember, newId, type Section} from '../cv/sections'
-import {labelsFor, translator, type DocumentLanguage, type Labels} from '../core/labels/labels'
+import {LANGUAGE_IDS, labelsFor, translator, type DocumentLanguage, type Labels} from '../core/labels/labels'
 import {detailsWith, type Biodata, type BiodataPerson} from './biodata'
 
 export const updatePerson = (biodata: Biodata, change: Partial<BiodataPerson>): Biodata => ({...biodata, person: {...biodata.person, ...change}})
 
 /**
- * Second labels turned on in a language, or off with "". Turning them on fills in, in that
- * language, every heading, label and relation that is one of the app's own and has no
- * second label yet; turning them off keeps them, hidden, for turning on again.
+ * Second labels turned on in a language, or off with "". Turning them on writes, in that
+ * language, every heading, label and relation that is one of the app's own, unless the
+ * person wrote its second label themselves: one the app wrote, in any language, is
+ * replaced, so changing the language changes them all. Turning them off keeps them,
+ * hidden, for turning on again.
  */
 export function withSecondLanguage(biodata: Biodata, language: DocumentLanguage | ''): Biodata {
     if (!language) {
@@ -19,12 +21,21 @@ export function withSecondLanguage(biodata: Biodata, language: DocumentLanguage 
     }
 
     const word = translator(biodata.design.language, language)
+    const every = LANGUAGE_IDS.map((each) => translator(biodata.design.language, each))
     const labels = {...biodata.second.labels}
     const fill = (id: string, text: string) => {
         const translated = word(text)
+        const current = labels[id]
+        const appWrote = !current || every.some((other) => other(text) !== text && other(text) === current)
 
-        if (!labels[id] && translated !== text) {
+        if (!appWrote) {
+            return
+        }
+
+        if (translated !== text) {
             labels[id] = translated
+        } else {
+            delete labels[id]
         }
     }
 
