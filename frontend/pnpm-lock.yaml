@@ -35,16 +35,37 @@ importers:
       '@expo-google-fonts/eb-garamond':
         specifier: 0.4.3
         version: 0.4.3
+      '@expo-google-fonts/gulzar':
+        specifier: 0.4.2
+        version: 0.4.2
+      '@expo-google-fonts/hind':
+        specifier: 0.4.1
+        version: 0.4.1
       '@expo-google-fonts/ibm-plex-sans':
         specifier: 0.4.1
         version: 0.4.1
       '@expo-google-fonts/ibm-plex-sans-arabic':
         specifier: 0.4.2
         version: 0.4.2
+      '@expo-google-fonts/ibm-plex-sans-kr':
+        specifier: 0.4.1
+        version: 0.4.1
       '@expo-google-fonts/inter':
         specifier: 0.4.1
         version: 0.4.1
       '@expo-google-fonts/lato':
+        specifier: 0.4.1
+        version: 0.4.1
+      '@expo-google-fonts/m-plus-1p':
+        specifier: 0.4.2
+        version: 0.4.2
+      '@expo-google-fonts/mukta':
+        specifier: 0.4.1
+        version: 0.4.1
+      '@expo-google-fonts/nanum-gothic':
+        specifier: 0.4.0
+        version: 0.4.0
+      '@expo-google-fonts/nanum-myeongjo':
         specifier: 0.4.1
         version: 0.4.1
       '@expo-google-fonts/noto-naskh-arabic':
@@ -80,15 +101,30 @@ importers:
       '@expo-google-fonts/noto-serif-devanagari':
         specifier: 0.4.1
         version: 0.4.1
+      '@expo-google-fonts/noto-serif-sc':
+        specifier: 0.4.4
+        version: 0.4.4
+      '@expo-google-fonts/noto-serif-tc':
+        specifier: 0.4.5
+        version: 0.4.5
       '@expo-google-fonts/source-serif-4':
         specifier: 0.4.2
         version: 0.4.2
       '@expo-google-fonts/tiro-bangla':
         specifier: 0.4.1
         version: 0.4.1
+      '@expo-google-fonts/tiro-devanagari-hindi':
+        specifier: 0.4.1
+        version: 0.4.1
       '@expo-google-fonts/vazirmatn':
         specifier: 0.4.1
         version: 0.4.1
+      '@expo-google-fonts/zen-kaku-gothic-new':
+        specifier: 0.4.2
+        version: 0.4.2
+      '@expo-google-fonts/zen-old-mincho':
+        specifier: 0.4.2
+        version: 0.4.2
       '@heroui/react':
         specifier: ^3.2.7
         version: 3.2.7(@internationalized/date@3.12.4)(@react-aria/ssr@3.10.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-aria/utils@3.34.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-spectrum/provider@3.11.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-aria-components@1.22.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-aria@3.53.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)
@@ -622,8 +658,17 @@ packages:
   '@expo-google-fonts/eb-garamond@0.4.3':
     resolution: {integrity: sha512-8HsDPKN6vDlzxZLgo3UFcyr4uvtY33TBpM65owySnF8cy8hq0ss8AWmBvT/lMRJ/wfcoaPP8gFQsizPRvr0nqg==}
 
+  '@expo-google-fonts/gulzar@0.4.2':
+    resolution: {integrity: sha512-3fE3HYezbXR0AICzI8eeFNBiRUYVs7o3UW0PJIogi9cCekCW19Yz6cxTdTmESd5rMlLB7a4d2urTetIpPav7WQ==}
+
+  '@expo-google-fonts/hind@0.4.1':
+    resolution: {integrity: sha512-AfWRUD8GM9c4J7vU0t9I7aCEbBAJJYffbC8tUgHkj+KSRpDvXYeWUS+3PkZXy/sAuyO1KhCuhNa+A1Bkf1ZnXA==}
+
   '@expo-google-fonts/ibm-plex-sans-arabic@0.4.2':
     resolution: {integrity: sha512-Cx24iSo/4pWBKHVf69tbVLDUiHWCSTHrhKPw/+SYWLDnyiX10WXh+amNWRSo9N3ruwd+qk9AQgDaIY1KO0u1Ig==}
+
+  '@expo-google-fonts/ibm-plex-sans-kr@0.4.1':
+    resolution: {integrity: sha512-h5kXFYuNih034SA0U8Uy9rLBz190eCmDMCmYEvJa5gCkwZSqOl6eYNZbHBiXTBSpNh03GHC8OsxClWw0Qs5Bkg==}
 
   '@expo-google-fonts/ibm-plex-sans@0.4.1':
     resolution: {integrity: sha512-allsuhZbvKoKDTB/U8creFVYYzhI97Nw9MgyyNjFzqISNc/sURpA7ZY37Rr+IRI567OV9BWQ/ioUCjAQrVGRbw==}
@@ -633,6 +678,18 @@ packages:
 
   '@expo-google-fonts/lato@0.4.1':
     resolution: {integrity: sha512-U2g1sOBFSNgmxhh/Ywgyi7Hx6T3UielX2nmZuP55wqndrIEyNX3HeUQIhhQDe2vZ+nvZI0Z2vTcVjmOn/BM9ow==}
+
+  '@expo-google-fonts/m-plus-1p@0.4.2':
+    resolution: {integrity: sha512-9BQljCxy+4MssAvXXq2By6RbF2lmGfamu2mTUo+/NmbMEsG6Pzw3Se6hyoQuVllaPxURttf44yVWbaEiy6cGtw==}
+
+  '@expo-google-fonts/mukta@0.4.1':
+    resolution: {integrity: sha512-4DmGZ/ZWycvHzfLrR80c/1EIU4VWULxUxg/KHTxkywrtv8WMMBvvUW6BPiOybBCcllfKLkIwih98wcZsX+r4jA==}
+
+  '@expo-google-fonts/nanum-gothic@0.4.0':
+    resolution: {integrity: sha512-BQls1DxrlrE0dn+lt9lbKOOBd44E3SmQNza6yHFcKVDl4L5/ecVwRcc6betnM00NkObHB99yqnc2aXbkQd31ww==}
+
+  '@expo-google-fonts/nanum-myeongjo@0.4.1':
+    resolution: {integrity: sha512-TS8PRPoimFYTmJQqsFsU3E361T4L3p/+aJa5/d1GpBOi8XAvPJDlYrtySg+sipjXYcFU84B7gIYWO4ir3NhgAw==}
 
   '@expo-google-fonts/noto-naskh-arabic@0.4.5':
     resolution: {integrity: sha512-KN73tROdoKQubTZ/ZsERCdAlZ1cBLRbRIe196tISAcPLgIqMvIgFCUs1xsrS/pe3fIYxT9l+c95sQF8wv48ijA==}
@@ -667,14 +724,29 @@ packages:
   '@expo-google-fonts/noto-serif-devanagari@0.4.1':
     resolution: {integrity: sha512-ScMKTrS6iQ7Wx2pYhU5cQOgrRUThCngyBxaAsrmM84SfHIfJabnTb9xJ9wz85Skycd/r1+8zSj544KjXvqGt3w==}
 
+  '@expo-google-fonts/noto-serif-sc@0.4.4':
+    resolution: {integrity: sha512-RIPZykLmhdnqjaYuIVNA7btxvd8OwKNK1CSqLiszCOVJAIhkud9cSrOoecYiwU3HetKGaHEZWzD2jbWd43D6mA==}
+
+  '@expo-google-fonts/noto-serif-tc@0.4.5':
+    resolution: {integrity: sha512-PuPlV5UlUzNq6p1+kyOGFijDk0VbBlLbnC9XJWvK7Log1y3yO3vi1VNmk3G94Iw74z5kmjFVssF/D5gh4TlILg==}
+
   '@expo-google-fonts/source-serif-4@0.4.2':
     resolution: {integrity: sha512-7X2w5KT0n/pxRXr5Ogv6W35D004IbCXUouTCr9VCh9bSlSWbryyvk8/ovXNOaJLOJV8QeIDnX0hIppgH0UZ8sA==}
 
   '@expo-google-fonts/tiro-bangla@0.4.1':
     resolution: {integrity: sha512-BYuRzdoDnaw9VC9Jy6JDwZgFQl+c+FqK2kka1aaesdySyl2YziB2r2yunBHbSg1JDqKAn4Klnzh7aDXpS8TDvw==}
 
+  '@expo-google-fonts/tiro-devanagari-hindi@0.4.1':
+    resolution: {integrity: sha512-/UZCOx71cyVOUENWzWRUHxxSR9A3wZNgcK1IUhOFApnTXKueEq0EeWBPpwTQSdq8vDH7SjgBCAz5kbYkf+Nrrw==}
+
   '@expo-google-fonts/vazirmatn@0.4.1':
     resolution: {integrity: sha512-sznMvxt99C4bsEcWCebs3XWb/av8z9a/Y4OQo8F7VPFT0xzzn7Whkkw6dqxcAyLYEiNNpTpa3/vp8t1/koK6Jw==}
+
+  '@expo-google-fonts/zen-kaku-gothic-new@0.4.2':
+    resolution: {integrity: sha512-1iK8BZTAat1kcvYwZgVRtudDSvAKu+mt8ZC1ifA8phzSEICPkF0XtP7wbI+oQjOCcUFDQ+3cQ9IKKHkqey6krQ==}
+
+  '@expo-google-fonts/zen-old-mincho@0.4.2':
+    resolution: {integrity: sha512-yxxR0UVA7UgJspdkhShB3WBDBhjBgf2Cbl9Fa1ts+dtCJV3hPjC3+KA/pbJR0OnwJPfYLQc3F3fC9ygxxRkzBA==}
 
   '@heroui/react@3.2.7':
     resolution: {integrity: sha512-cFYqzjgkuni+UD8mKOzbUloi99DCFEt1bE7YLE/3/RpahdRsjzp10zjbNgDn7CJC0oES2AX81Siu/EeLk7bsVg==}
@@ -2783,13 +2855,27 @@ snapshots:
 
   '@expo-google-fonts/eb-garamond@0.4.3': {}
 
+  '@expo-google-fonts/gulzar@0.4.2': {}
+
+  '@expo-google-fonts/hind@0.4.1': {}
+
   '@expo-google-fonts/ibm-plex-sans-arabic@0.4.2': {}
+
+  '@expo-google-fonts/ibm-plex-sans-kr@0.4.1': {}
 
   '@expo-google-fonts/ibm-plex-sans@0.4.1': {}
 
   '@expo-google-fonts/inter@0.4.1': {}
 
   '@expo-google-fonts/lato@0.4.1': {}
+
+  '@expo-google-fonts/m-plus-1p@0.4.2': {}
+
+  '@expo-google-fonts/mukta@0.4.1': {}
+
+  '@expo-google-fonts/nanum-gothic@0.4.0': {}
+
+  '@expo-google-fonts/nanum-myeongjo@0.4.1': {}
 
   '@expo-google-fonts/noto-naskh-arabic@0.4.5': {}
 
@@ -2813,11 +2899,21 @@ snapshots:
 
   '@expo-google-fonts/noto-serif-devanagari@0.4.1': {}
 
+  '@expo-google-fonts/noto-serif-sc@0.4.4': {}
+
+  '@expo-google-fonts/noto-serif-tc@0.4.5': {}
+
   '@expo-google-fonts/source-serif-4@0.4.2': {}
 
   '@expo-google-fonts/tiro-bangla@0.4.1': {}
 
+  '@expo-google-fonts/tiro-devanagari-hindi@0.4.1': {}
+
   '@expo-google-fonts/vazirmatn@0.4.1': {}
+
+  '@expo-google-fonts/zen-kaku-gothic-new@0.4.2': {}
+
+  '@expo-google-fonts/zen-old-mincho@0.4.2': {}
 
   '@heroui/react@3.2.7(@internationalized/date@3.12.4)(@react-aria/ssr@3.10.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-aria/utils@3.34.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@react-spectrum/provider@3.11.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-aria-components@1.22.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-aria@3.53.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)':
     dependencies:

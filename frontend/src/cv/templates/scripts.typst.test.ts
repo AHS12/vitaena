@@ -311,3 +311,25 @@ describe('Korean in every template', () => {
         expect(imported.sections.map((section) => section.title)).toEqual(cv.sections.map((section) => section.title))
     }, 60_000)
 })
+
+describe('the fonts each language offers', () => {
+    it.each([
+        ['hind', 'hi', 'Hind'],
+        ['mukta', 'mr', 'Mukta'],
+        ['tiro-devanagari-hindi', 'hi', 'TiroDevaHindi'],
+        ['gulzar', 'ur', 'Gulzar'],
+        ['m-plus-1p', 'ja', 'MPLUS1p'],
+        ['zen-kaku-gothic-new', 'ja', 'ZenKakuGothicNew'],
+        ['zen-old-mincho', 'ja', 'ZenOldMincho'],
+        ['noto-serif-sc', 'zh-Hans', 'NotoSerifSC'],
+        ['noto-serif-tc', 'zh-Hant', 'NotoSerifTC'],
+        ['nanum-gothic', 'ko', 'NanumGothic'],
+        ['nanum-myeongjo', 'ko', 'NanumMyeongjo'],
+        ['ibm-plex-sans-kr', 'ko', 'IBMPlexSansKR'],
+    ] as const)('set the page in %s when it is chosen for %s', async (font, language, embedded) => {
+        const cv = sampleCv(language)
+        const pdf = await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel({...cv, design: {...cv.design, scriptFont: font}}))
+
+        expect(embeddedFonts(pdf).join(' ')).toContain(embedded)
+    }, 60_000)
+})

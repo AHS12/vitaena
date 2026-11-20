@@ -60,8 +60,14 @@ export const SCRIPT_FONTS: readonly ScriptFont[] = [
     {id: 'tiro-bangla', family: 'Tiro Bangla', label: 'Tiro Bangla', kind: 'Serif', script: 'bengali', fallback: false, files: faces('tiro-bangla', 'TiroBangla', ['400Regular', '400Regular_Italic'])},
     {id: 'noto-sans-devanagari', family: 'Noto Sans Devanagari', label: 'Noto Sans Devanagari', kind: 'Sans serif', script: 'devanagari', fallback: true, files: faces('noto-sans-devanagari', 'NotoSansDevanagari', ['400Regular', '700Bold'])},
     {id: 'noto-serif-devanagari', family: 'Noto Serif Devanagari', label: 'Noto Serif Devanagari', kind: 'Serif', script: 'devanagari', fallback: true, files: faces('noto-serif-devanagari', 'NotoSerifDevanagari', ['400Regular', '700Bold'])},
+    {id: 'hind', family: 'Hind', label: 'Hind', kind: 'Sans serif', script: 'devanagari', fallback: false, files: faces('hind', 'Hind', ['400Regular', '700Bold'])},
+    {id: 'mukta', family: 'Mukta', label: 'Mukta', kind: 'Sans serif', script: 'devanagari', fallback: false, files: faces('mukta', 'Mukta', ['400Regular', '700Bold'])},
+    // Like Tiro Bangla, it has no bold, so bold text in it is regular.
+    {id: 'tiro-devanagari-hindi', family: 'Tiro Devanagari Hindi', label: 'Tiro Devanagari', kind: 'Serif', script: 'devanagari', fallback: false, files: faces('tiro-devanagari-hindi', 'TiroDevanagariHindi', ['400Regular', '400Regular_Italic'])},
     // Urdu is read in Nastaliq, whether the Latin font beside it is sans or serif.
     {id: 'noto-nastaliq-urdu', family: 'Noto Nastaliq Urdu', label: 'Noto Nastaliq Urdu', kind: 'Serif', script: 'arabic', fallback: true, languages: ['ur'], files: faces('noto-nastaliq-urdu', 'NotoNastaliqUrdu', ['400Regular', '700Bold'])},
+    // A second Nastaliq, with no bold.
+    {id: 'gulzar', family: 'Gulzar', label: 'Gulzar', kind: 'Serif', script: 'arabic', fallback: false, languages: ['ur'], files: faces('gulzar', 'Gulzar', ['400Regular'])},
     {id: 'noto-sans-arabic', family: 'Noto Sans Arabic', label: 'Noto Sans Arabic', kind: 'Sans serif', script: 'arabic', fallback: true, files: faces('noto-sans-arabic', 'NotoSansArabic', ['400Regular', '700Bold'])},
     {id: 'noto-naskh-arabic', family: 'Noto Naskh Arabic', label: 'Noto Naskh Arabic', kind: 'Serif', script: 'arabic', fallback: true, files: faces('noto-naskh-arabic', 'NotoNaskhArabic', ['400Regular', '700Bold'])},
     {id: 'cairo', family: 'Cairo', label: 'Cairo', kind: 'Sans serif', script: 'arabic', fallback: false, files: faces('cairo', 'Cairo', ['400Regular', '700Bold'])},
@@ -70,13 +76,21 @@ export const SCRIPT_FONTS: readonly ScriptFont[] = [
     {id: 'vazirmatn', family: 'Vazirmatn', label: 'Vazirmatn', kind: 'Sans serif', script: 'arabic', fallback: true, languages: ['fa'], files: faces('vazirmatn', 'Vazirmatn', ['400Regular', '700Bold'])},
     // Chinese characters and kana, drawn as each place draws them: Japan, Taiwan and Hong
     // Kong, and mainland China, whose font also has every character the others lack, so it
-    // follows them for any. Sans only: a serif CJK font is three times the size, and sans
-    // CJK beside a serif template is how most CVs there are printed anyway.
-    {id: 'noto-sans-sc', family: 'Noto Sans SC', label: 'Noto Sans SC', kind: 'Sans serif', script: 'cjk', fallback: true, files: faces('noto-sans-sc', 'NotoSansSC', ['400Regular', '700Bold'])},
+    // follows them for any, and draws them in other languages' documents. The fallbacks are
+    // sans, as most CVs there are printed; serif faces are choices, being far larger.
+    {id: 'noto-sans-sc', family: 'Noto Sans SC', label: 'Noto Sans SC', kind: 'Sans serif', script: 'cjk', fallback: true, languages: ['zh-Hans'], files: faces('noto-sans-sc', 'NotoSansSC', ['400Regular', '700Bold'])},
+    {id: 'noto-serif-sc', family: 'Noto Serif SC', label: 'Noto Serif SC', kind: 'Serif', script: 'cjk', fallback: false, languages: ['zh-Hans'], files: faces('noto-serif-sc', 'NotoSerifSC', ['400Regular', '700Bold'])},
     {id: 'noto-sans-tc', family: 'Noto Sans TC', label: 'Noto Sans TC', kind: 'Sans serif', script: 'cjk', fallback: true, languages: ['zh-Hant'], files: faces('noto-sans-tc', 'NotoSansTC', ['400Regular', '700Bold'])},
+    {id: 'noto-serif-tc', family: 'Noto Serif TC', label: 'Noto Serif TC', kind: 'Serif', script: 'cjk', fallback: false, languages: ['zh-Hant'], files: faces('noto-serif-tc', 'NotoSerifTC', ['400Regular', '700Bold'])},
     {id: 'noto-sans-jp', family: 'Noto Sans JP', label: 'Noto Sans JP', kind: 'Sans serif', script: 'cjk', fallback: true, languages: ['ja'], files: faces('noto-sans-jp', 'NotoSansJP', ['400Regular', '700Bold'])},
+    {id: 'm-plus-1p', family: 'M PLUS 1p', label: 'M PLUS 1p', kind: 'Sans serif', script: 'cjk', fallback: false, languages: ['ja'], files: faces('m-plus-1p', 'MPLUS1p', ['400Regular', '700Bold'])},
+    {id: 'zen-kaku-gothic-new', family: 'Zen Kaku Gothic New', label: 'Zen Kaku Gothic', kind: 'Sans serif', script: 'cjk', fallback: false, languages: ['ja'], files: faces('zen-kaku-gothic-new', 'ZenKakuGothicNew', ['400Regular', '700Bold'])},
+    {id: 'zen-old-mincho', family: 'Zen Old Mincho', label: 'Zen Old Mincho', kind: 'Serif', script: 'cjk', fallback: false, languages: ['ja'], files: faces('zen-old-mincho', 'ZenOldMincho', ['400Regular', '700Bold'])},
     // Hangul, which the Chinese and Japanese fonts haven't.
     {id: 'noto-sans-kr', family: 'Noto Sans KR', label: 'Noto Sans KR', kind: 'Sans serif', script: 'hangul', fallback: true, files: faces('noto-sans-kr', 'NotoSansKR', ['400Regular', '700Bold'])},
+    {id: 'nanum-gothic', family: 'NanumGothic', label: 'Nanum Gothic', kind: 'Sans serif', script: 'hangul', fallback: false, files: faces('nanum-gothic', 'NanumGothic', ['400Regular', '700Bold'])},
+    {id: 'ibm-plex-sans-kr', family: 'IBM Plex Sans KR', label: 'IBM Plex Sans KR', kind: 'Sans serif', script: 'hangul', fallback: false, files: faces('ibm-plex-sans-kr', 'IBMPlexSansKR', ['400Regular', '700Bold'])},
+    {id: 'nanum-myeongjo', family: 'NanumMyeongjo', label: 'Nanum Myeongjo', kind: 'Serif', script: 'hangul', fallback: false, files: faces('nanum-myeongjo', 'NanumMyeongjo', ['400Regular', '700Bold'])},
     {id: 'amiri', family: 'Amiri', label: 'Amiri', kind: 'Serif', script: 'arabic', fallback: false, files: faces('amiri', 'Amiri')},
 ]
 
@@ -114,7 +128,9 @@ export const fontById = (id: string): CvFont =>
 export function scriptFontFor(script: Script, kind: FontKind, language = 'en'): ScriptFont {
     const fallbacks = SCRIPT_FONTS.filter((font) => font.script === script && font.fallback)
     const own = fallbacks.filter((font) => font.languages?.includes(language))
-    const pool = own.length > 0 ? own : fallbacks.filter((font) => !font.languages)
+    const general = fallbacks.filter((font) => !font.languages)
+    // A script whose every fallback belongs to a language, as CJK's do, falls back on the first.
+    const pool = own.length > 0 ? own : general.length > 0 ? general : fallbacks
 
     return pool.find((font) => font.kind === kind) ?? pool[0]
 }

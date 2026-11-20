@@ -10,7 +10,7 @@ import {Segmented} from '../../components/Segmented'
 import {Select} from '../../components/controls'
 import type {Cv, CvDesign} from '../cv'
 import {LANGUAGES, languageChoice, labelsFor, languageInfo, type DocumentLanguage} from '../../core/labels/labels'
-import {CV_FONTS, isAddedFont, addedFamily, fontById, SCRIPT_FONTS, scriptFontById, scriptFontFor, scriptsIn, type Script} from '../fonts'
+import {CV_FONTS, isAddedFont, addedFamily, fontById, SCRIPT_FONTS, scriptFontById, scriptFontFor, scriptsIn, type CvFont, type Script, type ScriptFont} from '../fonts'
 import {addedFamilies, previewFamily, previewFont, useAddedFonts} from '../added-fonts'
 import {Plus} from 'lucide-react'
 import {CV_TEMPLATES, TEMPLATE_USE_LABELS} from '../templates/templates'
@@ -40,21 +40,25 @@ const ACCENTS = [
 
 const SIZES = [9, 9.5, 10, 10.5, 11].map((size) => ({value: size, label: String(size)}))
 
-/** Each font's regular face, loaded once so its name can be shown in it. */
-let facesLoaded = false
+const loadedFaces = new Set<string>()
 
-function loadFaces() {
-    if (facesLoaded || typeof FontFace === 'undefined') {
+/** A font's regular face, under its own name, so a choice can show its name in it. */
+function loadFace(font: CvFont) {
+    if (loadedFaces.has(font.id) || typeof FontFace === 'undefined') {
         return
     }
 
-    facesLoaded = true
+    loadedFaces.add(font.id)
 
-    // CJK fonts are megabytes each, and offered only as Matching, so they aren't shown.
+    const face = new FontFace(`vitaena-${font.id}`, `url(${fontUrl(font.files[0])})`)
+
+    void face.load().then((loaded) => document.fonts.add(loaded)).catch(() => undefined)
+}
+
+/** The Latin fonts and the small script ones at once; Chinese, Japanese and Korean, megabytes each, only once their choices are shown. */
+function loadFaces() {
     for (const font of [...CV_FONTS, ...SCRIPT_FONTS.filter((font) => font.script !== 'cjk' && font.script !== 'hangul')]) {
-        const face = new FontFace(`vitaena-${font.id}`, `url(${fontUrl(font.files[0])})`)
-
-        void face.load().then((loaded) => document.fonts.add(loaded)).catch(() => undefined)
+        loadFace(font)
     }
 }
 
@@ -197,6 +201,9 @@ function FontMessage({text, ok}: {text: string; ok: boolean}) {
 }
 
 /** A line of Bangla to show each Bangla font in. */
+/** The fonts Style offers for a script: those for every language, and the document language's own. */
+const scriptChoices = (script: Script, language: string): ScriptFont[] => SCRIPT_FONTS.filter((font) => font.script === script && (!font.languages || font.languages.includes(language)))
+
 /** A few words in each script, to show a font for it in. */
 const SAMPLES: Readonly<Record<Script, string>> = {bengali: 'আমার নাম', devanagari: 'मेरा नाम', arabic: 'اسمي', cjk: '私の名前', hangul: '내 이름'}
 
@@ -207,7 +214,7 @@ const SCRIPT_TITLES: Readonly<Record<Script, string>> = {bengali: 'Bangla', deva
  * first one in the text that has fonts to choose from, else the chosen font's.
  */
 function choiceScript(language: string, scripts: readonly Script[], scriptFont: string, added: readonly {id: string; scripts: readonly string[]}[]): Script | null {
-    const choosable = (script: Script) => SCRIPT_FONTS.some((font) => font.script === script && !font.fallback) || added.some((family) => family.scripts.includes(script))
+    const choosable = (script: Script) => scriptChoices(script, language).some((font) => !font.fallback) || added.some((family) => family.scripts.includes(script))
     const own = languageInfo(language).script
     const chosen = scriptFontById(scriptFont)?.script ?? (added.find((family) => family.id === scriptFont)?.scripts.find((script) => script !== 'latin') as Script | undefined)
     // A font the person added that isn't on this computer still shows, so it can be changed.
@@ -246,6 +253,12 @@ export function StyleGroups({
     // Named for the document's language when it's written in this script: "Persian text in".
     const scriptTitle = script ? `${language.script === script ? language.name : SCRIPT_TITLES[script]} text in` : ''
     const matching = script ? scriptFontFor(script, fontById(design.font).kind, design.language) : null
+
+    useEffect(() => {
+        if (script) {
+            scriptChoices(script, design.language).forEach(loadFace)
+        }
+    }, [script, design.language])
     const scriptLabel = script ? `${SCRIPT_TITLES[script]} font` : ''
 
     useEffect(() => families.forEach((family) => previewFont(family.files[0])), [families])
@@ -323,7 +336,7 @@ export function StyleGroups({
                                 <span className="font-choice__name">Matching</span>
                                 <span className="font-choice__kind">{matching ? `${matching.label}, to suit the font` : ''}</span>
                             </button>
-                            {SCRIPT_FONTS.filter((font) => font.script === script && (!font.languages || font.languages.includes(design.language))).map((font) => (
+                            {scriptChoices(script, design.language).map((font) => (
                                 <button key={font.id} type="button" role="radio" aria-checked={design.scriptFont === font.id} className="font-choice" onClick={() => set('scriptFont', font.id, scriptLabel)}>
                                     <span className="font-choice__name" style={{fontFamily: `vitaena-${font.id}, var(--font-sans)`}}>
                                         {SAMPLES[script]}

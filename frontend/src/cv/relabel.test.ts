@@ -36,3 +36,16 @@ describe('carrying a document into another language', () => {
         expect(moved.kind === 'text' && moved.text).toBe('Summary of my career')
     })
 })
+
+describe('a chosen script font, when the language changes', () => {
+    it('goes back to Matching when it was made for another language or script, and stays when it suits', () => {
+        const korean = {...emptyCv('ko'), design: {...emptyCv('ko').design, scriptFont: 'nanum-myeongjo'}}
+        const japanese = {...emptyCv('ja'), design: {...emptyCv('ja').design, scriptFont: 'zen-old-mincho'}}
+        const added = {...emptyCv('bn'), design: {...emptyCv('bn').design, scriptFont: 'custom:Kalpurush'}}
+
+        expect(inLanguage(korean, 'ja').design.scriptFont).toBe('')
+        expect(inLanguage(japanese, 'zh-Hans').design.scriptFont).toBe('')
+        expect(inLanguage(korean, 'en').design.scriptFont).toBe('nanum-myeongjo')
+        expect(inLanguage(added, 'hi').design.scriptFont).toBe('custom:Kalpurush')
+    })
+})
