@@ -142,4 +142,4 @@ arranged.
 
 ## Licence
 
-MIT. Every font, bundled or downloaded, is under the SIL Open Font License 1.1.
+[MIT](LICENSE). Every font, bundled or downloaded, is under the [SIL Open Font License 1.1](https://openfontlicense.org).
