@@ -194,6 +194,25 @@ func TestOnlyAPacksOwnFontsAreServedAndRemovingAPackDeletesThem(t *testing.T) {
 	}
 }
 
+func TestAPackCanComeFromALocalFolderBeforeItIsReleased(t *testing.T) {
+	pack := testPack()
+	service, data, _ := serviceWith(t, pack, nil)
+	service.baseURL = "http://127.0.0.1:1/"
+	service.localDir = t.TempDir()
+
+	if err := os.WriteFile(filepath.Join(service.localDir, pack.File), zipOf(t, pack, map[string][]byte{"Test_400Regular.ttf": regular, "Test_700Bold.ttf": bold}), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := service.DownloadFontPack("ja"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := os.Stat(filepath.Join(data, FolderName, "ja", "Test_400Regular.ttf")); err != nil {
+		t.Fatal("the pack from the folder wasn't kept")
+	}
+}
+
 func TestTheFontsReleaseIsAPreReleaseSoTheUpdateCheckNeverSeesIt(t *testing.T) {
 	workflow, err := os.ReadFile(filepath.Join("..", "..", ".github", "workflows", "font-packs.yml"))
 	if err != nil {

@@ -38,6 +38,10 @@ const FolderName = "font-packs"
 // RoutePrefix is where the interface reads a pack's fonts: /font-packs/<pack>/<file>.
 const RoutePrefix = "/font-packs/"
 
+// LocalEnv, when set to a folder, is where packs come from instead of GitHub, so the
+// download can be tried before a release holds them: make dev-packs sets it.
+const LocalEnv = "VITAENA_FONT_PACKS"
+
 // ProgressEvent tells the interface how far a download has got. Matches PROGRESS_EVENT
 // in frontend/src/platform/font-packs.ts.
 const ProgressEvent = "fonts:pack-progress"
@@ -120,9 +124,11 @@ type Service struct {
 	manifest Manifest
 	// baseURL is where the packs are, ending in a slash. Tests point it at their own server.
 	baseURL string
-	client  *http.Client
-	mu      sync.Mutex
-	busy    map[string]bool
+	// localDir, when set, holds the packs instead, as tools/fontpacks writes them.
+	localDir string
+	client   *http.Client
+	mu       sync.Mutex
+	busy     map[string]bool
 }
 
 // New keeps packs in the app's own folder and downloads them from its GitHub release.
@@ -135,6 +141,7 @@ func New(shell backend.Shell) *Service {
 		baseURL:  "https://github.com/" + appconfig.Current().Repository + "/releases/download/" + manifest.Release + "/",
 		client:   &http.Client{Timeout: 30 * time.Minute},
 		busy:     map[string]bool{},
+		localDir: os.Getenv(LocalEnv),
 	}
 }
 
@@ -237,6 +244,10 @@ func (s *Service) DownloadFontPack(id string) error {
 
 // fetch saves a pack's zip to a file, refusing one far larger than it should be.
 func (s *Service) fetch(pack Pack, file string) error {
+	if s.localDir != "" {
+		return s.copyLocal(pack, file)
+	}
+
 	request, err := http.NewRequest(http.MethodGet, s.baseURL+pack.File, nil)
 	if err != nil {
 		return err
@@ -280,6 +291,36 @@ func (s *Service) fetch(pack Pack, file string) error {
 
 	if written > limit {
 		return errors.New("the download is larger than the fonts it should hold")
+	}
+
+	return out.Close()
+}
+
+// copyLocal takes a pack from the local folder, reporting progress as a download would.
+func (s *Service) copyLocal(pack Pack, file string) error {
+	source, err := os.Open(filepath.Join(s.localDir, pack.File))
+	if err != nil {
+		return fmt.Errorf("%s isn't in %s. Run make font-packs", pack.File, s.localDir)
+	}
+	defer source.Close()
+
+	out, err := os.Create(file)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	info, err := source.Stat()
+	if err != nil {
+		return err
+	}
+
+	reader := &progressReader{reader: source, total: info.Size(), report: func(fraction float64) {
+		s.shell.Emit(ProgressEvent, Progress{ID: pack.ID, Fraction: fraction * 0.95})
+	}}
+
+	if _, err := io.Copy(out, reader); err != nil {
+		return err
 	}
 
 	return out.Close()
