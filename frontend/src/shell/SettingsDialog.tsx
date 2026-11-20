@@ -32,6 +32,8 @@ import {RemovedDocuments} from './pages/RemovedDocuments'
 import {AttentionDot} from './attention'
 import {SettingRow} from './SettingRow'
 import {addedFamilies, useAddedFonts} from '../cv/added-fonts'
+import {useFontPacks} from '../cv/downloaded-fonts'
+import {megabytes, packLanguage} from '../cv/font-packs'
 import {faceName, SCRIPT_NAMES} from '../core/fonts/font-info'
 
 interface PageEntry {
@@ -282,8 +284,39 @@ function StoragePage() {
                 <p className="settings__intro">Running in a browser, nothing is saved to disk.</p>
             )}
             <FontRows />
+            <PackRows />
         </>
     )
+}
+
+/** The fonts for Chinese, Japanese and Korean, which are downloaded when they're needed. */
+function PackRows() {
+    const {packs, progress, failed} = useFontPacks()
+    const {download, remove} = useFontPacks.getState()
+
+    return packs.map((pack) => {
+        const language = packLanguage(pack.id)
+        const fraction = progress[pack.id]
+        const help = failed[pack.id]
+            ? `Couldn't download them: ${failed[pack.id]}.`
+            : pack.installed
+              ? `Downloaded, ${megabytes(pack.bytes)}. Without them, letters in ${language} show as empty boxes.`
+              : `${megabytes(pack.bytes)} to download. ${APP.name} asks for them when you write in ${language}.`
+
+        return (
+            <SettingRow key={pack.id} label={`Fonts for ${language}`} help={fraction === undefined ? help : `Downloading… ${Math.round(fraction * 100)}%`}>
+                {pack.installed ? (
+                    <button type="button" className="button" onClick={() => void remove(pack.id)}>
+                        Remove
+                    </button>
+                ) : (
+                    <button type="button" className="button" disabled={fraction !== undefined} onClick={() => void download(pack.id)}>
+                        Download
+                    </button>
+                )}
+            </SettingRow>
+        )
+    })
 }
 
 /** The fonts the person added, each with Remove, and a way to add one. */

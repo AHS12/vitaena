@@ -50,3 +50,8 @@ Run `make check`, then build and open the installer on whatever you can, with `m
    those file names; a test fails if the workflow and the backend disagree.
 5. Before releasing changes to a system's build, run its **Windows**, **macOS** or **Linux
    Test Build** workflow and look at its screenshots: only Windows is used day to day.
+6. Fonts for Chinese, Japanese and Korean are on their own release, named by `release` in
+   `backend/fontpacks/packs.json` (such as `fonts-1`), not on each version. Run the **Font
+   Packs** workflow under Actions once, the first time a version that names that release
+   goes out, and again only after raising `release`. Then check the release is marked
+   Pre-release and holds the four zips, and that the app's Settings, Storage downloads one.

@@ -67,6 +67,12 @@ Commit or push only when asked. Work on `dev`, and don't touch `main`.
   readers (`read-pdf.ts`, `read-docx.ts`) give lines with their look, and `parse.ts` and
   `biodata-parse.ts` make the document. It's tested on every template's own PDF and on
   CVs from other apps in `fixtures/` (`make import-fixtures` rebuilds them).
+- Fonts for Chinese, Japanese and Korean aren't bundled: each language's are a pack the
+  app downloads from a GitHub pre-release (`fonts-1`), so the update check never sees it.
+  `backend/fontpacks/packs.json` lists every file with its SHA-256; Go checks each one,
+  keeps them in the data folder and serves them at `/font-packs/`. After changing a font
+  package, run `go run ./tools/fontpacks -update`, raise `release`, and run the
+  **Font Packs** workflow.
 - AI assistants reach the app over MCP. An assistant starts `vitaena mcp`, which only
   relays stdin and stdout to the running app (a named pipe on Windows, a socket in the
   data folder elsewhere), starting it in the background if it's closed. `backend/mcp`

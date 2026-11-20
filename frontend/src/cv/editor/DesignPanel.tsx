@@ -9,9 +9,12 @@ import {ColourRow} from '../../components/ColourRow'
 import {Segmented} from '../../components/Segmented'
 import {Select} from '../../components/controls'
 import type {Cv, CvDesign} from '../cv'
-import {LANGUAGES, languageChoice, labelsFor, languageInfo, type DocumentLanguage} from '../../core/labels/labels'
+import {LANGUAGES, labelsFor, languageInfo, type DocumentLanguage} from '../../core/labels/labels'
 import {CV_FONTS, isAddedFont, addedFamily, fontById, SCRIPT_FONTS, scriptFontById, scriptFontFor, scriptsIn, type CvFont, type Script, type ScriptFont} from '../fonts'
 import {addedFamilies, previewFamily, previewFont, useAddedFonts} from '../added-fonts'
+import {isInstalled, languageChoiceWithPack, packToGet, useFontPacks} from '../downloaded-fonts'
+import {packOfFont, type FontPack} from '../font-packs'
+import {FontPackNotice} from '../FontPackNotice'
 import {Plus} from 'lucide-react'
 import {CV_TEMPLATES, TEMPLATE_USE_LABELS} from '../templates/templates'
 import {fontUrl} from '../typst/font-urls'
@@ -52,7 +55,11 @@ function loadFace(font: CvFont) {
 
     const face = new FontFace(`vitaena-${font.id}`, `url(${fontUrl(font.files[0])})`)
 
-    void face.load().then((loaded) => document.fonts.add(loaded)).catch(() => undefined)
+    // One that isn't downloaded yet is tried again once it is.
+    void face
+        .load()
+        .then((loaded) => document.fonts.add(loaded))
+        .catch(() => loadedFaces.delete(font.id))
 }
 
 /** The Latin fonts and the small script ones at once; Chinese, Japanese and Korean, megabytes each, only once their choices are shown. */
@@ -254,12 +261,23 @@ export function StyleGroups({
     const scriptTitle = script ? `${language.script === script ? language.name : SCRIPT_TITLES[script]} text in` : ''
     const matching = script ? scriptFontFor(script, fontById(design.font).kind, design.language) : null
 
-    useEffect(() => {
-        if (script) {
-            scriptChoices(script, design.language).forEach(loadFace)
-        }
-    }, [script, design.language])
     const scriptLabel = script ? `${SCRIPT_TITLES[script]} font` : ''
+    // Fonts in a pack that isn't downloaded aren't offered; the pack is, instead.
+    const packs = useFontPacks((state) => state.packs)
+    const allChoices = useMemo(() => (script ? scriptChoices(script, design.language) : []), [script, design.language])
+    const choices = useMemo(
+        () =>
+            allChoices.filter((font) => {
+                const pack = packOfFont(font)
+
+                return !pack || isInstalled(packs, pack.id)
+            }),
+        [allChoices, packs],
+    )
+    // The language's own fonts are asked for under Write in, so they aren't asked for twice.
+    const languagePack = packToGet(packs, design.language)
+    const packsToGet = [...new Set(allChoices.map(packOfFont))].filter((pack): pack is FontPack => pack !== undefined && pack !== languagePack && !isInstalled(packs, pack.id))
+    useEffect(() => choices.forEach(loadFace), [choices])
 
     useEffect(() => families.forEach((family) => previewFont(family.files[0])), [families])
 
@@ -271,8 +289,9 @@ export function StyleGroups({
             <Group title="Language">
                 <div className="design-row">
                     <span className="design-row__label">Write in</span>
-                    <Select<DocumentLanguage> label="Write in" value={design.language} options={LANGUAGES.map(languageChoice)} onChange={onLanguage} />
+                    <Select<DocumentLanguage> label="Write in" value={design.language} options={LANGUAGES.map((info) => languageChoiceWithPack(info, packs))} onChange={onLanguage} />
                 </div>
+                {languagePack ? <FontPackNotice wanted={[languagePack]} forLanguage /> : null}
                 {language.digits ? (
                     <div className="design-row">
                         <span className="design-row__label">Numbers</span>
@@ -336,7 +355,7 @@ export function StyleGroups({
                                 <span className="font-choice__name">Matching</span>
                                 <span className="font-choice__kind">{matching ? `${matching.label}, to suit the font` : ''}</span>
                             </button>
-                            {scriptChoices(script, design.language).map((font) => (
+                            {choices.map((font) => (
                                 <button key={font.id} type="button" role="radio" aria-checked={design.scriptFont === font.id} className="font-choice" onClick={() => set('scriptFont', font.id, scriptLabel)}>
                                     <span className="font-choice__name" style={{fontFamily: `vitaena-${font.id}, var(--font-sans)`}}>
                                         {SAMPLES[script]}
@@ -355,6 +374,7 @@ export function StyleGroups({
                                 </button>
                             ))}
                         </div>
+                        {packsToGet.length > 0 ? <FontPackNotice wanted={packsToGet} forChoice /> : null}
                     </>
                 ) : null}
             </Group>

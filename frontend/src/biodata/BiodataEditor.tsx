@@ -13,10 +13,11 @@ import {PhotoField} from '../components/PhotoField'
 import {SplitPane} from '../components/SplitPane'
 import {APP} from '../core/app'
 import {useDocumentStore} from '../store/document-store'
-import {languageChoice, LANGUAGES, languageInfo, type DocumentLanguage} from '../core/labels/labels'
+import {LANGUAGES, languageInfo, type DocumentLanguage} from '../core/labels/labels'
 import {SecondLabelsProvider, type SecondLabels} from '../cv/editor/second-labels-context'
 import {setSecondLabel, withSecondLanguage} from './edit-ops'
 import {Group, StyleGroups, TemplateGallery, type SharedStyle} from '../cv/editor/DesignPanel'
+import {languageChoiceWithPack, useFontPacks} from '../cv/downloaded-fonts'
 import {scriptsIn} from '../cv/fonts'
 import {inLanguage} from '../cv/relabel'
 import {silhouettePhoto} from '../cv/editor/silhouette'
@@ -152,6 +153,7 @@ const DESIGN_TABS = {templates: 'Templates', style: 'Style'} as const
 function DesignSidebar({biodata, edit}: {biodata: Biodata; edit: Edit}) {
     const tab = useEditorStore((state) => state.designTab)
     const setTab = useEditorStore((state) => state.setDesignTab)
+    const packs = useFontPacks((state) => state.packs)
     const set = <K extends keyof Biodata['design']>(key: K, value: Biodata['design'][K], label: string) => edit.act(label, (current) => ({...current, design: {...current.design, [key]: value}}))
     // Until it has sections with something in them, the example stands in, in this
     // biodata's style, as the CV's gallery does.
@@ -200,7 +202,7 @@ function DesignSidebar({biodata, edit}: {biodata: Biodata; edit: Edit}) {
                                 <Select<DocumentLanguage | ''>
                                     label="Second labels"
                                     value={biodata.second.language}
-                                    options={[{value: '' as const, label: 'Off'}, ...LANGUAGES.filter((info) => info.id !== biodata.design.language).map(languageChoice)]}
+                                    options={[{value: '' as const, label: 'Off'}, ...LANGUAGES.filter((info) => info.id !== biodata.design.language).map((info) => languageChoiceWithPack(info, packs))]}
                                     onChange={(language) => edit.act(language ? `second labels in ${languageInfo(language).name}` : 'second labels off', (current) => withSecondLanguage(current, language))}
                                 />
                             </div>

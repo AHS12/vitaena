@@ -35,6 +35,7 @@ type Job =
     | {readonly op: 'svg' | 'pdf'; readonly model: PageModel; readonly template: string}
     | {readonly op: 'warm'}
     | {readonly op: 'fonts'; readonly fonts: readonly GivenFont[]}
+    | {readonly op: 'packs'; readonly packs: readonly string[]}
     | {readonly op: 'font-info'; readonly bytes: Uint8Array}
 
 type Done = {svg?: string; pdf?: Uint8Array; info?: readonly FontFileInfo[]}
@@ -84,6 +85,11 @@ const pageRunner: Runner = async (job) => {
             return {}
         }
 
+        if (job.op === 'packs') {
+            layout.setInstalledPacks(job.packs)
+            return {}
+        }
+
         if (job.op === 'font-info') {
             return {info: await layout.readFontInfo(job.bytes)}
         }
@@ -114,8 +120,23 @@ export function setFontProvider(provider: FontProvider): void {
 
 const familiesOf = (model: PageModel): readonly string[] => (model as {design?: {fonts?: readonly string[]}}).design?.fonts ?? []
 
+/** The font packs downloaded, and whether the layout has been told since they changed. */
+let packs: readonly string[] = []
+let packsGiven = true
+
+/** Says which font packs are downloaded. The next layout uses them. */
+export function setInstalledPacks(ids: readonly string[]): void {
+    packs = ids
+    packsGiven = false
+}
+
 /** A layout, after handing over any added font it names that the layout hasn't yet. */
 const run: Runner = async (job) => {
+    if ((job.op === 'svg' || job.op === 'pdf') && !packsGiven) {
+        packsGiven = true
+        await runOnce({op: 'packs', packs})
+    }
+
     if ((job.op === 'svg' || job.op === 'pdf') && provideFonts) {
         const fonts = (await provideFonts(familiesOf(job.model)).catch(() => [])).filter((font) => !given.has(font.id))
 

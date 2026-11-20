@@ -9,7 +9,7 @@ import './cv-editor.css'
 import {Plus} from 'lucide-react'
 import {useMemo, useState, type KeyboardEvent, type ReactNode} from 'react'
 import {APP} from '../core/app'
-import {isLanguage, languageChoice, LANGUAGES, type DocumentLanguage} from '../core/labels/labels'
+import {isLanguage, LANGUAGES, type DocumentLanguage} from '../core/labels/labels'
 import {Select} from '../components/controls'
 import {biodataType, DEFAULT_BIODATA_DESIGN, emptyBiodata} from '../biodata/biodata'
 import {biodataRenderModel} from '../biodata/render-model'
@@ -18,6 +18,7 @@ import {BIODATA_TEMPLATES} from '../biodata/templates/templates'
 import {guardUnsaved} from '../shell/commands'
 import {useDocumentStore, type Content} from '../store/document-store'
 import {cvType, DEFAULT_DESIGN, emptyCv} from './cv'
+import {languageChoiceWithPack, useFontPacks} from './downloaded-fonts'
 import {TemplatePicture} from './editor/TemplatePicture'
 import {useTemplatePreviews} from './editor/use-template-previews'
 import {renderModel} from './render-model'
@@ -110,6 +111,7 @@ function BlankCard({noun, facts, onStart}: {noun: string; facts: string; onStart
 export function StartFromTemplate() {
     const [tab, setTab] = useState<StartTab>(storedTab)
     const [language, setLanguage] = useState<DocumentLanguage>(storedLanguage)
+    const packs = useFontPacks((state) => state.packs)
     const cvExample = useMemo(() => renderModel(sampleCv(language)), [language])
     const biodataExample = useMemo(() => biodataRenderModel(sampleBiodata(language)), [language])
     const cvPreviews = useTemplatePreviews(cvExample, CV_TEMPLATE_IDS, 0)
@@ -143,7 +145,7 @@ export function StartFromTemplate() {
                     <Select<DocumentLanguage>
                         label="Write a new document in"
                         value={language}
-                        options={LANGUAGES.map(languageChoice)}
+                        options={LANGUAGES.map((info) => languageChoiceWithPack(info, packs))}
                         onChange={(next) => {
                             setLanguage(next)
                             rememberLanguage(next)

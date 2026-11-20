@@ -28,6 +28,7 @@ import timeline from '../templates/timeline.typ?raw'
 import clean from '../../biodata/templates/clean.typ?raw'
 import heritage from '../../biodata/templates/heritage.typ?raw'
 import portrait from '../../biodata/templates/portrait.typ?raw'
+import {packOfFile} from '../font-packs'
 import {CV_FONTS, scriptFilesFor} from '../fonts'
 import {fontUrl} from './font-urls'
 import {withImageFiles, type PageModel} from './images'
@@ -90,6 +91,21 @@ export function giveAddedFonts(fonts: readonly {readonly id: string; readonly fa
     for (const font of fonts) {
         addedFonts.set(font.id, {family: font.family, bytes: font.bytes})
     }
+}
+
+/** The font packs downloaded on this computer, as the page last said. */
+let installedPacks: ReadonlySet<string> = new Set()
+
+/** Takes the font packs that are downloaded, so their fonts are used and no others. */
+export function setInstalledPacks(ids: readonly string[]): void {
+    installedPacks = new Set(ids)
+}
+
+/** A pack's font that isn't downloaded is left out, so its letters show as empty boxes until it is. */
+const canLoad = (file: string): boolean => {
+    const pack = packOfFile(file)
+
+    return !pack || installedPacks.has(pack.id)
 }
 
 /** The added fonts a render model, as JSON, names. */
@@ -209,7 +225,7 @@ async function compile(model: PageModel, template: string, format: 0 | 1): Promi
     const {source, data} = TEMPLATES[template] ?? TEMPLATES.classic
     const json = JSON.stringify(readable)
 
-    await addFonts([...scriptFilesFor(json), ...addedFilesFor(json)])
+    await addFonts([...scriptFilesFor(json).filter(canLoad), ...addedFilesFor(json)])
 
     compiler.addSource(MAIN, source)
     compiler.mapShadow(data, new TextEncoder().encode(json))

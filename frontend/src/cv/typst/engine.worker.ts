@@ -4,7 +4,7 @@
  */
 
 import type {PageModel} from './images'
-import {giveAddedFonts, LayoutFailed, layOutPdf, layOutSvg, readFontInfo, warmUp, type FontFileInfo} from './layout'
+import {giveAddedFonts, LayoutFailed, layOutPdf, layOutSvg, readFontInfo, setInstalledPacks, warmUp, type FontFileInfo} from './layout'
 
 /** A font the person added, as the page hands it over. */
 export interface GivenFont {
@@ -17,6 +17,7 @@ export type LayoutRequest = {readonly id: number} & (
     | {readonly op: 'warm'}
     | {readonly op: 'svg' | 'pdf'; readonly model: PageModel; readonly template: string}
     | {readonly op: 'fonts'; readonly fonts: readonly GivenFont[]}
+    | {readonly op: 'packs'; readonly packs: readonly string[]}
     | {readonly op: 'font-info'; readonly bytes: Uint8Array}
 )
 
@@ -36,6 +37,9 @@ scope.onmessage = ({data: request}) => {
                 scope.postMessage({id: request.id, ok: true})
             } else if (request.op === 'fonts') {
                 giveAddedFonts(request.fonts)
+                scope.postMessage({id: request.id, ok: true})
+            } else if (request.op === 'packs') {
+                setInstalledPacks(request.packs)
                 scope.postMessage({id: request.id, ok: true})
             } else if (request.op === 'font-info') {
                 scope.postMessage({id: request.id, ok: true, info: await readFontInfo(request.bytes)})
