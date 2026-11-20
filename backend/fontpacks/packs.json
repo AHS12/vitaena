@@ -1,0 +1,153 @@
+{
+  "release": "fonts-1",
+  "packs": [
+    {
+      "id": "ja",
+      "file": "vitaena-fonts-ja.zip",
+      "bytes": 17422645,
+      "fonts": [
+        {
+          "path": "@expo-google-fonts/noto-sans-jp/400Regular/NotoSansJP_400Regular.ttf",
+          "bytes": 5731428,
+          "sha256": "6255ea4692e97ef27330304fb96fd650f9111f868cd585fcf2802d42823930e5"
+        },
+        {
+          "path": "@expo-google-fonts/noto-sans-jp/700Bold/NotoSansJP_700Bold.ttf",
+          "bytes": 5726432,
+          "sha256": "7c03e14d8a03e8f5181dbd130712d51e4ae01ac648cbd59442ae8b16c0951835"
+        },
+        {
+          "path": "@expo-google-fonts/m-plus-1p/400Regular/MPLUS1p_400Regular.ttf",
+          "bytes": 1714248,
+          "sha256": "7809b9305f26e961044a202c85fb13cfd2171f711fb04f010f3b8aafdc0d70c2"
+        },
+        {
+          "path": "@expo-google-fonts/m-plus-1p/700Bold/MPLUS1p_700Bold.ttf",
+          "bytes": 1721760,
+          "sha256": "71df42c3fc2c0284c4a46274b190a8a1d1065fd625586aef310b306445503ef7"
+        },
+        {
+          "path": "@expo-google-fonts/zen-kaku-gothic-new/400Regular/ZenKakuGothicNew_400Regular.ttf",
+          "bytes": 2360224,
+          "sha256": "d6f634635d95bfbdbb182cb66c51761bd91acfad0726cdba46ef44dcfde2679e"
+        },
+        {
+          "path": "@expo-google-fonts/zen-kaku-gothic-new/700Bold/ZenKakuGothicNew_700Bold.ttf",
+          "bytes": 2314400,
+          "sha256": "7b39a40d306c7c59ac6e8377fb6dd692c98fb115f37385dbd94830cafb7c8c1d"
+        },
+        {
+          "path": "@expo-google-fonts/zen-old-mincho/400Regular/ZenOldMincho_400Regular.ttf",
+          "bytes": 5442488,
+          "sha256": "86316e2f4dfc4ae6d506575c0ab1662eabf3b4211f1047db3a5b19b7030b08a7"
+        },
+        {
+          "path": "@expo-google-fonts/zen-old-mincho/700Bold/ZenOldMincho_700Bold.ttf",
+          "bytes": 5436436,
+          "sha256": "a70d2b06041a35bb446fb824ca1044898872686f67134048393479bbe70a211d"
+        }
+      ]
+    },
+    {
+      "id": "zh-Hans",
+      "file": "vitaena-fonts-zh-hans.zip",
+      "bytes": 30117183,
+      "fonts": [
+        {
+          "path": "@expo-google-fonts/noto-sans-sc/400Regular/NotoSansSC_400Regular.ttf",
+          "bytes": 10559284,
+          "sha256": "d45f67f0a7c0ca3f256950777ce6a61cc7ce5f9696d02900cbbaac25f8aa7d16"
+        },
+        {
+          "path": "@expo-google-fonts/noto-sans-sc/700Bold/NotoSansSC_700Bold.ttf",
+          "bytes": 10549020,
+          "sha256": "9a38ae0ab28cd5a256f9ea8e00dedc688aac17f7915fcb000572990afa956b96"
+        },
+        {
+          "path": "@expo-google-fonts/noto-serif-sc/400Regular/NotoSerifSC_400Regular.ttf",
+          "bytes": 14807636,
+          "sha256": "c358a69de3df5f423a8946a7b03e3126fb6ba116f1130a463455b4e39e1f0742"
+        },
+        {
+          "path": "@expo-google-fonts/noto-serif-sc/700Bold/NotoSerifSC_700Bold.ttf",
+          "bytes": 14806580,
+          "sha256": "9c6a2ba736e4b499c84f65ce366bd3625c0401885fd3e585ace50fb738b96ff6"
+        }
+      ]
+    },
+    {
+      "id": "zh-Hant",
+      "file": "vitaena-fonts-zh-hant.zip",
+      "bytes": 20433783,
+      "fonts": [
+        {
+          "path": "@expo-google-fonts/noto-sans-tc/400Regular/NotoSansTC_400Regular.ttf",
+          "bytes": 7109460,
+          "sha256": "add35d53f70727657b4509531677c4e3712b67df3d54661efdee5d3a0c16d954"
+        },
+        {
+          "path": "@expo-google-fonts/noto-sans-tc/700Bold/NotoSansTC_700Bold.ttf",
+          "bytes": 7104212,
+          "sha256": "ed4ae6ed781e34d0beee896e9be5d835a938ac7adabbcc1b6b6904290006f372"
+        },
+        {
+          "path": "@expo-google-fonts/noto-serif-tc/400Regular/NotoSerifTC_400Regular.ttf",
+          "bytes": 9956844,
+          "sha256": "b0acf9799d5dc656cdeff077d36b2ee9032b762e05b3f8a7b76c81dee4eec08c"
+        },
+        {
+          "path": "@expo-google-fonts/noto-serif-tc/700Bold/NotoSerifTC_700Bold.ttf",
+          "bytes": 9959636,
+          "sha256": "98c207d0254a6b0b4b5611dd8d5bcc37af4482494477d43eba6b2409ed083140"
+        }
+      ]
+    },
+    {
+      "id": "ko",
+      "file": "vitaena-fonts-ko.zip",
+      "bytes": 11826432,
+      "fonts": [
+        {
+          "path": "@expo-google-fonts/noto-sans-kr/400Regular/NotoSansKR_400Regular.ttf",
+          "bytes": 6191364,
+          "sha256": "b4a747e78805bc25b610dcfc3003cb5fb2e2ec034763774b24216ed15889eef4"
+        },
+        {
+          "path": "@expo-google-fonts/noto-sans-kr/700Bold/NotoSansKR_700Bold.ttf",
+          "bytes": 6189424,
+          "sha256": "c76f806dc46b8e7981410cb083801f7f124b7f8bc0d181cdae80e78f16d0e9cc"
+        },
+        {
+          "path": "@expo-google-fonts/nanum-gothic/400Regular/NanumGothic_400Regular.ttf",
+          "bytes": 2053328,
+          "sha256": "cf050025dcce823de644153981ff8b171d5b78d7d0ddd6e3c9f39e814fad3564"
+        },
+        {
+          "path": "@expo-google-fonts/nanum-gothic/700Bold/NanumGothic_700Bold.ttf",
+          "bytes": 2072388,
+          "sha256": "c2b3913902193593a9f86fef6ebef3d016490bddb0e52e91d732a477578bbc57"
+        },
+        {
+          "path": "@expo-google-fonts/ibm-plex-sans-kr/400Regular/IBMPlexSansKR_400Regular.ttf",
+          "bytes": 2792384,
+          "sha256": "3fe6897f311fa4355a934716e308e1c206e00114cdbc3a51d1e7fa93e3490243"
+        },
+        {
+          "path": "@expo-google-fonts/ibm-plex-sans-kr/700Bold/IBMPlexSansKR_700Bold.ttf",
+          "bytes": 2870804,
+          "sha256": "b6f27e4b3058f8909f9fad4bf536cbcc039d7877e2623102b8cc95e1a46fb51f"
+        },
+        {
+          "path": "@expo-google-fonts/nanum-myeongjo/400Regular/NanumMyeongjo_400Regular.ttf",
+          "bytes": 3056932,
+          "sha256": "f529803189c52cb64a8f7a4b66f955cce3e8dc44044041eca0af191a3b7f82ff"
+        },
+        {
+          "path": "@expo-google-fonts/nanum-myeongjo/700Bold/NanumMyeongjo_700Bold.ttf",
+          "bytes": 3073164,
+          "sha256": "fe22a50c17d820f496a32f511ee33a7832372c3a0ed4baeeb2a34baf66233eb1"
+        }
+      ]
+    }
+  ]
+}

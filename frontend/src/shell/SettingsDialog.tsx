@@ -31,6 +31,10 @@ import {features} from './feature'
 import {RemovedDocuments} from './pages/RemovedDocuments'
 import {AttentionDot} from './attention'
 import {SettingRow} from './SettingRow'
+import {addedFamilies, useAddedFonts} from '../cv/added-fonts'
+import {useFontPacks} from '../cv/downloaded-fonts'
+import {megabytes, packLanguage} from '../cv/font-packs'
+import {faceName, SCRIPT_NAMES} from '../core/fonts/font-info'
 
 interface PageEntry {
     readonly id: string
@@ -279,6 +283,75 @@ function StoragePage() {
             ) : (
                 <p className="settings__intro">Running in a browser, nothing is saved to disk.</p>
             )}
+            <FontRows />
+            <PackRows />
+        </>
+    )
+}
+
+/** The fonts for Chinese, Japanese and Korean, which are downloaded when they're needed. */
+function PackRows() {
+    const {packs, progress, failed} = useFontPacks()
+    const {download, remove} = useFontPacks.getState()
+
+    return packs.map((pack) => {
+        const language = packLanguage(pack.id)
+        const fraction = progress[pack.id]
+        const help = failed[pack.id]
+            ? `Couldn't download them: ${failed[pack.id]}.`
+            : pack.installed
+              ? `Downloaded, ${megabytes(pack.bytes)}. Without them, letters in ${language} show as empty boxes.`
+              : `${megabytes(pack.bytes)} to download. ${APP.name} asks for them when you write in ${language}.`
+
+        return (
+            <SettingRow key={pack.id} label={`Fonts for ${language}`} help={fraction === undefined ? help : `Downloading… ${Math.round(fraction * 100)}%`}>
+                {pack.installed ? (
+                    <button type="button" className="button" onClick={() => void remove(pack.id)}>
+                        Remove
+                    </button>
+                ) : (
+                    <button type="button" className="button" disabled={fraction !== undefined} onClick={() => void download(pack.id)}>
+                        Download
+                    </button>
+                )}
+            </SettingRow>
+        )
+    })
+}
+
+/** The fonts the person added, each with Remove, and a way to add one. */
+function FontRows() {
+    const fonts = useAddedFonts((state) => state.fonts)
+    const {add, remove} = useAddedFonts.getState()
+    const message = useAddedFonts((state) => state.message)
+    const families = addedFamilies(fonts)
+
+    return (
+        <>
+            <SettingRow
+                label="Your fonts"
+                help={
+                    families.length === 0
+                        ? 'Add a .ttf or .otf file, such as a Bangla font you use, and choose it in Style for any document. It goes into backups with your documents.'
+                        : `${families.length === 1 ? '1 font' : `${families.length} fonts`}, kept with your documents and in backups. A PDF carries the font; a Word file names it, so Word uses it where it's installed.`
+                }
+            >
+                <button type="button" className="button" onClick={() => void add()}>
+                    Add a font…
+                </button>
+            </SettingRow>
+            {message ? <p className="settings__intro">{message.text}</p> : null}
+            {families.map((family) => (
+                <SettingRow
+                    key={family.id}
+                    label={family.family}
+                    help={`${[...new Set(family.files.map(faceName))].join(', ')} · ${family.scripts.map((script) => SCRIPT_NAMES[script]).join(', ') || 'no letters Vitaena knows'} · ${formatBytes(family.files.reduce((total, file) => total + file.size, 0))}`}
+                >
+                    <button type="button" className="button" onClick={() => void Promise.all(family.files.map((file) => remove(file.id)))}>
+                        Remove
+                    </button>
+                </SettingRow>
+            ))}
         </>
     )
 }

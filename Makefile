@@ -27,7 +27,7 @@ endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: icons previews import-fixtures help install hooks dev web build build-frontend build-check installer mac dmg release run test test-go test-frontend test-watch typecheck lint lint-go lint-frontend check check-app version rename clean
+.PHONY: icons previews import-fixtures font-packs help install hooks dev dev-packs web build build-frontend build-check installer mac dmg release run test test-go test-frontend test-watch typecheck lint lint-go lint-frontend check check-app version rename clean
 
 help: ## List the tasks
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
@@ -40,6 +40,9 @@ hooks: ## Run the checks in .githooks before each commit and push
 
 dev: ## Run the desktop app with hot reload
 	wails3 dev -config ./build/config.yml
+
+dev-packs: font-packs ## Run the desktop app, downloading font packs from build/dist/font-packs rather than GitHub
+	VITAENA_FONT_PACKS="$(CURDIR)/build/dist/font-packs" wails3 dev -config ./build/config.yml
 
 web: ## Run only the frontend, in a browser
 	pnpm --dir $(FRONTEND) dev
@@ -122,6 +125,9 @@ previews: ## Make pictures of the sample CV in every template, into docs/assets/
 
 import-fixtures: ## Make the PDFs from other apps the import is tested on (needs Chrome and LibreOffice)
 	cd $(FRONTEND) && pnpm dlx node@22 scripts/import-fixtures.mjs
+
+font-packs: ## Make the Chinese, Japanese and Korean font packs into build/dist/font-packs
+	go run ./tools/fontpacks -out build/dist/font-packs
 
 version: ## Set the version everywhere, as in: make version V=1.2.3
 	@test -n "$(V)" || { echo "Say which version, as in: make version V=1.2.3"; exit 1; }

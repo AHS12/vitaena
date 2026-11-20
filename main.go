@@ -15,6 +15,8 @@ import (
 	"vitaena/backend/backup"
 	"vitaena/backend/documents"
 	"vitaena/backend/export"
+	"vitaena/backend/fontpacks"
+	"vitaena/backend/fonts"
 	"vitaena/backend/mcp"
 	"vitaena/backend/secrets"
 
@@ -41,6 +43,10 @@ func main() {
 	}
 
 	library := documents.New(shell)
+	// Fonts the person adds sit beside their documents, so backups carry them.
+	addedFonts := fonts.New(library.LibraryFolder)
+	// Fonts for Chinese, Japanese and Korean are downloaded when someone needs them.
+	fontPacks := fontpacks.New(shell)
 
 	// Each optional feature is a service of its own, in its own folder. Leaving
 	// one out means deleting its lines here and its folders: see
@@ -49,10 +55,11 @@ func main() {
 	exports := export.New()
 	assistants := mcp.New(shell)
 
-	// Pictures are served from disk, not from the build, longest address first.
+	// Pictures and downloaded fonts are served from disk, not from the build, longest address first.
 	pictures := []pictureRoute{
 		{backup.HeldPicturePrefix, backup.HeldPictureHandler(backups)},
 		{documents.PicturePathPrefix, documents.PictureHandler(library)},
+		{fontpacks.RoutePrefix, fontpacks.Handler(fontPacks)},
 	}
 
 	dist, err := fs.Sub(assets, "frontend/dist")
@@ -66,6 +73,8 @@ func main() {
 		Services: []application.Service{
 			application.NewService(service),
 			application.NewService(library),
+			application.NewService(addedFonts),
+			application.NewService(fontPacks),
 			application.NewService(backups),
 			application.NewService(exports),
 			application.NewService(assistants),

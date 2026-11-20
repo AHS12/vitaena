@@ -6,6 +6,7 @@
 
 import {AlertTriangle, CheckCircle2, Lightbulb} from 'lucide-react'
 import {useEffect, useMemo, useState} from 'react'
+import {missingFontResults, useAddedFonts} from '../added-fonts'
 import {checkCv, type CheckLevel, type CheckResult} from '../ats-check'
 import type {Cv} from '../cv'
 import {renderModel} from '../render-model'
@@ -74,7 +75,8 @@ export function CheckPanel({cv, onAtsMode}: {cv: Cv; onAtsMode(): void}) {
     }, [cv])
 
     const pages = read.kind === 'read' ? read.pages : null
-    const results = useMemo(() => checkCv(cv, pages), [cv, pages])
+    const added = useAddedFonts((state) => state.fonts)
+    const results = useMemo(() => [...missingFontResults(cv.design, added), ...checkCv(cv, pages)], [cv, pages, added])
 
     return (
         <div className="check-panel">

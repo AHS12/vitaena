@@ -4,12 +4,25 @@
  */
 
 import type {PageModel} from './images'
-import {LayoutFailed, layOutPdf, layOutSvg, warmUp} from './layout'
+import {giveAddedFonts, LayoutFailed, layOutPdf, layOutSvg, readFontInfo, setInstalledPacks, warmUp, type FontFileInfo} from './layout'
 
-export type LayoutRequest = {readonly id: number} & ({readonly op: 'warm'} | {readonly op: 'svg' | 'pdf'; readonly model: PageModel; readonly template: string})
+/** A font the person added, as the page hands it over. */
+export interface GivenFont {
+    readonly id: string
+    readonly family: string
+    readonly bytes: Uint8Array
+}
+
+export type LayoutRequest = {readonly id: number} & (
+    | {readonly op: 'warm'}
+    | {readonly op: 'svg' | 'pdf'; readonly model: PageModel; readonly template: string}
+    | {readonly op: 'fonts'; readonly fonts: readonly GivenFont[]}
+    | {readonly op: 'packs'; readonly packs: readonly string[]}
+    | {readonly op: 'font-info'; readonly bytes: Uint8Array}
+)
 
 export type LayoutReply =
-    | {readonly id: number; readonly ok: true; readonly svg?: string; readonly pdf?: Uint8Array}
+    | {readonly id: number; readonly ok: true; readonly svg?: string; readonly pdf?: Uint8Array; readonly info?: readonly FontFileInfo[]}
     | {readonly id: number; readonly ok: false; readonly problems: readonly {readonly message: string}[]}
 
 const scope = self as unknown as {onmessage: ((event: MessageEvent<LayoutRequest>) => void) | null; postMessage(reply: LayoutReply, transfer?: Transferable[]): void}
@@ -22,6 +35,14 @@ scope.onmessage = ({data: request}) => {
             if (request.op === 'warm') {
                 await warmUp()
                 scope.postMessage({id: request.id, ok: true})
+            } else if (request.op === 'fonts') {
+                giveAddedFonts(request.fonts)
+                scope.postMessage({id: request.id, ok: true})
+            } else if (request.op === 'packs') {
+                setInstalledPacks(request.packs)
+                scope.postMessage({id: request.id, ok: true})
+            } else if (request.op === 'font-info') {
+                scope.postMessage({id: request.id, ok: true, info: await readFontInfo(request.bytes)})
             } else if (request.op === 'svg') {
                 scope.postMessage({id: request.id, ok: true, svg: await layOutSvg(request.model, request.template)})
             } else {

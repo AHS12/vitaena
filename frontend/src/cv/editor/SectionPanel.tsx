@@ -22,6 +22,7 @@ import {useEditorStore} from './editor-store'
 import {ShowParts} from './ShowParts'
 import {DetailRows} from './DetailRows'
 import {FamilyRows} from './FamilyRows'
+import {SecondLabel} from './second-labels'
 import {VisibilityButton} from './VisibilityButton'
 
 type Edit = DocumentEdit<Sectioned>
@@ -150,6 +151,7 @@ export function SectionPanel({section, handle, edit}: {section: Section; handle:
                     <Trash2 size={14} aria-hidden="true" />
                 </button>
             </header>
+            <SecondLabel id={section.id} of={section.title} />
             {closed ? null : (
                 <div className="panel__body">
                     {section.kind === 'text' ? (

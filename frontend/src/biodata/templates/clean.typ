@@ -20,9 +20,21 @@
   body
 }).join()
 
+// A heading, label or relation with its second label, in another language, under it or
+// after it, smaller. Without one, just the first.
+#let under(first, second) = if second == "" { first } else { stack(dir: ttb, spacing: 0.25em, first, text(size: 0.82em, second)) }
+#let after(first, second) = if second == "" { first } else [#first#h(0.5em)#text(size: 0.8em, weight: "regular")[#second]]
+
 #set document(title: if b.name != "" { b.name + " – Biodata" } else { "Biodata" }, author: b.name)
-#set text(font: (b.design.font, "Inter"), size: b.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(20))
+#set text(font: b.design.fonts, size: b.design.fontSize * 1pt, lang: b.design.lang, ligatures: false, fill: luma(20))
+
+// Right to left, for Urdu: Typst flips grids and start and end by the language,
+// Nastaliq's tall letters get taller line boxes, the same for Latin text so lines beside
+// each other stay level, and its joined letters keep the ligatures Latin text goes without.
+#set text(top-edge: 0.85em, bottom-edge: -0.35em, ligatures: true) if b.design.rtl
 #set par(leading: 0.6em, spacing: gap(0.7), justify: false)
+// Chinese characters and kana are dense, and read better with more room between lines.
+#set par(leading: 0.85em) if b.design.cjk
 #set list(marker: [•], indent: 0.2em, body-indent: 0.6em, spacing: gap(0.45))
 #set page(
   paper: b.design.paper,
@@ -66,7 +78,7 @@
 }
 
 #if b.photo != "" {
-  grid(columns: (1fr, auto), column-gutter: 1.2em, align: (left + horizon, right + top), name-block,
+  grid(columns: (1fr, auto), column-gutter: 1.2em, align: (start + horizon, end + top), name-block,
     box(width: 3.4cm, height: 3.4cm, radius: 4pt, clip: true, image(b.photo, width: 3.4cm, height: 3.4cm, fit: "cover")))
 } else {
   name-block
@@ -76,20 +88,20 @@
   columns: (36%, 1fr),
   column-gutter: 1em,
   row-gutter: gap(0.55),
-  ..rows.map(r => (text(fill: muted, r.label), r.value)).flatten(),
+  ..rows.map(r => (text(fill: muted, under(r.label, r.second)), r.value)).flatten(),
 )
 
 #let family(members) = table(
   columns: (auto, 1fr, 1fr, auto),
   stroke: (x, y) => if y > 0 { (top: 0.4pt + luma(220)) },
   // Room between columns as padding, not a gutter, so each row's line runs unbroken.
-  inset: (x, y) => (left: 0pt, right: if x < 3 { 1em } else { 0pt }, y: gap(0.45)),
-  ..members.map(m => (strong(m.relation), m.name, m.work, text(fill: muted, m.note))).flatten(),
+  inset: (x, y) => if b.design.rtl { (right: 0pt, left: if x < 3 { 1em } else { 0pt }, y: gap(0.45)) } else { (left: 0pt, right: if x < 3 { 1em } else { 0pt }, y: gap(0.45)) },
+  ..members.map(m => (strong(under(m.relation, m.second)), m.name, m.work, text(fill: muted, m.note))).flatten(),
 )
 
 #let entry(e) = block(above: gap(0.8), below: gap(0.4), breakable: false, {
   let head = (e.title, e.org).filter(x => x != "")
-  strong(head.join([, ]))
+  strong(head.join(b.words.comma))
   let meta = (e.location, e.dates).filter(x => x != "")
   if meta.len() > 0 {
     linebreak()
@@ -100,7 +112,7 @@
 })
 
 #for s in b.sections {
-  heading(level: 2, s.title)
+  heading(level: 2, after(s.title, s.second))
   if s.kind == "details" {
     details(s.rows)
   } else if s.kind == "family" {

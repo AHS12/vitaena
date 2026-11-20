@@ -4,7 +4,11 @@
  */
 
 import {z} from 'zod'
-import {CV_FONTS} from '../../cv/fonts'
+import {LANGUAGE_IDS, LANGUAGES, type DocumentLanguage} from '../../core/labels/labels'
+import {CV_FONTS, SCRIPT_FONTS} from '../../cv/fonts'
+import {addedFamilies, useAddedFonts} from '../../cv/added-fonts'
+import {inLanguage} from '../../cv/relabel'
+import type {Sectioned} from '../../cv/sections'
 import {nounOfKind} from '../../store/document-types'
 import {freeName, saveChange, saveNew, summaryOf} from './changes'
 import {loadDocument, toolsFor} from './documents'
@@ -56,12 +60,12 @@ const ACCENT = /^#[0-9a-fA-F]{6}$/
 export const setDesignTool = defineTool({
     name: 'set_design',
     title: 'Change the design',
-    description: `Changes how a document looks: its template, accent colour, font, text size, paper, margins and spacing; for a CV, ATS mode (one column for screening systems) and how levels are drawn; for a biodata, the border. Give only what to change. Fonts: ${CV_FONTS.map((font) => `${font.id} (${font.label}, ${font.kind.toLowerCase()})`).join(', ')}. list_templates gives the template ids.`,
+    description: `Changes how a document looks: its template, accent colour, font, text size, paper, margins and spacing; for a CV, ATS mode (one column for screening systems) and how levels are drawn; for a biodata, the border. Also the language the app writes the headings, labels and dates in (${LANGUAGES.map((info) => `${info.id} for ${info.name}`).join(', ')}): changing it carries the app's own headings and labels across and leaves the person's words alone. Give only what to change. Fonts: ${CV_FONTS.map((font) => `${font.id} (${font.label}, ${font.kind.toLowerCase()})`).join(', ')}. Fonts for Bangla or Arabic text (scriptFont, "" for the one that suits the font and language): ${SCRIPT_FONTS.map((font) => font.id).join(', ')}. list_templates gives the template ids.`,
     input: z.object({
         id: idInput,
         template: z.string().optional(),
         accent: z.string().optional().describe('A colour as #rrggbb.'),
-        font: z.enum(CV_FONTS.map((font) => font.id) as [string, ...string[]]).optional(),
+        font: z.string().optional().describe('A built-in font id, or custom: and the family of a font the person added (list_templates lists them).'),
         fontSize: z.number().min(8).max(13).optional().describe('In points, 8 to 13, in half steps.'),
         paper: z.enum(['a4', 'us-letter']).optional(),
         margins: z.enum(['narrow', 'normal', 'wide']).optional(),
@@ -69,6 +73,9 @@ export const setDesignTool = defineTool({
         atsMode: z.boolean().optional().describe('CV only.'),
         levelStyle: z.enum(['template', 'dots', 'bar', 'squares']).optional().describe('CV only.'),
         border: z.boolean().optional().describe('Biodata only.'),
+        language: z.enum(LANGUAGE_IDS).optional().describe('The language of the headings, labels and dates the app writes.'),
+        digits: z.enum(['latin', 'native']).optional().describe('Numbers the app writes: native for the language\'s own digits (০১২ in Bangla), latin for 0 to 9.'),
+        scriptFont: z.string().optional().describe('The font for Bangla letters: "" for the one that suits the main font, a bundled one\'s id, or custom: and the family of one the person added.'),
     }),
     readOnly: false,
     idempotent: true,
@@ -95,13 +102,26 @@ export const setDesignTool = defineTool({
             throw new Error(`The accent must be a colour as #rrggbb, not "${design.accent}".`)
         }
 
+        const added = addedFamilies(useAddedFonts.getState().fonts).map((family) => family.id)
+
+        if (design.font !== undefined && !CV_FONTS.some((font) => font.id === design.font) && !added.includes(design.font)) {
+            throw new Error(`There's no font "${design.font}". They are: ${[...CV_FONTS.map((font) => font.id), ...added].join(', ')}.`)
+        }
+
+        if (design.scriptFont !== undefined && design.scriptFont !== '' && !SCRIPT_FONTS.some((font) => font.id === design.scriptFont) && !added.includes(design.scriptFont)) {
+            throw new Error(`There's no script font "${design.scriptFont}". They are: "" (matching), ${[...SCRIPT_FONTS.map((font) => font.id), ...added].join(', ')}.`)
+        }
+
         if (design.fontSize !== undefined && design.fontSize * 2 !== Math.round(design.fontSize * 2)) {
             throw new Error('The text size goes in half points, such as 10 or 10.5.')
         }
 
-        const content = document.content as {design: object}
-        const changes = Object.keys(given).map((key) => `set the ${key === 'fontSize' ? 'text size' : key === 'atsMode' ? 'ATS mode' : key === 'levelStyle' ? 'level style' : key}`)
-        const said = await saveChange(document, {...content, design: {...content.design, ...given}}, changes, context)
+        const content = document.content as Sectioned & {design: {language: string}}
+        const words: Record<string, string> = {fontSize: 'text size', atsMode: 'ATS mode', levelStyle: 'level style', scriptFont: 'script font'}
+        const changes = Object.keys(given).map((key) => `set the ${words[key] ?? key}`)
+        // A new language carries the app's own headings and labels across, as Style does.
+        const moved = design.language !== undefined && design.language !== content.design.language ? inLanguage(content, design.language) : content
+        const said = await saveChange(document, {...moved, design: {...moved.design, ...given}}, changes, context)
 
         return {text: said, structured: {changes}}
     },
@@ -116,12 +136,13 @@ export const createDocumentTool = defineTool({
         kind: z.enum(KINDS),
         name: z.string().min(1).describe('What the person will see it called, such as "Jane Doe – Product designer".'),
         template: z.string().optional().describe('A template id from list_templates. Default: the kind\'s usual one.'),
+        language: z.enum(LANGUAGE_IDS).optional().describe('The language its headings, labels and dates start in. Default: en.'),
         operations: z.array(operationSchema).optional().describe('Changes to make to it straight away, as for edit_document.'),
     }),
     readOnly: false,
-    run: async ({kind, name, template, operations}, context) => {
+    run: async ({kind, name, template, language, operations}, context) => {
         const tools = toolsFor(kind)
-        const empty = tools.type.empty() as {design: object}
+        const empty = tools.emptyIn((language ?? 'en') as DocumentLanguage) as {design: object}
 
         if (template !== undefined && !tools.templates.some((candidate) => candidate.id === template)) {
             throw new Error(`There's no template "${template}" for a ${nounOfKind(kind)}. They are: ${tools.templates.map((candidate) => candidate.id).join(', ')}.`)

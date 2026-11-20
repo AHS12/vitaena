@@ -16,6 +16,7 @@
 }
 
 .form-field__input {
+    unicode-bidi: plaintext;
     width: 100%;
     min-height: 30px;
     padding: 5px 9px;

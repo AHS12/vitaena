@@ -5,6 +5,7 @@
  */
 
 import {z} from 'zod'
+import {LANGUAGE_IDS} from '../core/labels/labels'
 
 let counter = 0
 
@@ -77,6 +78,26 @@ const sectionBase = {
     title: z.string(),
     visible: z.boolean(),
 }
+
+/**
+ * How a document writes its own words, part of its design: the language of the headings,
+ * labels, dates and "Present" the app writes, its digits, and the font for other scripts.
+ */
+export const writingFields = {
+    language: z.enum(LANGUAGE_IDS),
+    /** Numbers the app writes, in the language's own digits or as 0 to 9. */
+    digits: z.enum(['latin', 'native']),
+    /** The font for Bangla letters: "" for the one that suits the main font, else an id from SCRIPT_FONTS. */
+    scriptFont: z.string(),
+}
+
+/** What a document's design says about writing, as the functions that write dates take it. */
+export interface Writing {
+    readonly language: string
+    readonly digits: 'latin' | 'native'
+}
+
+export const ENGLISH: Writing = {language: 'en', digits: 'latin'}
 
 export const textSection = z.object({...sectionBase, kind: z.literal('text'), text: z.string()})
 export const entriesSection = z.object({...sectionBase, kind: z.literal('entries'), entries: z.array(entrySchema)})

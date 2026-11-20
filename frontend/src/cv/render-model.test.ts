@@ -121,8 +121,8 @@ describe('a details section, as a template is given it', () => {
                 title: 'Personal details',
                 column: 'side',
                 rows: [
-                    {label: 'Nationality', value: 'British'},
-                    {label: 'Date of birth', value: '12 March 1996 (30 years)'},
+                    {id: 'a', label: 'Nationality', value: 'British'},
+                    {id: 'b', label: 'Date of birth', value: '12 March 1996 (30 years)'},
                 ],
             },
         ])

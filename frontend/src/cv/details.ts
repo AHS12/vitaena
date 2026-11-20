@@ -1,11 +1,14 @@
 /**
  * How a details row is written on the page: words as they are, a date as a date, an age
- * or both, and a height in feet and inches, centimetres or both.
+ * or both, and a height in feet and inches, centimetres or both. Dates, ages and heights
+ * are written in the document's language and digits; the person's own words never change.
  */
 
-import {newId, type DetailRow as CvDetailRow} from './sections'
+import {dayMonthYear, labelsFor, withDigits} from '../core/labels/labels'
+import {ENGLISH, newId, type DetailRow as CvDetailRow, type Writing} from './sections'
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+/** Numbers the app writes, in the document's digits. */
+export const numbersIn = (text: string, writing: Writing): string => withDigits(text, writing.language, writing.digits === 'native')
 
 const parseDay = (value: string): {year: number; month: number; day: number} | null => {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
@@ -13,11 +16,11 @@ const parseDay = (value: string): {year: number; month: number; day: number} | n
     return match ? {year: Number(match[1]), month: Number(match[2]), day: Number(match[3])} : null
 }
 
-/** "1996-03-12" as "12 March 1996". */
-export function dayText(value: string): string {
+/** "1996-03-12" as "12 March 1996", "১২ মার্চ ১৯৯৬" or "1996年3月12日". */
+export function dayText(value: string, writing: Writing = ENGLISH): string {
     const day = parseDay(value)
 
-    return day ? `${day.day} ${MONTHS[day.month - 1]} ${day.year}` : ''
+    return day ? numbersIn(dayMonthYear(writing.language, day.day, day.month, day.year), writing) : ''
 }
 
 /** Whole years from the date to `today`, or null for no date or one still to come. */
@@ -47,31 +50,31 @@ export function feetAndInches(cm: number): {feet: number; inches: number} {
 export const cmOf = (feet: number, inches: number): number => Math.round((feet * 12 + inches) * CM_PER_INCH)
 
 /** "5′ 6″", "168 cm", or "5′ 6″ (168 cm)". */
-export function heightText(cm: number, show: 'ft-in' | 'cm' | 'both'): string {
+export function heightText(cm: number, show: 'ft-in' | 'cm' | 'both', writing: Writing = ENGLISH): string {
     if (cm <= 0) {
         return ''
     }
 
     const {feet, inches} = feetAndInches(cm)
     const imperial = `${feet}′ ${inches}″`
-    const metric = `${Math.round(cm)} cm`
+    const metric = `${Math.round(cm)} ${labelsFor(writing.language).page.cm}`
 
-    return show === 'cm' ? metric : show === 'ft-in' ? imperial : `${imperial} (${metric})`
+    return numbersIn(show === 'cm' ? metric : show === 'ft-in' ? imperial : `${imperial} (${metric})`, writing)
 }
 
 /** What a row says on the page, or "" when it says nothing yet. */
-export function detailValue(row: CvDetailRow, today: Date): string {
+export function detailValue(row: CvDetailRow, today: Date, writing: Writing = ENGLISH): string {
     if (row.kind === 'text') {
         return row.value.trim()
     }
 
     if (row.kind === 'height') {
-        return heightText(row.cm, row.show)
+        return heightText(row.cm, row.show, writing)
     }
 
-    const date = dayText(row.date)
+    const date = dayText(row.date, writing)
     const age = ageOn(row.date, today)
-    const years = age === null ? '' : `${age} ${age === 1 ? 'year' : 'years'}`
+    const years = age === null ? '' : numbersIn(labelsFor(writing.language).page.years(String(age), age === 1), writing)
 
     if (row.show === 'date' || !years) {
         return date

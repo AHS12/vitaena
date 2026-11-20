@@ -8,12 +8,18 @@ import '../cv/cv-editor.css'
 import {ChevronRight} from 'lucide-react'
 import {useMemo, type ReactNode} from 'react'
 import {TextField} from '../components/fields'
-import {Switch} from '../components/controls'
+import {Select, Switch} from '../components/controls'
 import {PhotoField} from '../components/PhotoField'
 import {SplitPane} from '../components/SplitPane'
 import {APP} from '../core/app'
 import {useDocumentStore} from '../store/document-store'
+import {LANGUAGES, languageInfo, type DocumentLanguage} from '../core/labels/labels'
+import {SecondLabelsProvider, type SecondLabels} from '../cv/editor/second-labels-context'
+import {setSecondLabel, withSecondLanguage} from './edit-ops'
 import {Group, StyleGroups, TemplateGallery, type SharedStyle} from '../cv/editor/DesignPanel'
+import {languageChoiceWithPack, useFontPacks} from '../cv/downloaded-fonts'
+import {scriptsIn} from '../cv/fonts'
+import {inLanguage} from '../cv/relabel'
 import {silhouettePhoto} from '../cv/editor/silhouette'
 import {toggled} from '../cv/editor/edit-ops'
 import {useEditorStore} from '../cv/editor/editor-store'
@@ -26,7 +32,7 @@ import type {Sectioned} from '../cv/sections'
 import {useDocumentEdit, type DocumentEdit} from '../cv/use-cv-edit'
 import type {Biodata} from './biodata'
 import {BiodataCheck} from './BiodataCheck'
-import {BIODATA_SECTION_CHOICES, updateHeading, updatePerson} from './edit-ops'
+import {biodataSectionChoices, updateHeading, updatePerson} from './edit-ops'
 import {biodataRenderModel, isBlank} from './render-model'
 import {NotSortedNote} from '../cv/import/NotSortedNote'
 import {sampleBiodata} from './sample'
@@ -61,6 +67,20 @@ function FixedPanel({id, title, children}: {id: string; title: string; children:
 
 function ContentPanel({biodata, edit}: {biodata: Biodata; edit: Edit}) {
     const {heading, person} = biodata
+    const labels = biodata.second.labels
+    // While second labels are on, every heading, label and relation has a field for one.
+    const second = useMemo<SecondLabels | null>(
+        () =>
+            biodata.second.language
+                ? {
+                      language: languageInfo(biodata.second.language).name,
+                      get: (id) => labels[id] ?? '',
+                      type: (id, text) => edit.type((current) => setSecondLabel(current, id, text)),
+                      commit: edit.commit,
+                  }
+                : null,
+        [biodata.second.language, labels, edit],
+    )
 
     return (
         <>
@@ -98,7 +118,9 @@ function ContentPanel({biodata, edit}: {biodata: Biodata; edit: Edit}) {
                 />
                 <ShowParts parts={PICTURE_PARTS} hidden={person.hide} onToggle={(part) => edit.act('show part', (current) => updatePerson(current, {hide: toggled(current.person.hide, part)}))} />
             </FixedPanel>
-            <SectionList doc={biodata} edit={edit as unknown as DocumentEdit<Sectioned>} choices={BIODATA_SECTION_CHOICES} />
+            <SecondLabelsProvider value={second}>
+                <SectionList doc={biodata} edit={edit as unknown as DocumentEdit<Sectioned>} choices={biodataSectionChoices(biodata.design.language)} />
+            </SecondLabelsProvider>
         </>
     )
 }
@@ -131,6 +153,7 @@ const DESIGN_TABS = {templates: 'Templates', style: 'Style'} as const
 function DesignSidebar({biodata, edit}: {biodata: Biodata; edit: Edit}) {
     const tab = useEditorStore((state) => state.designTab)
     const setTab = useEditorStore((state) => state.setDesignTab)
+    const packs = useFontPacks((state) => state.packs)
     const set = <K extends keyof Biodata['design']>(key: K, value: Biodata['design'][K], label: string) => edit.act(label, (current) => ({...current, design: {...current.design, [key]: value}}))
     // Until it has sections with something in them, the example stands in, in this
     // biodata's style, as the CV's gallery does.
@@ -141,11 +164,12 @@ function DesignSidebar({biodata, edit}: {biodata: Biodata; edit: Edit}) {
             return model
         }
 
-        const example = sampleBiodata()
+        const example = sampleBiodata(biodata.design.language)
 
         return biodataRenderModel({...example, person: {...example.person, name: model.name || example.person.name, photo: biodata.person.photo || silhouettePhoto()}, design: biodata.design})
     }, [blank, biodata, model])
     const previews = useTemplatePreviews(shown, BIODATA_TEMPLATE_IDS, 900)
+    const scripts = useMemo(() => scriptsIn(JSON.stringify([biodata.heading, biodata.person.name, biodata.sections])), [biodata.heading, biodata.person.name, biodata.sections])
 
     return (
         <div className="cv-side cv-side--design" data-coach="design">
@@ -166,7 +190,24 @@ function DesignSidebar({biodata, edit}: {biodata: Biodata; edit: Edit}) {
                         onPick={(id) => set('template', id, 'template')}
                     />
                 ) : (
-                    <StyleGroups design={biodata.design} set={set as <K extends keyof SharedStyle>(key: K, value: SharedStyle[K], label: string) => void}>
+                    <StyleGroups
+                        design={biodata.design}
+                        set={set as <K extends keyof SharedStyle>(key: K, value: SharedStyle[K], label: string) => void}
+                        onLanguage={(language) => edit.act(`write in ${languageInfo(language).name}`, (current) => inLanguage(current, language))}
+                        scripts={scripts}
+                    >
+                        <Group title="Two languages">
+                            <div className="design-row">
+                                <span className="design-row__label">Second labels</span>
+                                <Select<DocumentLanguage | ''>
+                                    label="Second labels"
+                                    value={biodata.second.language}
+                                    options={[{value: '' as const, label: 'Off'}, ...LANGUAGES.filter((info) => info.id !== biodata.design.language).map((info) => languageChoiceWithPack(info, packs))]}
+                                    onChange={(language) => edit.act(language ? `second labels in ${languageInfo(language).name}` : 'second labels off', (current) => withSecondLanguage(current, language))}
+                                />
+                            </div>
+                            <p className="design-panel__tip">Each heading, label and relation written again under the first, smaller, as many printed biodata have. Vitaena fills in the ones it wrote; you write the rest in Content.</p>
+                        </Group>
                         <Group title="Border">
                             <div className="design-row">
                                 <Switch label="Border around each page" value={biodata.design.border} onChange={(border) => set('border', border, border ? 'border on' : 'border off')} />
@@ -219,7 +260,7 @@ export function BiodataEditor() {
                                         ? {
                                               title: 'Your biodata appears here as you type',
                                               text: 'Start with your name on the left, or look at a finished one first.',
-                                              onExample: () => edit.act('example', (current) => ({...sampleBiodata(), design: current.design})),
+                                              onExample: () => edit.act('example', (current) => ({...sampleBiodata(current.design.language), design: current.design})),
                                           }
                                         : null
                                 }

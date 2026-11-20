@@ -9,9 +9,12 @@
  */
 
 import {Minus, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Plus} from 'lucide-react'
-import {useEffect, useRef, useState} from 'react'
+import {useEffect, useMemo, useRef, useState} from 'react'
 import {Segmented} from '../components/Segmented'
 import type {SplitPaneHandle} from '../components/SplitPane'
+import {useFontPacks} from './downloaded-fonts'
+import {packsWanted} from './font-packs'
+import {FontPackNotice} from './FontPackNotice'
 import type {PageModel} from './typst/images'
 
 const SETTLE_MS = 120
@@ -68,6 +71,9 @@ export function PagePreview({
     const [state, setState] = useState<State>({kind: 'starting'})
     const [zoom, setZoom] = useState<number | 'fit'>('fit')
     const [available, setAvailable] = useState(PAGE_PX)
+    // Fonts just downloaded are used at once, so the pages are laid out again.
+    const installed = useFontPacks((packs) => packs.packs.filter((pack) => pack.installed).map((pack) => pack.id).join())
+    const wanted = useMemo(() => packsWanted(JSON.stringify(model), (model as {design?: {fonts?: readonly string[]}}).design?.fonts ?? []), [model])
 
     useEffect(() => {
         const scroll = scrollRef.current
@@ -118,7 +124,7 @@ export function PagePreview({
             current = false
             window.clearTimeout(timer)
         }
-    }, [model, template])
+    }, [model, template, installed])
 
     const fitScale = Math.min(FIT_MAX, available / PAGE_PX)
     const scale = zoom === 'fit' ? fitScale : zoom
@@ -180,6 +186,7 @@ export function PagePreview({
                 </button>
             </div>
             {state.kind === 'failed' ? <p className="cv-preview__problem">{state.message}</p> : null}
+            <FontPackNotice wanted={wanted} />
             <div className="cv-preview__scroll" ref={scrollRef}>
                 <div className="cv-preview__stage" style={{width: PAGE_PX * scale}}>
                     <div className="cv-preview__pages" ref={pagesRef} />

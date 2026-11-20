@@ -66,24 +66,31 @@
 )
 
 #set document(title: if cv.name != "" { cv.name + " – CV" } else { "CV" }, author: cv.name)
-#set text(font: (cv.design.font, "Inter"), size: cv.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(25))
+#set text(font: cv.design.fonts, size: cv.design.fontSize * 1pt, lang: cv.design.lang, ligatures: false, fill: luma(25))
+
+// Right to left, for Urdu: Typst flips grids and start and end by the language,
+// Nastaliq's tall letters get taller line boxes, the same for Latin text so lines beside
+// each other stay level, and its joined letters keep the ligatures Latin text goes without.
+#set text(top-edge: 0.85em, bottom-edge: -0.35em, ligatures: true) if cv.design.rtl
 #set par(leading: 0.55em, spacing: gap(0.7), justify: false)
+// Chinese characters and kana are dense, and read better with more room between lines.
+#set par(leading: 0.85em) if cv.design.cjk
 #set list(marker: [•], indent: 0.1em, body-indent: 0.55em, spacing: gap(0.45))
 #set page(
   paper: cv.design.paper,
   fill: white,
   margin: (x: mx, top: cv.design.margin * 0.9cm, bottom: cv.design.margin * 0.9cm),
-  background: if two { place(right + top, rect(width: panel, height: 100%, fill: accent)) },
+  background: if two { place((if cv.design.rtl { left } else { right }) + top, rect(width: panel, height: 100%, fill: accent)) },
   header: context {
     if counter(page).get().first() > 1 and cv.name != "" {
       set text(size: 0.8em, fill: muted)
-      align(left, cv.name)
+      align(start, cv.name)
     }
   },
   footer: context {
     if counter(page).final().first() > 1 {
       set text(size: 0.8em, fill: muted)
-      align(left, counter(page).display("1 / 1", both: true))
+      align(start, counter(page).display("1 / 1", both: true))
     }
   },
 )
@@ -115,7 +122,7 @@
   let soft = if side { white.transparentize(25%) } else { muted }
 
   block(sticky: true, above: gap(0.9), below: gap(0.35), {
-    head.join(if side { linebreak() } else [, ])
+    head.join(if side { linebreak() } else { cv.words.comma })
     if meta.len() > 0 {
       linebreak()
       text(size: 0.88em, fill: soft, if side { meta.join(linebreak()) } else { meta.join("  |  ") })
@@ -184,7 +191,7 @@
         align(center, box(width: 3cm, height: 3cm, radius: 50%, clip: true, stroke: 2pt + white, image(cv.photo, width: 3cm, height: 3cm, fit: "cover")))
       }
       if cv.contact.len() > 0 {
-        heading-side("Contact")
+        heading-side(cv.words.contact)
         // One detail to a line: the column is too narrow to share.
         cv.contact.map(c => block(above: 0.5em, below: 0.5em, if c.url != "" { link(c.url)[#c.text] } else { c.text })).join()
       }

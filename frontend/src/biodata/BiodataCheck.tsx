@@ -4,6 +4,7 @@
  */
 
 import {useEffect, useMemo, useState} from 'react'
+import {missingFontResults, useAddedFonts} from '../cv/added-fonts'
 import {CheckList} from '../cv/editor/CheckPanel'
 import type {Biodata} from './biodata'
 import {checkBiodata} from './check'
@@ -37,7 +38,8 @@ export function BiodataCheck({biodata}: {biodata: Biodata}) {
         }
     }, [biodata])
 
-    const results = useMemo(() => checkBiodata(biodata, pages), [biodata, pages])
+    const added = useAddedFonts((state) => state.fonts)
+    const results = useMemo(() => [...missingFontResults(biodata.design, added), ...checkBiodata(biodata, pages)], [biodata, pages, added])
 
     return (
         <div className="check-panel">

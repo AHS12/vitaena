@@ -11,6 +11,7 @@
  * Nothing is dropped: what the rules can't place goes into a hidden Not sorted section.
  */
 
+import {scriptsIn} from '../fonts'
 import {DEFAULT_DESIGN, emptyEntry, newId, type Cv, type CvEntry, type CvPerson, type CvSection, type CvTagGroup} from '../cv'
 import {joinItem, levelOfWords, withWordLevels} from '../levels'
 import {findDates, withoutDates, type DateRange} from './dates'
@@ -193,6 +194,41 @@ function addLinks(targets: readonly string[], contact: Contact): void {
 
 // ---------------------------------------------------------------- sections
 
+
+/** Letters Urdu has and Arabic and Persian haven't; Arabic's own; and Persian's heh and zhe, which Urdu writes otherwise. */
+const URDU_LETTERS = /[ٹڈڑںےۓہھۂ]/u
+const PERSIAN_LETTERS = /[هژ]/u
+/** Kana, and the characters Japan writes its own way (経, 歴), mean Japanese. */
+const JAPANESE = /[\p{Script=Hiragana}\p{Script=Katakana}経歴験]/u
+/** Characters that are written one way in simplified Chinese and another in traditional, as each writes them. */
+const SIMPLIFIED = /[经历简业专项证们这习语书联实际验织关于试别发长东车门问时个资讯荣奖誉愿务爱兴]/gu
+const TRADITIONAL = /[經歷簡業專項證們這習語書聯實際驗織關於試別發長東車門問時個資訊榮獎譽願務愛興]/gu
+const ARABIC_LETTERS = /[ةيكى]|(?:^|\s)ال/u
+
+/**
+ * Bangla, Hindi for Devanagari, or Urdu, Arabic or Persian for Arabic letters, when most
+ * headings are written in it, so the app's own words follow; else English. The three in
+ * Arabic letters are told apart by the letters only one of them uses. Marathi can't be
+ * told from Hindi by its letters alone.
+ */
+export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi' | 'ur' | 'ar' | 'fa' | 'ja' | 'zh-Hans' | 'zh-Hant' | 'ko' {
+    const count = (script: 'bengali' | 'devanagari' | 'arabic' | 'cjk' | 'hangul') => titles.filter((title) => scriptsIn(title).includes(script)).length
+    const most = (found: number) => found > 0 && found * 2 >= titles.length
+
+    if (most(count('arabic'))) {
+        const joined = titles.join(' ')
+
+        return URDU_LETTERS.test(joined) ? 'ur' : ARABIC_LETTERS.test(joined) ? 'ar' : PERSIAN_LETTERS.test(joined) ? 'fa' : 'ur'
+    }
+
+    if (most(count('cjk'))) {
+        const joined = titles.join(' ')
+
+        return JAPANESE.test(joined) ? 'ja' : (joined.match(TRADITIONAL)?.length ?? 0) > (joined.match(SIMPLIFIED)?.length ?? 0) ? 'zh-Hant' : 'zh-Hans'
+    }
+
+    return most(count('hangul')) ? 'ko' : most(count('bengali')) ? 'bn' : most(count('devanagari')) ? 'hi' : 'en'
+}
 
 export function textOf(lines: readonly PdfLine[]): string {
     let text = ''
@@ -684,5 +720,5 @@ export function cvFromLayout(layout: PdfLayout): ImportedCv {
         hide: [],
     }
 
-    return {cv: {person, sections: cvSections, design: {...DEFAULT_DESIGN, template: parts.twoColumns ? 'modern' : 'classic'}}, unsorted: unsorted.length}
+    return {cv: {person, sections: cvSections, design: {...DEFAULT_DESIGN, template: parts.twoColumns ? 'modern' : 'classic', language: languageOfHeadings(cvSections.map((section) => section.title))}}, unsorted: unsorted.length}
 }

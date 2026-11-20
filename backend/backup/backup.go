@@ -34,6 +34,7 @@ import (
 	"vitaena/appconfig"
 	"vitaena/backend"
 	"vitaena/backend/documents"
+	"vitaena/backend/fonts"
 	"vitaena/backend/fsutil"
 	"vitaena/backend/secrets"
 )
@@ -603,6 +604,15 @@ func backupFiles(dir string) ([]string, error) {
 		}
 
 		name := entry.Name()
+		// The fonts a person added go with their documents, so a restore brings both.
+		if filepath.Dir(relative) == fonts.FolderName {
+			if fonts.IsKeptFile(name) {
+				files = append(files, filepath.ToSlash(relative))
+			}
+
+			return nil
+		}
+
 		if strings.HasPrefix(name, ".") || !(strings.HasSuffix(name, documents.JSONSuffix) || strings.HasSuffix(name, documents.PictureSuffix)) {
 			return nil
 		}
@@ -689,7 +699,7 @@ func readBackupManifest(archive *zip.Reader) (backupManifest, error) {
 // backupEntryPath turns a name in the zip into a path inside the saved documents
 // folder, refusing anything that could land outside it or that the app would
 // never have written: a climb up, an absolute path, a backslash, the bin, or a
-// file that isn't a document or a picture.
+// file that isn't a document, a picture or a font the person added.
 func backupEntryPath(name string) (string, error) {
 	relative, inDocuments := strings.CutPrefix(name, backupDocumentsFolder)
 	refuse := fmt.Errorf("%w: it holds %q, which the app never writes", errNotABackup, name)
@@ -701,6 +711,14 @@ func backupEntryPath(name string) (string, error) {
 	segments := strings.Split(relative, "/")
 	if segments[0] == documents.RemovedFolder {
 		return "", refuse
+	}
+
+	if len(segments) == 2 && segments[0] == fonts.FolderName {
+		if !fonts.IsKeptFile(segments[1]) {
+			return "", refuse
+		}
+
+		return relative, nil
 	}
 
 	stem, ext := strings.TrimSuffix(segments[len(segments)-1], path.Ext(relative)), path.Ext(relative)

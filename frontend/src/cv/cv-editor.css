@@ -410,6 +410,45 @@ input.panel__title:focus {
     color: var(--text-primary);
 }
 
+.add-font {
+    align-self: flex-start;
+}
+
+.font-message {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-sunken);
+}
+
+.font-message--refused {
+    border-color: var(--warning);
+}
+
+.font-message__text {
+    margin: 0;
+    font: var(--text-label);
+    color: var(--text-primary);
+}
+
+.design-panel__tip--warning {
+    color: var(--warning);
+}
+
+.panel__title {
+    unicode-bidi: plaintext;
+}
+
+.design-group__subtitle {
+    margin: 4px 0 0;
+    font: var(--text-label);
+    color: var(--text-secondary);
+}
+
 .template-choices,
 .font-choices {
     display: grid;
@@ -972,6 +1011,21 @@ input.panel__title:focus {
     font-weight: 600;
 }
 
+/* A second label, in another language, under the first: in a row, under its label. */
+.second-label {
+    font-size: 0.92em;
+}
+
+.detail-row .second-label,
+.member-row .second-label {
+    grid-column: 2 / 3;
+}
+
+.panel > .second-label {
+    width: auto;
+    margin: 0 var(--space-3) var(--space-2) 44px;
+}
+
 .detail-row__value {
     min-width: 0;
 }
@@ -1057,4 +1111,30 @@ input.panel__title:focus {
     font: var(--text-label);
     line-height: 1.5;
     color: var(--text-primary);
+}
+
+.font-pack-notice {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--accent-moss-soft);
+    color: var(--text-primary);
+    font: var(--text-label);
+}
+
+.font-pack-notice__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0;
+}
+
+.font-pack-notice__text {
+    flex: 1 1 14rem;
+}
+
+.font-pack-notice__progress {
+    color: var(--text-secondary);
+    white-space: nowrap;
 }

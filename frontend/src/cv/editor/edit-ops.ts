@@ -8,6 +8,7 @@ import {type Cv, type CvPerson, type CvSection, type CvTagGroup} from '../cv'
 import {emptyEntry, emptyFamilyMember, newId, type DetailRow, type Entry, type FamilyMember, type Section, type SectionKind, type Sectioned, type TagGroup} from '../sections'
 import type {SectionChoice} from './AddSection'
 import {emptyDetailRow} from '../details'
+import {labelsFor, type Labels} from '../../core/labels/labels'
 
 export const updatePerson = (cv: Cv, change: Partial<CvPerson>): Cv => ({...cv, person: {...cv.person, ...change}})
 
@@ -49,19 +50,19 @@ export const removeSection = <D extends Sectioned>(doc: D, id: string): D => ({.
 export const emptyGroup = (): CvTagGroup => ({id: newId('group'), visible: true, label: '', items: [], showLevels: false, levels: []})
 
 /** The sections a person can add, under headings ATS parsers recognise. */
-export const SECTION_CHOICES: readonly {readonly title: string; readonly kind: CvSection['kind']}[] = [
-    {title: 'Summary', kind: 'text'},
-    {title: 'Experience', kind: 'entries'},
-    {title: 'Education', kind: 'entries'},
-    {title: 'Skills', kind: 'tags'},
-    {title: 'Projects', kind: 'entries'},
-    {title: 'Certifications', kind: 'entries'},
-    {title: 'Languages', kind: 'tags'},
-    {title: 'Volunteering', kind: 'entries'},
-    {title: 'Awards', kind: 'entries'},
-    {title: 'Publications', kind: 'entries'},
-    {title: 'Interests', kind: 'tags'},
-    {title: 'Personal details', kind: 'details'},
+export const SECTION_CHOICES: readonly {readonly key: keyof Labels['sections']; readonly kind: CvSection['kind']}[] = [
+    {key: 'summary', kind: 'text'},
+    {key: 'experience', kind: 'entries'},
+    {key: 'education', kind: 'entries'},
+    {key: 'skills', kind: 'tags'},
+    {key: 'projects', kind: 'entries'},
+    {key: 'certifications', kind: 'entries'},
+    {key: 'languages', kind: 'tags'},
+    {key: 'volunteering', kind: 'entries'},
+    {key: 'awards', kind: 'entries'},
+    {key: 'publications', kind: 'entries'},
+    {key: 'interests', kind: 'tags'},
+    {key: 'personalDetails', kind: 'details'},
 ]
 
 export function newSection(title: string, kind: SectionKind): Section {
@@ -86,13 +87,24 @@ export function newSection(title: string, kind: SectionKind): Section {
     return {...base, kind, groups: [emptyGroup()]}
 }
 
-/** "Add a section" for a CV: the usual sections, each once, then a custom one of each kind. */
-export const CV_SECTION_CHOICES: readonly SectionChoice[] = [
-    ...SECTION_CHOICES.map((choice) => ({id: choice.title, label: choice.title, once: true, make: () => newSection(choice.title, choice.kind)})),
-    {id: 'custom-text', label: 'Custom: a paragraph', group: 'custom', make: () => newSection('Custom section', 'text')},
-    {id: 'custom-list', label: 'Custom: a list of entries', group: 'custom', make: () => newSection('Custom section', 'entries')},
-    {id: 'custom-details', label: 'Custom: labels and values', group: 'custom', make: () => newSection('Custom section', 'details')},
-]
+/**
+ * "Add a section" for a CV: the usual sections, each once, then a custom one of each kind.
+ * The menu is in English, as the interface is; the headings are in the CV's language.
+ */
+export function cvSectionChoices(language = 'en'): SectionChoice[] {
+    const english = labelsFor('en').sections
+    const words = labelsFor(language).sections
+    const label = (key: keyof Labels['sections']) => (words[key] === english[key] ? english[key] : `${english[key]} · ${words[key]}`)
+
+    return [
+        ...SECTION_CHOICES.map((choice) => ({id: english[choice.key], label: label(choice.key), title: words[choice.key], once: true, make: () => newSection(words[choice.key], choice.kind)})),
+        {id: 'custom-text', label: 'Custom: a paragraph', group: 'custom', make: () => newSection(words.custom, 'text')},
+        {id: 'custom-list', label: 'Custom: a list of entries', group: 'custom', make: () => newSection(words.custom, 'entries')},
+        {id: 'custom-details', label: 'Custom: labels and values', group: 'custom', make: () => newSection(words.custom, 'details')},
+    ]
+}
+
+export const CV_SECTION_CHOICES: readonly SectionChoice[] = cvSectionChoices()
 
 /** Words for an entry's two name fields that suit its section. */
 export function entryWords(sectionTitle: string): {title: string; titleExample: string; org: string; orgExample: string} {

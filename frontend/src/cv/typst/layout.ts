@@ -5,6 +5,11 @@
  * Runs inside the layout worker (engine.worker.ts), so a long CV never holds up typing.
  * The compiler, the renderer and the fonts are bundled with the app and loaded on first
  * use, never fetched from the network: the default font download is turned off.
+ *
+ * Fonts for other scripts, such as Bangla, are added the first time a document has
+ * letters in that script, so a document in English never loads them. Fonts the person
+ * added are handed over by the page (giveAddedFonts) and added the first time a
+ * document names one.
  */
 
 import type {TypstCompiler, TypstRenderer} from '@myriaddreamin/typst.ts'
@@ -23,11 +28,13 @@ import timeline from '../templates/timeline.typ?raw'
 import clean from '../../biodata/templates/clean.typ?raw'
 import heritage from '../../biodata/templates/heritage.typ?raw'
 import portrait from '../../biodata/templates/portrait.typ?raw'
-import {CV_FONTS} from '../fonts'
+import {packOfFile} from '../font-packs'
+import {CV_FONTS, scriptFilesFor} from '../fonts'
 import {fontUrl} from './font-urls'
 import {withImageFiles, type PageModel} from './images'
 
-const FONTS = CV_FONTS.flatMap((font) => font.files.map(fontUrl))
+/** The fonts the compiler starts with, as npm package paths. */
+const START_FONTS = CV_FONTS.flatMap((font) => font.files)
 
 /** Each template's source, and where it reads its document from. */
 const CV_DATA = '/cv.json'
@@ -55,6 +62,8 @@ export class LayoutFailed extends Error {
 interface Engine {
     readonly compiler: TypstCompiler
     readonly renderer: TypstRenderer
+    /** Gives the compiler these fonts too, if it hasn't them yet: npm paths, or "added:" and a font's id. */
+    readonly addFonts: (files: readonly string[]) => Promise<void>
 }
 
 let engine: Promise<Engine> | null = null
@@ -69,9 +78,60 @@ const bytesOf = async (url: string): Promise<Uint8Array> => {
     return new Uint8Array(await response.arrayBuffer())
 }
 
+/** Each font file's bytes, fetched once. */
+const fontFiles = new Map<string, Promise<Uint8Array>>()
+
+/** Fonts the person added, by id: the family inside, and the file. */
+const addedFonts = new Map<string, {readonly family: string; readonly bytes: Uint8Array}>()
+
+const ADDED = 'added:'
+
+/** Takes fonts the person added, so a document naming one of their families can use it. */
+export function giveAddedFonts(fonts: readonly {readonly id: string; readonly family: string; readonly bytes: Uint8Array}[]): void {
+    for (const font of fonts) {
+        addedFonts.set(font.id, {family: font.family, bytes: font.bytes})
+    }
+}
+
+/** The font packs downloaded on this computer, as the page last said. */
+let installedPacks: ReadonlySet<string> = new Set()
+
+/** Takes the font packs that are downloaded, so their fonts are used and no others. */
+export function setInstalledPacks(ids: readonly string[]): void {
+    installedPacks = new Set(ids)
+}
+
+/** A pack's font that isn't downloaded is left out, so its letters show as empty boxes until it is. */
+const canLoad = (file: string): boolean => {
+    const pack = packOfFile(file)
+
+    return !pack || installedPacks.has(pack.id)
+}
+
+/** The added fonts a render model, as JSON, names. */
+const addedFilesFor = (json: string): string[] => [...addedFonts].filter(([, font]) => json.includes(JSON.stringify(font.family))).map(([id]) => ADDED + id)
+
+function fontBytes(file: string): Promise<Uint8Array> {
+    if (file.startsWith(ADDED)) {
+        const added = addedFonts.get(file.slice(ADDED.length))
+
+        return added ? Promise.resolve(added.bytes) : Promise.reject(new Error('That font was removed.'))
+    }
+
+    let bytes = fontFiles.get(file)
+
+    if (!bytes) {
+        bytes = bytesOf(fontUrl(file))
+        bytes.catch(() => fontFiles.delete(file))
+        fontFiles.set(file, bytes)
+    }
+
+    return bytes
+}
+
 async function start(): Promise<Engine> {
     const typst = await import('@myriaddreamin/typst.ts')
-    const fonts = await Promise.all(FONTS.map(bytesOf))
+    const fonts = await Promise.all(START_FONTS.map(fontBytes))
     const compiler = typst.createTypstCompiler()
     const renderer = typst.createTypstRenderer()
 
@@ -83,7 +143,69 @@ async function start(): Promise<Engine> {
         renderer.init({getModule: () => bytesOf(rendererWasm)}),
     ])
 
-    return {compiler, renderer}
+    const loaded = new Set(START_FONTS)
+
+    // A running compiler takes a new set of fonts in a few milliseconds, so adding one
+    // needs no restart: build the set with every font so far and the new ones, and swap it in.
+    const addFonts = async (files: readonly string[]): Promise<void> => {
+        const added = files.filter((file) => !loaded.has(file))
+
+        if (added.length === 0) {
+            return
+        }
+
+        const all = [...loaded, ...added]
+        const builder = typst.createTypstFontBuilder()
+
+        await builder.init({getModule: () => bytesOf(compilerWasm)})
+
+        for (const bytes of await Promise.all(all.map(fontBytes))) {
+            await builder.addFontData(bytes)
+        }
+
+        await builder.build(async (resolver) => compiler.setFonts(resolver))
+
+        for (const file of added) {
+            loaded.add(file)
+        }
+    }
+
+    return {compiler, renderer, addFonts}
+}
+
+/** What Typst reads from a font file. */
+export interface FontFileInfo {
+    readonly family: string
+    readonly style: string
+    readonly weight: number
+    /** Typst's flags, such as "SERIF" or "VARIABLE", as one string. */
+    readonly flags: string
+    /** The letters it has, as runs of codepoints: not covered, covered, not covered… */
+    readonly coverage: readonly number[]
+}
+
+let infoReader: Promise<{getFontInfo(bytes: Uint8Array): Promise<unknown>}> | null = null
+
+/** What's inside a font file: one entry per font, since a .ttc holds several. */
+export async function readFontInfo(bytes: Uint8Array): Promise<FontFileInfo[]> {
+    infoReader ??= (async () => {
+        const typst = await import('@myriaddreamin/typst.ts')
+        const builder = typst.createTypstFontBuilder()
+
+        await builder.init({getModule: () => bytesOf(compilerWasm)})
+
+        return builder
+    })()
+
+    const read = (await (await infoReader).getFontInfo(bytes)) as {info?: {family?: string; variant?: {style?: string; weight?: number}; flags?: unknown; coverage?: number[]}[]}
+
+    return (read.info ?? []).map((font) => ({
+        family: font.family ?? '',
+        style: font.variant?.style ?? 'normal',
+        weight: font.variant?.weight ?? 400,
+        flags: typeof font.flags === 'string' ? font.flags : JSON.stringify(font.flags ?? ''),
+        coverage: font.coverage ?? [],
+    }))
 }
 
 /** Starts the compiler and renderer, once. */
@@ -97,13 +219,16 @@ export function warmUp(): Promise<Engine> {
 }
 
 async function compile(model: PageModel, template: string, format: 0 | 1): Promise<Uint8Array> {
-    const {compiler} = await warmUp()
+    const {compiler, addFonts} = await warmUp()
 
     const {model: readable, files} = withImageFiles(model)
     const {source, data} = TEMPLATES[template] ?? TEMPLATES.classic
+    const json = JSON.stringify(readable)
+
+    await addFonts([...scriptFilesFor(json).filter(canLoad), ...addedFilesFor(json)])
 
     compiler.addSource(MAIN, source)
-    compiler.mapShadow(data, new TextEncoder().encode(JSON.stringify(readable)))
+    compiler.mapShadow(data, new TextEncoder().encode(json))
 
     for (const file of files) {
         compiler.mapShadow(file.path, file.bytes)

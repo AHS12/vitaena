@@ -49,9 +49,22 @@
   for (h, v) in ((left, top), (right, top), (left, bottom), (right, bottom)) { corner(h, v, outer + 2pt) }
 }
 
+// A heading, label or relation with its second label, in another language, under it or
+// after it, smaller. Without one, just the first.
+#let under(first, second) = if second == "" { first } else { stack(dir: ttb, spacing: 0.25em, first, text(size: 0.82em, second)) }
+#let after(first, second) = if second == "" { first } else [#first#h(0.5em)#text(size: 0.8em, weight: "regular")[#second]]
+
 #set document(title: if b.name != "" { b.name + " – Biodata" } else { "Biodata" }, author: b.name)
-#set text(font: (b.design.font, "Inter"), size: b.design.fontSize * 1pt, lang: "en", ligatures: false, fill: luma(20))
+// Spacing letters out breaks the line that joins Bangla letters, so only Latin text gets it.
+#set text(font: b.design.fonts, size: b.design.fontSize * 1pt, lang: b.design.lang, ligatures: false, fill: luma(20))
+
+// Right to left, for Urdu: Typst flips grids and start and end by the language,
+// Nastaliq's tall letters get taller line boxes, the same for Latin text so lines beside
+// each other stay level, and its joined letters keep the ligatures Latin text goes without.
+#set text(top-edge: 0.85em, bottom-edge: -0.35em, ligatures: true) if b.design.rtl
 #set par(leading: 0.6em, spacing: gap(0.7), justify: false)
+// Chinese characters and kana are dense, and read better with more room between lines.
+#set par(leading: 0.85em) if b.design.cjk
 #set list(marker: [•], indent: 0.2em, body-indent: 0.6em, spacing: gap(0.45))
 #set page(
   paper: b.design.paper,
@@ -76,7 +89,7 @@
   align: horizon,
   line(length: 100%, stroke: 0.5pt + accent),
   diamond(3.5pt),
-  text(size: 1.1em, weight: "bold", fill: accent, tracking: 0.04em, upper(it.body)),
+  text(size: 1.1em, weight: "bold", fill: accent, tracking: if b.design.latin { 0.04em } else { 0em }, upper(it.body)),
   diamond(3.5pt),
   line(length: 100%, stroke: 0.5pt + accent),
 ))
@@ -90,14 +103,14 @@
   if b.headingImage != "" { image(b.headingImage, height: 1.2cm) }
   if b.heading != "" { block(above: 0.4em, below: 0.9em, text(fill: accent, style: "italic", b.heading)) }
   if b.name != "" {
-    text(size: 2.1em, weight: "bold", fill: accent, tracking: 0.02em)[#b.name]
+    text(size: 2.1em, weight: "bold", fill: accent, tracking: if b.name.contains(regex("[^\\p{Latin}\\p{Common}\\p{Inherited}]")) { 0em } else { 0.02em })[#b.name]
     v(0.1em)
     grid(columns: (1.6cm, auto, 1.6cm), column-gutter: 0.4em, align: horizon, line(length: 100%, stroke: 0.5pt + accent), diamond(4pt), line(length: 100%, stroke: 0.5pt + accent))
   }
 }
 
 #if b.photo != "" {
-  grid(columns: (side, 1fr, side), column-gutter: 0.8em, align: (left, center + horizon, right + top), [], middle,
+  grid(columns: (side, 1fr, side), column-gutter: 0.8em, align: (start, center + horizon, end + top), [], middle,
     box(width: side, height: side, stroke: 1pt + accent, inset: 2pt, box(width: 100%, height: 100%, clip: true, image(b.photo, width: 100%, height: 100%, fit: "cover"))))
 } else {
   middle
@@ -107,7 +120,7 @@
   columns: (36%, auto, 1fr),
   column-gutter: 0.7em,
   row-gutter: gap(0.6),
-  ..rows.map(r => (text(fill: muted, r.label), if r.label != "" { text(fill: muted, ":") } else { [] }, r.value)).flatten(),
+  ..rows.map(r => (text(fill: muted, under(r.label, r.second)), if r.label != "" { text(fill: muted, ":") } else { [] }, r.value)).flatten(),
 )
 
 #let family(members) = table(
@@ -115,13 +128,13 @@
   stroke: 0.5pt + accent.lighten(50%),
   inset: (x: 0.6em, y: gap(0.45)),
   fill: (x, y) => if y == 0 { tint },
-  table.header(..("Relation", "Name", "Work", "Note").map(h => text(weight: "bold", fill: accent, h))),
-  ..members.map(m => (strong(m.relation), m.name, m.work, text(fill: muted, m.note))).flatten(),
+  table.header(..(b.words.relation, b.words.name, b.words.work, b.words.note).map(h => text(weight: "bold", fill: accent, h))),
+  ..members.map(m => (strong(under(m.relation, m.second)), m.name, m.work, text(fill: muted, m.note))).flatten(),
 )
 
 #let entry(e) = block(above: gap(0.8), below: gap(0.4), breakable: false, {
   let head = (e.title, e.org).filter(x => x != "")
-  strong(head.join([, ]))
+  strong(head.join(b.words.comma))
   let meta = (e.location, e.dates).filter(x => x != "")
   if meta.len() > 0 {
     linebreak()
@@ -132,7 +145,7 @@
 })
 
 #for s in b.sections {
-  heading(level: 2, s.title)
+  heading(level: 2, after(s.title, s.second))
   if s.kind == "details" {
     details(s.rows)
   } else if s.kind == "family" {

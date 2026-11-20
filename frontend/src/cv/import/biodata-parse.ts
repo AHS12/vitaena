@@ -4,12 +4,13 @@
  * a label and a value, a family, and a line of the person's own above their name.
  */
 
-import {DEFAULT_BIODATA_DESIGN, type Biodata, type BiodataSection} from '../../biodata/biodata'
+import {DEFAULT_BIODATA_DESIGN, NO_SECOND, type Biodata, type BiodataSection} from '../../biodata/biodata'
+import {asLatinDigits, OTHER_MONTHS} from '../../core/labels/labels'
 import {cmOf} from '../details'
 import {newId, type DetailRow, type FamilyMember} from '../sections'
 import type {PdfLine} from './layout'
 import {NOT_SORTED} from './not-sorted'
-import {BIODATA_TITLE, detailRowsOf, documentParts, entriesOf, guessKind, JOBS, labelAndValue, tagGroupsOf, textOf, type DocumentParts} from './parse'
+import {BIODATA_TITLE, languageOfHeadings, detailRowsOf, documentParts, entriesOf, guessKind, JOBS, labelAndValue, tagGroupsOf, textOf, type DocumentParts} from './parse'
 import type {PdfLayout} from './read-pdf'
 
 export interface ImportedBiodata {
@@ -28,9 +29,11 @@ export function isBiodata(layout: PdfLayout, parts: DocumentParts): boolean {
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 const pad = (value: number) => String(value).padStart(2, '0')
 
-/** A day as written in a biodata, "12 March 1996", "12/03/1996" (day first) or "1996-03-12", as "1996-03-12". */
-export function dayOf(text: string): string {
-    const iso = /\b((?:19|20)\d{2})-(\d{1,2})-(\d{1,2})\b/.exec(text)
+/** A day as written in a biodata, "12 March 1996", "12/03/1996" (day first), "1996-03-12" or "১২ মার্চ ১৯৯৬", as "1996-03-12". */
+export function dayOf(written: string): string {
+    // Bangla and Devanagari digits and month names read as 0 to 9 and English month names.
+    const text = OTHER_MONTHS.flatMap((months) => months.map((name, index) => [name, MONTHS[index]] as const)).reduce((line, [name, english]) => line.replace(name, english), asLatinDigits(written))
+    const iso = /\b((?:19|20)\d{2})-(\d{1,2})-(\d{1,2})\b/.exec(text) ?? /((?:19|20)\d{2})\s*[年년]\s*(\d{1,2})\s*[月월]\s*(\d{1,2})\s*[日일]/.exec(text)
     const numbers = /\b(\d{1,2})[/.-](\d{1,2})[/.-]((?:19|20)\d{2})\b/.exec(text)
     const dayFirst = /\b(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?([a-z]{3,9})\.?,?\s+((?:19|20)\d{2})\b/i.exec(text)
     const monthFirst = /\b([a-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+((?:19|20)\d{2})\b/i.exec(text)
@@ -58,7 +61,8 @@ export function dayOf(text: string): string {
 }
 
 /** A height as written, "5′ 4″", "5 ft 4 in", "5'4"" or "163 cm", in centimetres and how it was shown; null if it isn't one. */
-export function heightOf(text: string): {cm: number; show: 'ft-in' | 'cm' | 'both'} | null {
+export function heightOf(written: string): {cm: number; show: 'ft-in' | 'cm' | 'both'} | null {
+    const text = asLatinDigits(written).replace(/সেমি|सेमी|سینٹی میٹر|سانتی‌متر|سانتیمتر|سانتی متر|سم|厘米|公分/g, 'cm')
     const imperial = /(\d)\s*(?:['′’]|ft\.?|feet|foot)\s*(?:(\d{1,2})\s*(?:["″”]|''|in\.?|inch(?:es)?)?)?/i.exec(text)
     const metric = /(\d{2,3}(?:\.\d)?)\s*cm\b/i.exec(text)
 
@@ -73,15 +77,15 @@ export function heightOf(text: string): {cm: number; show: 'ft-in' | 'cm' | 'bot
 function rowOf(label: string, value: string): DetailRow {
     const base = {id: newId('row'), visible: true, label}
 
-    if (/\b(?:date of birth|birth ?date|born|d\.?o\.?b)\b/i.test(label)) {
+    if (/\b(?:date of birth|birth ?date|born|d\.?o\.?b)\b|জন্ম ?তারিখ|जन्म ?(?:तिथि|तारीख)|تاریخِ? ?پیدائش|تاريخ الميلاد|تاریخ تولد|生年月日|出生日期|생년월일/i.test(label)) {
         const date = dayOf(value)
 
         if (date) {
-            return {...base, kind: 'date', date, show: /\(\s*\d+\s*(?:years?|yrs?)\s*\)/i.test(value) ? 'both' : 'date'}
+            return {...base, kind: 'date', date, show: /\(\s*\d+\s*(?:years?|yrs?|বছর|वर्षे?|سال|سنة|سنوات|عامًا|عاما|عام|歳|岁|歲|세)\s*\)/i.test(asLatinDigits(value)) ? 'both' : 'date'}
         }
     }
 
-    if (/\bheight\b/i.test(label)) {
+    if (/\bheight\b|উচ্চতা|कद|उंची|ऊंचाई|قد|الطول|身長|身高|키|신장/i.test(label)) {
         const height = heightOf(value)
 
         if (height) {
@@ -188,7 +192,8 @@ export function biodataFromLayout(layout: PdfLayout, parts: DocumentParts = docu
             heading: {text: heading, image: ''},
             person: {name: parts.name, photo: '', fullPhoto: '', hide: []},
             sections,
-            design: {...DEFAULT_BIODATA_DESIGN},
+            second: NO_SECOND,
+            design: {...DEFAULT_BIODATA_DESIGN, language: languageOfHeadings(sections.map((section) => section.title))},
         },
         unsorted: unsorted.length,
     }

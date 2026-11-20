@@ -56,8 +56,15 @@
 )
 
 #set document(title: if cv.name != "" { cv.name + " – CV" } else { "CV" }, author: cv.name)
-#set text(font: (cv.design.font, "Inter"), size: (cv.design.fontSize - 0.5) * 1pt, lang: "en", ligatures: false, fill: luma(20))
+#set text(font: cv.design.fonts, size: (cv.design.fontSize - 0.5) * 1pt, lang: cv.design.lang, ligatures: false, fill: luma(20))
+
+// Right to left, for Urdu: Typst flips grids and start and end by the language,
+// Nastaliq's tall letters get taller line boxes, the same for Latin text so lines beside
+// each other stay level, and its joined letters keep the ligatures Latin text goes without.
+#set text(top-edge: 0.85em, bottom-edge: -0.35em, ligatures: true) if cv.design.rtl
 #set par(leading: 0.5em, spacing: gap(0.55), justify: false)
+// Chinese characters and kana are dense, and read better with more room between lines.
+#set par(leading: 0.85em) if cv.design.cjk
 #set list(marker: [•], indent: 0.1em, body-indent: 0.5em, spacing: gap(0.35))
 #set page(
   paper: cv.design.paper,
@@ -66,13 +73,13 @@
   header: context {
     if counter(page).get().first() > 1 and cv.name != "" {
       set text(size: 0.8em, fill: muted)
-      align(right, cv.name)
+      align(end, cv.name)
     }
   },
   footer: context {
     if counter(page).final().first() > 1 {
       set text(size: 0.8em, fill: muted)
-      align(right, counter(page).display("1 / 1", both: true))
+      align(end, counter(page).display("1 / 1", both: true))
     }
   },
 )
@@ -110,7 +117,7 @@
   let meta = (e.location, e.dates).filter(x => x != "")
 
   block(sticky: true, above: gap(0.7), below: gap(0.3), {
-    head.join([, ])
+    head.join(cv.words.comma)
     if meta.len() > 0 {
       text(fill: muted)[ — #meta.join(" | ")]
     }
