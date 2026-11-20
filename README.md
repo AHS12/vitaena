@@ -1,7 +1,7 @@
 <div align="center">
   <img src="build/appicon.svg" alt="Vitaena logo" width="96" height="96">
   <h1>Vitaena</h1>
-  <p><strong>A private, offline CV, resume and biodata builder for the desktop.</strong></p>
+  <p><strong>A private, offline CV, resume and biodata builder for the desktop, in your own language.</strong></p>
 </div>
 
 <p align="center">
@@ -17,14 +17,17 @@
   <a href="https://github.com/AHS12/vitaena/actions/workflows/release.yml">
     <img src="https://github.com/AHS12/vitaena/actions/workflows/release.yml/badge.svg" alt="Release Installers">
   </a>
-  <a href="https://github.com/AHS12/vitaena/actions/workflows/windows.yml">
-    <img src="https://github.com/AHS12/vitaena/actions/workflows/windows.yml/badge.svg" alt="Windows Test Build">
+  <a href="https://github.com/AHS12/vitaena/actions/workflows/ci.yml">
+    <img src="https://github.com/AHS12/vitaena/actions/workflows/ci.yml/badge.svg" alt="CI">
   </a>
-  <a href="https://github.com/AHS12/vitaena/actions/workflows/macos.yml">
-    <img src="https://github.com/AHS12/vitaena/actions/workflows/macos.yml/badge.svg" alt="macOS Test Build">
+  <a href="https://github.com/AHS12/vitaena/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/github/check-runs/AHS12/vitaena/dev?nameFilter=Windows%20%2F%20install&label=Windows%20build" alt="Windows build">
   </a>
-  <a href="https://github.com/AHS12/vitaena/actions/workflows/linux.yml">
-    <img src="https://github.com/AHS12/vitaena/actions/workflows/linux.yml/badge.svg" alt="Linux Test Build">
+  <a href="https://github.com/AHS12/vitaena/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/github/check-runs/AHS12/vitaena/dev?nameFilter=macOS%20%2F%20build&label=macOS%20build" alt="macOS build">
+  </a>
+  <a href="https://github.com/AHS12/vitaena/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/github/check-runs/AHS12/vitaena/dev?nameFilter=Linux%20%2F%20build&label=Linux%20build" alt="Linux build">
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/github/license/AHS12/vitaena" alt="MIT licence">
@@ -59,7 +62,8 @@
 </p>
 
 Your work stays on your computer: no account and no tracking, and nothing leaves it
-unless you back it up to storage of your own.
+unless you back it up to storage of your own. Write in English, Bangla, Hindi, Marathi,
+Urdu, Arabic, Persian, Japanese, Chinese or Korean.
 
 ![Vitaena's editor: the form on the left, the CV's real pages in the middle, and the design on the right](docs/assets/screens/editor.png)
 
@@ -71,6 +75,9 @@ unless you back it up to storage of your own.
   into a CV you can edit: your details and photo, each job with its dates and bullets,
   your skills. A biodata comes in as a biodata, with its details and family. It's read on your computer, with no AI and nothing sent anywhere; what it
   can't place waits in a hidden section for you to sort.
+- **In your own language.** Eleven languages, with headings, dates and numbers written in
+  each, right to left where the language runs that way, and fonts to suit.
+  [More below](#in-your-own-language).
 - **Ten templates,** each shown with your own CV, for a resume, an academic CV, or both.
 - **Made to get through screening.** Every template is tested the way an applicant
   tracking system reads a PDF. The Check tab shows the text a parser gets from yours,
@@ -79,7 +86,8 @@ unless you back it up to storage of your own.
   skills as chips, add bold, italics and links, and keep details without printing them.
 - **Photos and levels.** Add a photo to templates that suit one, and show how well you
   know a language or skill as dots, a bar or squares.
-- **Style.** Five fonts, any colour, text size, margins, spacing, A4 or US Letter.
+- **Style.** Five fonts for English, several for each other script, or a font of your own;
+  any colour, text size, margins, spacing, A4 or US Letter.
 - **Export** a PDF, a one-column PDF for online forms, a Word file, plain text, or a
   Vitaena file to move a CV to another computer.
 
@@ -103,6 +111,8 @@ photos on their servers; Vitaena keeps them on your computer.
 - **Ready sets** of labels to add in one click: Horoscope, Religious practice, Lifestyle
   and More about me. They hold labels only; what you write is up to you.
 - **Two photos:** a main one every template shows, and a full-length one.
+- **Two languages on one page.** Each heading, label and relation can be written again
+  under the first, smaller, in English or another language, as many printed biodata are.
 - **Check** asks for what families look for first, warns past two pages, and says when
   the text would be too small once a chat app shrinks the picture.
 - **Share it** as a PDF, a picture of each page (PNG or JPG) for a chat, or a Word file.
@@ -110,6 +120,32 @@ photos on their servers; Vitaena keeps them on your computer.
 | Heritage | Clean | Portrait |
 |---|---|---|
 | ![Heritage](docs/assets/templates/biodata-heritage.png) | ![Clean](docs/assets/templates/biodata-clean.png) | ![Portrait](docs/assets/templates/biodata-portrait.png) |
+
+## In your own language
+
+Write a CV or biodata in English, Bangla, Hindi, Marathi, Urdu, Arabic, Persian, Japanese,
+Chinese (simplified or traditional) or Korean. Choose it in **Write in**, on Home or in
+Style.
+
+- **Vitaena's own words in your language:** headings, labels, relations, months, dates,
+  "Present" and the comma between items. Headings and words you wrote stay as they are.
+- **Right to left** for Urdu, Arabic and Persian, with two-column designs turned around to
+  suit.
+- **Your own digits,** such as ০১২৩ or ٠١٢٣, or 0 to 9, as you prefer.
+- **Fonts to choose from** for each script, shown in your language in Style: Bangla in
+  Noto, Anek Bangla, Baloo Da 2 or Tiro Bangla; Urdu in Nastaliq; Persian in Vazirmatn;
+  Japanese in Noto Sans JP, M PLUS 1p or Zen Old Mincho, and more.
+- **Your own font.** Add a .ttf or .otf file in Style or in Settings, Storage, and use it in
+  any design. It's kept with your documents and goes into backups. Older Bijoy fonts,
+  such as SutonnyMJ, store Bangla as English letters, so Vitaena asks for a Unicode font
+  instead.
+- **Import** a CV or biodata written in any of these languages from a PDF or Word file.
+
+The fonts for Bangla, Hindi, Marathi, Urdu, Arabic and Persian come with the app. Those for
+Chinese, Japanese and Korean are larger, so they don't: when you first choose one of these
+languages, Vitaena offers to download its fonts (11 to 29 MB) from this repository's
+releases, checks every file, and keeps them for every document after. Settings, Storage
+lists them, to download or remove.
 
 ## Your work is safe
 
@@ -248,6 +284,8 @@ Debian and Ubuntu).
 make install   # frontend packages and git hooks
 make dev       # the desktop app with hot reload
 make check     # every lint, test and build check
+make dev-packs # the same, downloading Chinese, Japanese and Korean fonts from build/dist/font-packs
+make font-packs # build those font packs, as the Font Packs workflow publishes them
 make previews  # pictures of the sample CV and biodata in every template
 make import-fixtures  # PDFs from other apps the import is tested on (Chrome, LibreOffice)
 make icons     # the app icon files, from the SVGs
@@ -263,5 +301,5 @@ inside the app, so the PDF matches the preview exactly. [AGENTS.md](AGENTS.md) a
 
 ## Licence
 
-MIT. The bundled fonts (Inter, IBM Plex Sans, Lato, Source Serif 4, EB Garamond) are under
-the SIL Open Font License 1.1.
+MIT. Every font, bundled or downloaded (Inter, IBM Plex, Lato, Source Serif 4, EB Garamond,
+Noto, Amiri, Vazirmatn, Nanum and the rest), is under the SIL Open Font License 1.1.
