@@ -2,6 +2,43 @@
 
 What's new in each version.
 
+## 0.2.3 (November 20, 2026)
+
+**Write it in your own language**
+
+- Write a CV or biodata in Bangla, Hindi, Marathi, Urdu, Arabic, Persian, Japanese,
+  Chinese (simplified or traditional) or Korean, as well as English. Choose it in Write in
+  on Home, or in Style, Language.
+- Vitaena writes its own headings, labels, relations, months, dates and "Present" in that
+  language, and the comma between items too. Headings and words you wrote yourself stay as
+  they are.
+- Urdu, Arabic and Persian run right to left, and two-column designs turn around to suit.
+- Numbers can be in the language's own digits, such as ০১২৩, or in 0 to 9.
+- Every design draws every language, and the PDF and Word file carry the right fonts.
+- Import a CV or biodata written in any of these languages from a PDF or a Word file.
+
+**Fonts for every language**
+
+- Several fonts come with the app for Bangla, Hindi and Marathi, and for Urdu, Arabic and
+  Persian. Choose one in Style, Font, or leave Matching to suit your main font.
+- Fonts for Chinese, Japanese and Korean are larger, so they don't come with the app.
+  When you choose one of these languages, Vitaena offers to download its fonts once,
+  from 11 to 29 MB, and every document in it then uses them. Settings, Storage lists them,
+  to download or remove.
+- Add your own font, a .ttf or .otf file, in Style or in Settings, Storage, and use it in
+  any design. It's kept with your documents and goes into backups. An older Bijoy font,
+  such as SutonnyMJ, isn't added, since it stores Bangla as English letters.
+
+**Biodata in two languages**
+
+- Turn on Two languages in Style to write each heading, label and relation again under
+  the first, smaller, in English or another language, as many printed biodata are.
+
+**Fixes**
+
+- When an assistant changed a document twice very quickly, the copy kept from before the
+  first change could be lost. Each one is now kept.
+
 ## 0.2.0 (November 16, 2026)
 
 **Use it with your AI assistant**
