@@ -13,6 +13,8 @@ import {knownHeading} from './import/headings'
 import {languageOfHeadings} from './import/parse'
 import {datesText, renderModel} from './render-model'
 import {sampleCv} from './sample'
+import {levelOfWords} from './levels'
+import {labelsFor} from '../core/labels/labels'
 
 const BANGLA = {language: 'bn', digits: 'native'} as const
 
@@ -318,5 +320,72 @@ describe('the comma between items', () => {
 
         expect([items('en'), items('ar'), items('ja'), items('zh-Hans')]).toEqual(['Go, SQL', 'Go، SQL', 'Go、SQL', 'Go，SQL'])
         expect(withSkills('ar').words.comma).toBe('، ')
+    })
+})
+
+describe('a document in a European language', () => {
+    it('starts with its headings in that language', () => {
+        expect(emptyCv('de').sections.map((section) => section.title)).toEqual(['Profil', 'Berufserfahrung', 'Ausbildung', 'Kenntnisse'])
+        expect(emptyCv('fr').sections.map((section) => section.title)).toEqual(['Profil', 'Expérience professionnelle', 'Formation', 'Compétences'])
+        expect(emptyCv('ru').sections[1].title).toBe('Опыт работы')
+        expect(renderModel(emptyCv('de')).design).toMatchObject({lang: 'de', latin: true, rtl: false, cjk: false})
+    })
+
+    it('writes dates with its own month names and word for the present', () => {
+        const writing = (language: 'de' | 'fr' | 'es' | 'tr' | 'ru') => ({language, digits: 'latin'}) as const
+
+        expect(datesText({start: '2020-03', end: '', current: true}, writing('de'))).toBe('März 2020 – heute')
+        expect(datesText({start: '2020-02', end: '2021-07', current: false}, writing('fr'))).toBe('févr. 2020 – juil. 2021')
+        expect(datesText({start: '2020-01', end: '', current: true}, writing('es'))).toBe('ene. 2020 – actualidad')
+        expect(datesText({start: '2020-08', end: '', current: true}, writing('tr'))).toBe('Ağu 2020 – Halen')
+        expect(datesText({start: '2020-09', end: '', current: true}, writing('ru'))).toBe('сент. 2020 – настоящее время')
+    })
+
+    it('writes a day and an age the way each language does', () => {
+        const born = (language: 'de' | 'es' | 'pl' | 'ru' | 'uk' | 'nl') => detailValue({id: 'r', visible: true, label: '', kind: 'date', date: '1996-03-12', show: 'both'}, new Date(2026, 10, 15), {language, digits: 'latin'})
+
+        expect(born('de')).toBe('12. März 1996 (30 Jahre)')
+        expect(born('es')).toBe('12 de marzo de 1996 (30 años)')
+        expect(born('pl')).toBe('12 marca 1996 (30 lat)')
+        expect(born('ru')).toBe('12 марта 1996 г. (30 лет)')
+        expect(born('uk')).toBe('12 березня 1996 р. (30 років)')
+        expect(born('nl')).toBe('12 maart 1996 (30 jaar)')
+    })
+
+    it('says years in Polish, Russian and Ukrainian by the number’s last digits', () => {
+        const years = (language: 'pl' | 'ru', count: number) => labelsFor(language).page.years(String(count), count === 1)
+
+        expect([1, 2, 5, 12, 21, 22, 25].map((count) => years('ru', count))).toEqual(['1 год', '2 года', '5 лет', '12 лет', '21 год', '22 года', '25 лет'])
+        expect([1, 2, 5, 22].map((count) => years('pl', count))).toEqual(['1 rok', '2 lata', '5 lat', '22 lata'])
+    })
+
+    it('is read back on import', () => {
+        expect(knownHeading('Berufserfahrung')).toBe('entries')
+        expect(knownHeading('Persönliche Daten')).toBe('details')
+        expect(knownHeading('Compétences')).toBe('tags')
+        expect(knownHeading('Опыт работы')).toBe('entries')
+        expect(findDates('03.2019 – heute')).toMatchObject({start: '2019-03', current: true})
+        expect(findDates('März 2018 bis Juni 2020')).toMatchObject({start: '2018-03', end: '2020-06'})
+        expect(findDates('janv. 2020 – aujourd’hui'.replace('’', "'"))).toMatchObject({start: '2020-01', current: true})
+        expect(findDates('septiembre 2017 – actualidad')).toMatchObject({start: '2017-09', current: true})
+        expect(findDates('Ekim 2016 – Halen')).toMatchObject({start: '2016-10', current: true})
+        expect(findDates('сент. 2020 – настоящее время')).toMatchObject({start: '2020-09', current: true})
+        expect(dayOf('12. März 1996')).toBe('1996-03-12')
+        expect(dayOf('12 de marzo de 1996')).toBe('1996-03-12')
+        expect(dayOf('12 marca 1996')).toBe('1996-03-12')
+        expect(languageOfHeadings(['Profil', 'Berufserfahrung', 'Ausbildung', 'Kenntnisse'])).toBe('de')
+        expect(languageOfHeadings(['Experiencia laboral', 'Formación', 'Idiomas'])).toBe('es')
+        expect(languageOfHeadings(['Опыт работы', 'Образование'])).toBe('ru')
+        expect(languageOfHeadings(['Досвід роботи', 'Освіта', 'Навички'])).toBe('uk')
+        expect(languageOfHeadings(['Summary', 'Experience', 'Contact'])).toBe('en')
+    })
+
+    it('reads the levels its CVs write', () => {
+        expect(levelOfWords('Muttersprache')).toBe(5)
+        expect(levelOfWords('verhandlungssicher')).toBe(5)
+        expect(levelOfWords('sehr gut')).toBe(4)
+        expect(levelOfWords('Grundkenntnisse')).toBe(2)
+        expect(levelOfWords('courant')).toBe(5)
+        expect(levelOfWords('родной')).toBe(5)
     })
 })

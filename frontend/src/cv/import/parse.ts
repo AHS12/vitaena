@@ -11,11 +11,12 @@
  * Nothing is dropped: what the rules can't place goes into a hidden Not sorted section.
  */
 
+import {labelsFor, type DocumentLanguage} from '../../core/labels/labels'
 import {scriptsIn} from '../fonts'
 import {DEFAULT_DESIGN, emptyEntry, newId, type Cv, type CvEntry, type CvPerson, type CvSection, type CvTagGroup} from '../cv'
 import {joinItem, levelOfWords, withWordLevels} from '../levels'
 import {findDates, withoutDates, type DateRange} from './dates'
-import {knownHeading, type HeadingKind} from './headings'
+import {headingKey, knownHeading, type HeadingKind} from './headings'
 import type {PdfLine} from './layout'
 import {NOT_SORTED} from './not-sorted'
 import type {PdfLayout} from './read-pdf'
@@ -204,14 +205,28 @@ const JAPANESE = /[\p{Script=Hiragana}\p{Script=Katakana}経歴験]/u
 const SIMPLIFIED = /[经历简业专项证们这习语书联实际验织关于试别发长东车门问时个资讯荣奖誉愿务爱兴]/gu
 const TRADITIONAL = /[經歷簡業專項證們這習語書聯實際驗織關於試別發長東車門問時個資訊榮獎譽願務愛興]/gu
 const ARABIC_LETTERS = /[ةيكى]|(?:^|\s)ال/u
+const CYRILLIC = /\p{Script=Cyrillic}/u
+/** Letters Ukrainian has and Russian hasn't. */
+const UKRAINIAN_LETTERS = /[іїєґ]/iu
+
+/** The languages in Latin letters besides English, told apart by the app's own headings in each. */
+const LATIN_LANGUAGES = ['de', 'fr', 'es', 'it', 'pt', 'nl', 'pl', 'tr'] as const
+
+/** Each one's headings, leaving out those English writes the same way ("Contact", "Publications"). */
+const LATIN_HEADINGS = LATIN_LANGUAGES.map((language) => {
+    const english = new Set(Object.values(labelsFor('en').sections).map(headingKey))
+
+    return [language, new Set(Object.values(labelsFor(language).sections).map(headingKey).filter((key) => !english.has(key)))] as const
+})
 
 /**
  * Bangla, Hindi for Devanagari, or Urdu, Arabic or Persian for Arabic letters, when most
  * headings are written in it, so the app's own words follow; else English. The three in
  * Arabic letters are told apart by the letters only one of them uses. Marathi can't be
- * told from Hindi by its letters alone.
+ * told from Hindi by its letters alone. A language in Latin letters is known by its
+ * headings being the app's own in it, such as Berufserfahrung.
  */
-export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi' | 'ur' | 'ar' | 'fa' | 'ja' | 'zh-Hans' | 'zh-Hant' | 'ko' {
+export function languageOfHeadings(titles: readonly string[]): DocumentLanguage {
     const count = (script: 'bengali' | 'devanagari' | 'arabic' | 'cjk' | 'hangul') => titles.filter((title) => scriptsIn(title).includes(script)).length
     const most = (found: number) => found > 0 && found * 2 >= titles.length
 
@@ -227,7 +242,25 @@ export function languageOfHeadings(titles: readonly string[]): 'en' | 'bn' | 'hi
         return JAPANESE.test(joined) ? 'ja' : (joined.match(TRADITIONAL)?.length ?? 0) > (joined.match(SIMPLIFIED)?.length ?? 0) ? 'zh-Hant' : 'zh-Hans'
     }
 
-    return most(count('hangul')) ? 'ko' : most(count('bengali')) ? 'bn' : most(count('devanagari')) ? 'hi' : 'en'
+    if (most(titles.filter((title) => CYRILLIC.test(title)).length)) {
+        return UKRAINIAN_LETTERS.test(titles.join(' ')) ? 'uk' : 'ru'
+    }
+
+    if (most(count('hangul'))) {
+        return 'ko'
+    }
+
+    if (most(count('bengali'))) {
+        return 'bn'
+    }
+
+    if (most(count('devanagari'))) {
+        return 'hi'
+    }
+
+    const [best, found] = LATIN_HEADINGS.map(([language, headings]) => [language, titles.filter((title) => headings.has(headingKey(title))).length] as const).reduce((a, b) => (b[1] > a[1] ? b : a))
+
+    return found >= 2 || most(found) ? best : 'en'
 }
 
 export function textOf(lines: readonly PdfLine[]): string {

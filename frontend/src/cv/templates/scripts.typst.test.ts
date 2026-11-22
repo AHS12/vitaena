@@ -312,6 +312,35 @@ describe('Korean in every template', () => {
     }, 60_000)
 })
 
+describe('European languages in every template', () => {
+    it.each(CV_TEMPLATES.map((template) => template.id))('sets a German and a Russian CV in %s, and their text reads back', async (template) => {
+        const german = await read(await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel(sampleCv('de'))))
+        const russian = await read(await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel(sampleCv('ru'))))
+
+        expect(german).toMatch(/berufserfahrung/i)
+        expect(german).toContain('heute')
+        expect(russian).toMatch(/опытработы/i)
+    }, 60_000)
+
+    it('draws Turkish and Russian letters a font lacks from Inter, so Lato shows them', async () => {
+        const cv = sampleCv('ru')
+        const pdf = await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel({...cv, person: {...cv.person, name: 'Ğülşen Иванова'}, design: {...cv.design, font: 'lato'}}))
+
+        expect(await read(pdf)).toContain('ĞülşenИванова')
+        expect(embeddedFonts(pdf).some((font) => font.startsWith('Inter'))).toBe(true)
+        expect(embeddedFonts(pdf).some((font) => /Bengali|SC/.test(font))).toBe(false)
+    }, 60_000)
+
+    it.each(['de', 'fr', 'es', 'ru'] as const)('comes back through import as a CV in %s', async (language) => {
+        const cv = sampleCv(language)
+        const pdf = await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel(cv))
+        const {cv: imported} = cvFromLayout(await readPdfLayout(pdf))
+
+        expect(imported.design.language).toBe(language)
+        expect(imported.sections.map((section) => section.title)).toEqual(cv.sections.map((section) => section.title))
+    }, 60_000)
+})
+
 describe('the fonts each language offers', () => {
     it.each([
         ['hind', 'hi', 'Hind'],

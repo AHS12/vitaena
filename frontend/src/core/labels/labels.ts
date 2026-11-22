@@ -9,17 +9,27 @@
 
 import {ar} from './ar'
 import {bn} from './bn'
+import {de} from './de'
 import {en} from './en'
+import {es} from './es'
 import {fa} from './fa'
+import {fr} from './fr'
 import {hi} from './hi'
+import {it} from './it'
 import {ja} from './ja'
 import {ko} from './ko'
 import {mr} from './mr'
+import {nl} from './nl'
+import {pl} from './pl'
+import {pt} from './pt'
+import {ru} from './ru'
+import {tr} from './tr'
+import {uk} from './uk'
 import {ur} from './ur'
 import {zhHans} from './zh-hans'
 import {zhHant} from './zh-hant'
 
-export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur', 'ar', 'fa', 'ja', 'zh-Hans', 'zh-Hant', 'ko'] as const
+export const LANGUAGE_IDS = ['en', 'bn', 'hi', 'mr', 'ur', 'ar', 'fa', 'ja', 'zh-Hans', 'zh-Hant', 'ko', 'de', 'fr', 'es', 'it', 'pt', 'nl', 'pl', 'tr', 'ru', 'uk'] as const
 
 export type DocumentLanguage = (typeof LANGUAGE_IDS)[number]
 
@@ -110,7 +120,7 @@ export interface LanguageInfo {
     readonly own: string
     /** What Typst is told, for line breaking and hyphenation. */
     readonly lang: string
-    /** Written in Latin letters, so headings can be spaced out or set in capitals. */
+    /** Written in letters with capitals, Latin or Cyrillic, so headings can be spaced out or set in capitals. */
     readonly latin: boolean
     /** Its own digits, 0 to 9, or null when it uses 0 to 9. */
     readonly digits: string | null
@@ -127,10 +137,50 @@ export interface LanguageInfo {
     readonly to?: string
     /** Between items in a list, when it isn't ", ": "، " in Arabic letters, "、" in Japanese. */
     readonly comma?: string
+    /** How a day is written, when it isn't "{d} {m} {y}": "{d}. {m} {y}" in German, "{d} de {m} de {y}" in Spanish. */
+    readonly day?: string
+    /** Month names as a day says them, when they change there: "12 marca" in Polish, "12 марта" in Russian. */
+    readonly dayMonths?: readonly string[]
 }
 
 export const LANGUAGES: readonly LanguageInfo[] = [
     {id: 'en', name: 'English', own: 'English', lang: 'en', latin: true, digits: null},
+    {id: 'de', name: 'German', own: 'Deutsch', lang: 'de', latin: true, digits: null, day: '{d}. {m} {y}'},
+    {id: 'fr', name: 'French', own: 'Français', lang: 'fr', latin: true, digits: null},
+    {id: 'es', name: 'Spanish', own: 'Español', lang: 'es', latin: true, digits: null, day: '{d} de {m} de {y}'},
+    {id: 'it', name: 'Italian', own: 'Italiano', lang: 'it', latin: true, digits: null},
+    {id: 'pt', name: 'Portuguese', own: 'Português', lang: 'pt', latin: true, digits: null, day: '{d} de {m} de {y}'},
+    {id: 'nl', name: 'Dutch', own: 'Nederlands', lang: 'nl', latin: true, digits: null},
+    {
+        id: 'pl',
+        name: 'Polish',
+        own: 'Polski',
+        lang: 'pl',
+        latin: true,
+        digits: null,
+        dayMonths: ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'],
+    },
+    {id: 'tr', name: 'Turkish', own: 'Türkçe', lang: 'tr', latin: true, digits: null},
+    {
+        id: 'ru',
+        name: 'Russian',
+        own: 'Русский',
+        lang: 'ru',
+        latin: true,
+        digits: null,
+        day: '{d} {m} {y} г.',
+        dayMonths: ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'],
+    },
+    {
+        id: 'uk',
+        name: 'Ukrainian',
+        own: 'Українська',
+        lang: 'uk',
+        latin: true,
+        digits: null,
+        day: '{d} {m} {y} р.',
+        dayMonths: ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня', 'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'],
+    },
     {id: 'bn', name: 'Bangla', own: 'বাংলা', lang: 'bn', latin: false, digits: '০১২৩৪৫৬৭৮৯', script: 'bengali'},
     {id: 'hi', name: 'Hindi', own: 'हिन्दी', lang: 'hi', latin: false, digits: '०१२३४५६७८९', script: 'devanagari'},
     {id: 'mr', name: 'Marathi', own: 'मराठी', lang: 'mr', latin: false, digits: '०१२३४५६७८९', script: 'devanagari'},
@@ -143,7 +193,7 @@ export const LANGUAGES: readonly LanguageInfo[] = [
     {id: 'fa', name: 'Persian', own: 'فارسی', lang: 'fa', latin: false, digits: '۰۱۲۳۴۵۶۷۸۹', rtl: true, script: 'arabic', comma: '، '},
 ]
 
-const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur, ar, fa, ja, 'zh-Hans': zhHans, 'zh-Hant': zhHant, ko}
+const TABLES: Readonly<Record<DocumentLanguage, Labels>> = {en, bn, hi, mr, ur, ar, fa, ja, 'zh-Hans': zhHans, 'zh-Hant': zhHant, ko, de, fr, es, it, pt, nl, pl, tr, ru, uk}
 
 export const isLanguage = (value: string): value is DocumentLanguage => value in TABLES
 
@@ -197,11 +247,24 @@ const MORE_ARABIC_MONTHS: readonly (readonly string[])[] = [
     ['يناير', 'فبراير', 'مارس', 'ابريل', 'مايو', 'يونيو', 'يوليو', 'اغسطس', 'سبتمبر', 'اكتوبر', 'نوفمبر', 'ديسمبر'],
 ]
 
+const READ_BY_NAME = LANGUAGE_IDS.filter((language) => language !== 'en' && !languageInfo(language).yearFirst)
+
 /**
  * Every language's month names but English, January first, for reading dates written in
- * them. Languages that write months as numbers (1月) are read by their own pattern instead.
+ * them: in full, as a day says them ("marca"), and shortened, without the full stop
+ * ("janv"). Languages that write months as numbers (1月) are read by their own pattern
+ * instead.
  */
-export const OTHER_MONTHS: readonly (readonly string[])[] = [...LANGUAGE_IDS.filter((language) => language !== 'en' && !languageInfo(language).yearFirst).map((language) => TABLES[language].page.months), ...MORE_ARABIC_MONTHS]
+export const OTHER_MONTHS: readonly (readonly string[])[] = [
+    ...READ_BY_NAME.map((language) => TABLES[language].page.months),
+    ...READ_BY_NAME.flatMap((language) => {
+        const day = languageInfo(language).dayMonths
+
+        return day ? [day] : []
+    }),
+    ...READ_BY_NAME.map((language) => TABLES[language].page.monthsShort.map((name) => name.replace(/\.$/, ''))).filter((short, index) => short.join() !== TABLES[READ_BY_NAME[index]].page.months.join()),
+    ...MORE_ARABIC_MONTHS,
+]
 
 /** A month and year as the language writes them: "Mar 2022", "মার্চ 2022", "2022年3月". */
 export function monthAndYear(language: string, month: number, year: string): string {
@@ -211,12 +274,17 @@ export function monthAndYear(language: string, month: number, year: string): str
     return first ? [`${year}${first.year}`, name].join(first.spaced ? ' ' : '') : `${name} ${year}`
 }
 
-/** A day as the language writes it: "12 March 1996", "1996年3月12日". */
+/** A day as the language writes it: "12 March 1996", "12. März 1996", "1996年3月12日". */
 export function dayMonthYear(language: string, day: number, month: number, year: number): string {
-    const name = labelsFor(language).page.months[month - 1]
-    const first = languageInfo(language).yearFirst
+    const info = languageInfo(language)
+    const name = (info.dayMonths ?? labelsFor(language).page.months)[month - 1]
+    const first = info.yearFirst
 
-    return first ? [`${year}${first.year}`, name, `${day}${first.day}`].join(first.spaced ? ' ' : '') : `${day} ${name} ${year}`
+    if (first) {
+        return [`${year}${first.year}`, name, `${day}${first.day}`].join(first.spaced ? ' ' : '')
+    }
+
+    return (info.day ?? '{d} {m} {y}').replace('{d}', String(day)).replace('{m}', name).replace('{y}', String(year))
 }
 
 /** The comma between items in a list, in the language's own. */
