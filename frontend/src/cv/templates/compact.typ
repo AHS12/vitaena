@@ -4,6 +4,8 @@
 // One column, reading order kept: the dates follow the job on the same line, written in
 // the text after it, not set in a column of their own.
 
+#import "/parts.typ": closing
+
 #let cv = json("/cv.json")
 #let accent = rgb(cv.design.accent)
 #let muted = luma(95)
@@ -155,3 +157,5 @@
     }
   }
 }
+
+#closing(cv)

@@ -5,6 +5,8 @@
 // For ATS: one column, written in reading order. The rules beside each heading are drawn
 // lines, not characters, so the heading reads as one word.
 
+#import "/parts.typ": closing
+
 #let cv = json("/cv.json")
 #let accent = rgb(cv.design.accent)
 #let muted = luma(95)
@@ -171,3 +173,5 @@
     }
   }
 }
+
+#closing(cv)

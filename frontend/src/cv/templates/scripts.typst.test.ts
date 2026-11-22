@@ -362,3 +362,27 @@ describe('the fonts each language offers', () => {
         expect(embeddedFonts(pdf).join(' ')).toContain(embedded)
     }, 60_000)
 })
+
+describe('the closing line, in every template', () => {
+    const SIGNATURE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+
+    it.each(CV_TEMPLATES.map((template) => template.id))('ends %s with place and date on the last page', async (template) => {
+        const cv = sampleCv('de')
+        const signed = {...cv, closing: {show: true, place: 'Berlin', date: '2026-11-19', signature: SIGNATURE}, design: {...cv.design, dateStyle: 'numeric-dot' as const}}
+        const pdf = await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel(signed))
+        const document = await getDocument({data: pdf.slice(), useSystemFonts: false}).promise
+        const last = await (await document.getPage(document.numPages)).getTextContent()
+        const text = last.items.map((item) => ('str' in item ? item.str : '')).join('')
+
+        // Footers and a side column may follow it in reading order, so only the page is promised.
+        expect(text.replace(/\s/g, '')).toContain('Berlin,19.11.2026')
+    }, 60_000)
+
+    it('lays out the German example in Lebenslauf on at most two pages', async () => {
+        const cv = sampleCv('de')
+        const pdf = await templatePdf(compiler, new URL('./lebenslauf.typ', import.meta.url), '/cv.json', renderModel({...cv, closing: {show: true, place: 'Berlin', date: '', signature: ''}}))
+        const document = await getDocument({data: pdf.slice(), useSystemFonts: false}).promise
+
+        expect(document.numPages).toBeLessThanOrEqual(2)
+    }, 60_000)
+})

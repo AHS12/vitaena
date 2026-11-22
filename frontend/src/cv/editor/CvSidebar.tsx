@@ -9,6 +9,7 @@ import type {DocumentEdit} from '../use-cv-edit'
 import {cvSectionChoices, emailWarning, linkWarning, toggled, updatePerson} from './edit-ops'
 import {useEditorStore} from './editor-store'
 import {CheckPanel} from './CheckPanel'
+import {ClosingPanel} from './ClosingPanel'
 import {withFix} from '../countries'
 import {NotSortedNote} from '../import/NotSortedNote'
 import {StylePanel, TemplatesPanel} from './DesignPanel'
@@ -111,6 +112,7 @@ function ContentPanel({cv, edit}: {cv: Cv; edit: Edit}) {
             <NotSortedNote doc={cv} />
             <PersonPanel person={cv.person} edit={edit} />
             <SectionList doc={cv} edit={edit as DocumentEdit<Sectioned>} choices={cvSectionChoices(cv.design.language)} />
+            <ClosingPanel cv={cv} edit={edit} />
         </>
     )
 }

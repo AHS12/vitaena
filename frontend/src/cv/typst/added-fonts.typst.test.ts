@@ -11,7 +11,7 @@ import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
 import {beforeAll, describe, expect, it} from 'vitest'
 import {createTypstCompiler, createTypstFontBuilder, initOptions, loadFonts, type TypstCompiler} from '@myriaddreamin/typst.ts'
-import '../../tests/typst'
+import {addParts} from '../../tests/typst'
 import {CV_FONTS, SCRIPT_FONTS} from '../fonts'
 import {renderModel} from '../render-model'
 import {sampleCv} from '../sample'
@@ -34,6 +34,7 @@ beforeAll(async () => {
 const embedded = (pdf: Uint8Array): string[] => [...new TextDecoder('latin1').decode(pdf).matchAll(/\/BaseFont\s*\/(?:[A-Z]{6}\+)?([\w-]+)/g)].map((match) => match[1])
 
 async function pdfOf(model: object): Promise<Uint8Array> {
+    addParts(compiler)
     compiler.addSource('/main.typ', readFileSync(fileURLToPath(new URL('../templates/classic.typ', import.meta.url)), 'utf8'))
 
     const {model: readable} = withImageFiles(model)

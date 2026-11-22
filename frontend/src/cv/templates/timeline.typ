@@ -5,6 +5,8 @@
 // own block, so they stay between the entry before and the one after. The line and dots
 // are drawn, not characters.
 
+#import "/parts.typ": closing
+
 #let cv = json("/cv.json")
 #let accent = rgb(cv.design.accent)
 #let muted = luma(95)
@@ -176,3 +178,5 @@
     }
   }
 }
+
+#closing(cv)

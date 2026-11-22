@@ -87,6 +87,10 @@ export function checkCountry(cv: Cv, pages: number | null): CheckResult[] {
         add({id: 'country-length', level: 'tip', title: 'One page is usual in the US', detail: 'Two pages suit ten years or more of experience; with less, recruiters expect one.'})
     }
 
+    if (country.closing && !cv.closing.show) {
+        add({id: 'country-closing', level: 'tip', title: `CVs for ${country.short} often end with place, date and signature`, detail: 'Not required, but common: "Berlin, 19.11.2026" and a signature under it. Turn it on at the end of Content.'})
+    }
+
     if (country.id === 'dach' && cv.design.dateStyle === 'year') {
         add({id: 'country-dates', level: 'tip', title: 'German employers expect months', detail: 'A Lebenslauf gives each job and school its months, as 03.2020 – 06.2022, so gaps can be seen. Choose 01.2020 in Style, Dates.'})
     }

@@ -31,6 +31,7 @@ export const OPS = [
     'set_details',
     'set_family',
     'set_visible',
+    'set_closing',
 ] as const
 
 export type Op = (typeof OPS)[number]
@@ -89,6 +90,7 @@ export const OPS_HELP = [
     'set_details: section, rows.',
     'set_family: section, members.',
     'set_visible: one of section, entry, group, row or member, then visible.',
+    'set_closing: a CV’s closing line, as German and South Asian CVs end: visible to show or hide it, location for the place, value for a fixed day as YYYY-MM-DD or "" for the day it’s printed. A signature picture is added by the person in the app.',
 ]
 
 export class OperationError extends Error {}
@@ -106,6 +108,7 @@ interface Doc {
     sections: Section[]
     person: Record<string, unknown>
     heading?: Record<string, unknown>
+    closing?: Record<string, unknown>
     [key: string]: unknown
 }
 
@@ -255,6 +258,27 @@ export function applyOperations(content: Content, kind: string, operations: read
                     doc = field === 'heading' ? {...doc, heading: {...doc.heading, text: value}} : {...doc, person: {...doc.person, [field]: value}}
 
                     changes.push(`set the ${field}`)
+                    break
+                }
+
+                case 'set_closing': {
+                    if (kind !== 'cv') {
+                        throw new OperationError(`a ${kind} has no closing line`)
+                    }
+
+                    if (operation.value !== undefined && operation.value !== '' && !DAY.test(operation.value)) {
+                        throw new OperationError(`the day must be YYYY-MM-DD or "", not "${operation.value}"`)
+                    }
+
+                    const closing = {
+                        ...doc.closing,
+                        ...(operation.visible !== undefined ? {show: operation.visible} : {}),
+                        ...(operation.location !== undefined ? {place: operation.location} : {}),
+                        ...(operation.value !== undefined ? {date: operation.value} : {}),
+                    }
+
+                    doc = {...doc, closing}
+                    changes.push(operation.visible === false ? 'took off the closing line' : 'set the closing line')
                     break
                 }
 

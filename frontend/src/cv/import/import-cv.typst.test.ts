@@ -10,7 +10,7 @@ import {biodataRenderModel} from '../../biodata/render-model'
 import {sampleBiodata} from '../../biodata/sample'
 import {renderModel} from '../render-model'
 import {sampleCv} from '../sample'
-import {templatePdf, typstCompiler} from '../../tests/typst'
+import {addParts, templatePdf, typstCompiler} from '../../tests/typst'
 import {importCv, useCvImport} from './import-cv'
 
 let compiler: TypstCompiler
@@ -27,6 +27,7 @@ beforeEach(() => {
 })
 
 async function pdfOf(source: string): Promise<Uint8Array> {
+    addParts(compiler)
     compiler.addSource('/main.typ', source)
 
     return (await compiler.compile({mainFilePath: '/main.typ', format: 1})).result!

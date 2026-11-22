@@ -5,6 +5,8 @@
 // main story first and the lists after it. With ATS mode on, everything is one column,
 // in the order of the sections.
 
+#import "/parts.typ": closing
+
 #let cv = json("/cv.json")
 #let accent = rgb(cv.design.accent)
 #let tint = accent.lighten(92%)
@@ -175,11 +177,12 @@
   grid(
     columns: (1fr, 0.42fr),
     column-gutter: 1.4em,
-    { for s in main { section(s, false) } },
+    { for s in main { section(s, false) }; closing(cv) },
     // Space at the start of a block is dropped, so the first heading's gap above it
     // would vanish: the inset gives the tinted panel its own room at the top.
     block(width: 100%, inset: (x: 1.1em, top: 1em, bottom: 1.1em), fill: tint, radius: 3pt, { for s in side { section(s, true) } }),
   )
 } else {
   for s in cv.sections { section(s, false) }
+  closing(cv)
 }

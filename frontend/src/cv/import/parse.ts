@@ -13,7 +13,7 @@
 
 import {labelsFor, type DocumentLanguage} from '../../core/labels/labels'
 import {scriptsIn} from '../fonts'
-import {DEFAULT_DESIGN, emptyEntry, newId, type Cv, type CvEntry, type CvPerson, type CvSection, type CvTagGroup} from '../cv'
+import {DEFAULT_DESIGN, NO_CLOSING, emptyEntry, newId, type Cv, type CvEntry, type CvPerson, type CvSection, type CvTagGroup} from '../cv'
 import {joinItem, levelOfWords, withWordLevels} from '../levels'
 import {findDates, withoutDates, type DateRange} from './dates'
 import {headingKey, knownHeading, type HeadingKind} from './headings'
@@ -753,5 +753,5 @@ export function cvFromLayout(layout: PdfLayout): ImportedCv {
         hide: [],
     }
 
-    return {cv: {person, sections: cvSections, design: {...DEFAULT_DESIGN, template: parts.twoColumns ? 'modern' : 'classic', language: languageOfHeadings(cvSections.map((section) => section.title))}}, unsorted: unsorted.length}
+    return {cv: {person, sections: cvSections, closing: NO_CLOSING, design: {...DEFAULT_DESIGN, template: parts.twoColumns ? 'modern' : 'classic', language: languageOfHeadings(cvSections.map((section) => section.title))}}, unsorted: unsorted.length}
 }

@@ -58,9 +58,23 @@ const designSchema = z.object({
     ...writingFields,
 })
 
+/**
+ * The line a CV can end with, as German and South Asian CVs do: "Berlin, 19.11.2026" and a
+ * signature under it, or a line to sign on.
+ */
+const closingSchema = z.object({
+    show: z.boolean(),
+    place: z.string(),
+    /** A fixed day as "2026-11-19", or "" for the day it's printed. */
+    date: z.union([z.literal(''), z.string().regex(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/)]),
+    /** A picture of the signature as a PNG data URL, or "" for a line to sign on. */
+    signature: z.union([z.literal(''), z.string().regex(/^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/)]),
+})
+
 const cvSchema = z.object({
     person: personSchema,
     sections: z.array(sectionSchema),
+    closing: closingSchema,
     design: designSchema,
 })
 
@@ -71,10 +85,13 @@ export type CvEntry = Entry
 export type CvTagGroup = TagGroup
 export type CvDetailRow = DetailRow
 export type CvDesign = Cv['design']
+export type CvClosing = Cv['closing']
 export type EntryPart = CvEntry['hide'][number]
 export type PersonPart = CvPerson['hide'][number]
 
 /** A CV's numbers are 0 to 9 unless chosen otherwise, as employers read them. */
+export const NO_CLOSING: CvClosing = {show: false, place: '', date: '', signature: ''}
+
 export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', font: 'inter', fontSize: 10, paper: 'a4', margins: 'normal', spacing: 'normal', atsMode: false, levelStyle: 'template', country: 'any', dateStyle: 'month-name', language: 'en', digits: 'latin', scriptFont: ''}
 
 /** A new CV: the sections most people need, empty, under the headings ATS parsers look for, in its language. */
@@ -89,6 +106,7 @@ export function emptyCv(language: DocumentLanguage = 'en'): Cv {
             {id: newId('section'), kind: 'entries', title: sections.education, visible: true, entries: []},
             {id: newId('section'), kind: 'tags', title: sections.skills, visible: true, groups: []},
         ],
+        closing: NO_CLOSING,
         design: {...DEFAULT_DESIGN, language},
     }
 }
@@ -96,7 +114,7 @@ export function emptyCv(language: DocumentLanguage = 'en'): Cv {
 export const cvType: DocumentType<Cv> = {
     kind: 'cv',
     noun: 'CV',
-    version: 10,
+    version: 11,
     content: cvSchema,
     empty: () => emptyCv(),
     migrations: {
@@ -165,6 +183,8 @@ export const cvType: DocumentType<Cv> = {
 
             return {...cv, design: {country: 'any', dateStyle: 'month-name', ...cv.design}}
         },
+        // Version 11 added the closing line, off.
+        10: (content) => ({closing: NO_CLOSING, ...(content as object)}),
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.
     thumbnail: async (cv) => (await import('./thumbnail')).cvThumbnail(cv),

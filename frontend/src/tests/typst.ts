@@ -28,11 +28,17 @@ export async function typstCompiler(): Promise<TypstCompiler> {
     return compiler
 }
 
+/** What every CV template imports from /parts.typ, as the app gives it. */
+export function addParts(compiler: TypstCompiler): void {
+    compiler.addSource('/parts.typ', readFileSync(fileURLToPath(new URL('../cv/templates/parts.typ', import.meta.url)), 'utf8'))
+}
+
 /**
  * The PDF of a template, given as the URL of its .typ file, with a render model at the
  * path the template reads it from, such as /cv.json.
  */
 export async function templatePdf(compiler: TypstCompiler, template: URL, dataPath: string, renderModel: object): Promise<Uint8Array> {
+    addParts(compiler)
     compiler.addSource('/main.typ', readFileSync(fileURLToPath(template), 'utf8'))
 
     const {model, files} = withImageFiles(renderModel)

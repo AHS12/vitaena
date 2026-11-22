@@ -278,6 +278,9 @@ export function forCountry(cv: Cv, id: CountryId, fresh: boolean): Cv {
         return {...cv, design}
     }
 
+    // A place whose CVs end with place, date and signature starts with the line on.
+    const closing = country.closing ? {...cv.closing, show: true} : cv.closing
+
     const {sections, rows} = labelsFor(cv.design.language)
     const has = (title: string) => cv.sections.some((section) => section.title === title)
     // A date of birth is shown as a date: an age is for a biodata.
@@ -291,5 +294,5 @@ export function forCountry(cv: Cv, id: CountryId, fresh: boolean): Cv {
     // Personal details sit near the top, as these places write them, after any summary.
     const at = cv.sections[0]?.kind === 'text' ? 1 : 0
 
-    return {...cv, sections: [...cv.sections.slice(0, at), ...details, ...cv.sections.slice(at), ...added], design}
+    return {...cv, sections: [...cv.sections.slice(0, at), ...details, ...cv.sections.slice(at), ...added], closing, design}
 }

@@ -2,6 +2,8 @@
 //
 // One column, written in reading order, ligatures off: the same ATS rules as Classic.
 
+#import "/parts.typ": closing
+
 #let cv = json("/cv.json")
 #let accent = rgb(cv.design.accent)
 #let muted = luma(105)
@@ -153,3 +155,5 @@
     }
   }
 }
+
+#closing(cv)

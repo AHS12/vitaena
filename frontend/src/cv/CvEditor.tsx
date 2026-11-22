@@ -60,7 +60,7 @@ export function CvEditor() {
                                         ? {
                                               title: 'Your CV appears here as you type',
                                               text: 'Start with your name on the left, or look at a finished one first.',
-                                              onExample: () => edit.act('example', (current) => ({...sampleCv(current.design.language), design: current.design})),
+                                              onExample: () => edit.act('example', (current) => ({...sampleCv(current.design.language), closing: current.closing, design: current.design})),
                                           }
                                         : null
                                 }

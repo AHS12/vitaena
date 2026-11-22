@@ -19,7 +19,9 @@ import academic from '../templates/academic.typ?raw'
 import bold from '../templates/bold.typ?raw'
 import classic from '../templates/classic.typ?raw'
 import compact from '../templates/compact.typ?raw'
+import parts from '../templates/parts.typ?raw'
 import executive from '../templates/executive.typ?raw'
+import lebenslauf from '../templates/lebenslauf.typ?raw'
 import minimal from '../templates/minimal.typ?raw'
 import modern from '../templates/modern.typ?raw'
 import professional from '../templates/professional.typ?raw'
@@ -41,11 +43,13 @@ const CV_DATA = '/cv.json'
 const BIODATA_DATA = '/biodata.json'
 
 const TEMPLATES: Readonly<Record<string, {readonly source: string; readonly data: string}>> = {
-    ...Object.fromEntries(Object.entries({classic, modern, minimal, compact, professional, academic, executive, bold, timeline, sidebar}).map(([id, source]) => [id, {source, data: CV_DATA}])),
+    ...Object.fromEntries(Object.entries({classic, modern, minimal, compact, professional, academic, executive, bold, timeline, sidebar, lebenslauf}).map(([id, source]) => [id, {source, data: CV_DATA}])),
     ...Object.fromEntries(Object.entries({heritage, clean, portrait}).map(([id, source]) => [id, {source, data: BIODATA_DATA}])),
 }
 
 const MAIN = '/main.typ'
+/** What every CV template shares, such as the closing line, which each imports from here. */
+const PARTS = '/parts.typ'
 
 /** What went wrong, in the compiler's words. Plain data, so it crosses to the page. */
 export interface LayoutProblem {
@@ -227,6 +231,7 @@ async function compile(model: PageModel, template: string, format: 0 | 1): Promi
 
     await addFonts([...scriptFilesFor(json).filter(canLoad), ...addedFilesFor(json)])
 
+    compiler.addSource(PARTS, parts)
     compiler.addSource(MAIN, source)
     compiler.mapShadow(data, new TextEncoder().encode(json))
 

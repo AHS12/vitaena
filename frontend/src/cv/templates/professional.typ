@@ -6,6 +6,8 @@
 // right column is written after the left, so text comes out with the main story first.
 // With ATS mode on it is one column, with the dates written after each place.
 
+#import "/parts.typ": closing
+
 #let cv = json("/cv.json")
 #let accent = rgb(cv.design.accent)
 #let ink = rgb("#1b2333")
@@ -263,9 +265,10 @@
     columns: (1.68fr, 1fr),
     stroke: (x, y) => if x == 0 { if cv.design.rtl { (left: 0.6pt + rule) } else { (right: 0.6pt + rule) } },
     inset: (x, y) => if (x == 0) != cv.design.rtl { (right: 1.4em) } else { (left: 1.4em) },
-    { for s in cv.sections.filter(s => s.column == "main") { section(s, false) } },
+    { for s in cv.sections.filter(s => s.column == "main") { section(s, false) }; closing(cv) },
     { for s in cv.sections.filter(s => s.column == "side") { section(s, true) } },
   )
 } else {
   for s in cv.sections { section(s, false) }
+  closing(cv)
 }

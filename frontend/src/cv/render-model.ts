@@ -12,7 +12,7 @@ import {ENGLISH, type Section, type Writing} from './sections'
 import {fontById, fontFamilies} from './fonts'
 import {parseRich, type Span} from './rich'
 import {levelOfWords, splitItem} from './levels'
-import {commaIn, dateRange, labelsFor, languageInfo, monthAndYear} from '../core/labels/labels'
+import {commaIn, dateRange, dayMonthYear, labelsFor, languageInfo, monthAndYear} from '../core/labels/labels'
 import {detailValue, numbersIn} from './details'
 
 export interface RenderEntry {
@@ -73,6 +73,10 @@ export interface RenderModel {
     /** The photo as a data URL, or "" for none. The engine hands it to the template as a file. */
     readonly photo: string
     readonly sections: readonly RenderSection[]
+    /** The line the CV ends with, "Berlin, 19.11.2026", or "" for none. */
+    readonly closing: string
+    /** The signature under it as a data URL, or "" for a line to sign on. */
+    readonly signature: string
     /** Words a template writes itself, in the CV's language. */
     /** Words the template writes itself: the Contact heading, and the comma between a job and its employer. */
     readonly words: {readonly contact: string; readonly comma: string}
@@ -138,6 +142,34 @@ export function datesText(entry: Pick<CvEntry, 'start' | 'end' | 'current'>, wri
     }
 
     return start || end
+}
+
+/**
+ * A day as the closing line writes it, in the design's date style: "19.11.2026",
+ * "19/11/2026", or by name, "19 November 2026".
+ */
+export function dayText(value: string, writing: Writing = ENGLISH): string {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+
+    if (!match) {
+        return ''
+    }
+
+    const [, year, month, day] = match
+    const style = writing.dateStyle ?? 'month-name'
+    const text = style === 'numeric-dot' ? `${day}.${month}.${year}` : style === 'numeric-slash' ? `${day}/${month}/${year}` : dayMonthYear(writing.language, Number(day), Number(month), Number(year))
+
+    return numbersIn(text, writing)
+}
+
+/** "2026-11-19" for a day, as a closing line's date is kept. */
+const isoDay = (date: Date): string => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+
+/** The closing line: place and date, the date today's unless one is fixed. */
+export function closingText(cv: Pick<Cv, 'closing' | 'design'>, today: Date): string {
+    const {closing} = cv
+
+    return closing.show ? [closing.place.trim(), dayText(closing.date || isoDay(today), cv.design)].filter(Boolean).join(', ') : ''
 }
 
 const trimmed = (value: string): string => value.trim()
@@ -245,6 +277,8 @@ export function renderModel(cv: Cv, today: Date = new Date()): RenderModel {
         contact,
         photo: person.photo && !person.hide.includes('photo') ? person.photo : '',
         sections,
+        closing: closingText(cv, today),
+        signature: cv.closing.show ? cv.closing.signature : '',
         words: {contact: labelsFor(cv.design.language).sections.contact, comma: commaIn(cv.design.language)},
         design: {
             accent: cv.design.accent,

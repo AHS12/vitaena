@@ -5,6 +5,8 @@
 // For ATS: one column, written in reading order. The band is a filled block behind real
 // text, so the name and contact details read as they are.
 
+#import "/parts.typ": closing
+
 #let cv = json("/cv.json")
 #let accent = rgb(cv.design.accent)
 #let muted = luma(95)
@@ -171,3 +173,5 @@
     }
   }
 }
+
+#closing(cv)
