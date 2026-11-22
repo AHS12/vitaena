@@ -460,6 +460,24 @@ input.panel__title:focus {
     gap: var(--space-2);
 }
 
+/* Between the templates that suit where a CV is for and the rest, none of them hidden */
+.template-divider {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 0;
+    font: var(--text-caption);
+    color: var(--text-tertiary);
+}
+
+.template-divider::after {
+    flex: 1;
+    height: 1px;
+    background: var(--border-subtle);
+    content: '';
+}
+
 .template-choice__picture {
     display: block;
     width: 100%;

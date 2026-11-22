@@ -5,6 +5,7 @@
  */
 
 import {checkCv, type CheckResult} from '../../cv/ats-check'
+import {countriesFor} from '../../cv/countries'
 import {cvType, emptyCv, type Cv} from '../../cv/cv'
 import {plainText, sectionLines} from '../../cv/cv-export'
 import {renderModel} from '../../cv/render-model'
@@ -28,6 +29,8 @@ export interface TemplateInfo {
     readonly facts: string
     /** What it suits, for a CV: a resume, an academic CV or either. */
     readonly suits?: string
+    /** For a CV, the places it suits best, as set_design's country takes them. */
+    readonly places?: readonly string[]
 }
 
 /** What the tools need from each kind of document. */
@@ -46,7 +49,7 @@ export interface KindTools<T> {
 const cvTools: KindTools<Cv> = {
     type: cvType,
     emptyIn: (language) => emptyCv(language),
-    templates: CV_TEMPLATES.map((template) => ({id: template.id, name: template.name, about: template.about, facts: template.facts, suits: TEMPLATE_USE_LABELS[template.use]})),
+    templates: CV_TEMPLATES.map((template) => ({id: template.id, name: template.name, about: template.about, facts: template.facts, suits: TEMPLATE_USE_LABELS[template.use], places: countriesFor(template.id).map((country) => country.id)})),
     template: (cv) => cv.design.template,
     pageModel: (cv) => renderModel(cv),
     text: (cv) => plainText(renderModel(cv)),

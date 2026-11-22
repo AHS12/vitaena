@@ -17,7 +17,7 @@ import {sampleBiodata} from '../biodata/sample'
 import {BIODATA_TEMPLATES} from '../biodata/templates/templates'
 import {guardUnsaved} from '../shell/commands'
 import {useDocumentStore, type Content} from '../store/document-store'
-import {COUNTRIES, countryOf, forCountry, isCountry, templatesFor, type CountryId} from './countries'
+import {COUNTRIES, countryOf, factsFor, forCountry, isCountry, templatesFor, type CountryId} from './countries'
 import {cvType, DEFAULT_DESIGN, emptyCv} from './cv'
 import {languageChoiceWithPack, useFontPacks} from './downloaded-fonts'
 import {TemplatePicture} from './editor/TemplatePicture'
@@ -232,11 +232,16 @@ export function StartFromTemplate() {
                     </div>
                     <ul className="start-templates">
                         <BlankCard noun="CV" facts={`${CV_TEMPLATES.find((template) => template.id === (suited[0] ?? 'classic'))?.name ?? 'Classic'}, ready to fill in`} onStart={() => startNew('Start a new CV', newCv(suited[0] ?? 'classic'), cvType.kind)} />
-                        {cvTemplates.map((template) => (
+                        {cvTemplates.map((template, index) => [
+                            suited.length > 0 && index === suited.length ? (
+                                <li key="divider" className="template-divider" role="presentation">
+                                    Other templates
+                                </li>
+                            ) : null,
                             <StartCard
                                 key={template.id}
                                 name={template.name}
-                                facts={template.facts}
+                                facts={factsFor(template.facts, template.id, country)}
                                 picture={<TemplatePicture src={cvPreviews[template.id]} />}
                                 badge={
                                     <span className="template-use" data-use={template.use}>
@@ -244,8 +249,8 @@ export function StartFromTemplate() {
                                     </span>
                                 }
                                 onStart={() => startNew(`Start a new CV in ${template.name}`, newCv(template.id), cvType.kind)}
-                            />
-                        ))}
+                            />,
+                        ])}
                     </ul>
                     </>
                 ) : (

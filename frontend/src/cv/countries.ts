@@ -247,6 +247,12 @@ export const countryOf = (id: string): Country => COUNTRIES.find((country) => co
 
 export const isCountry = (value: string): value is CountryId => (COUNTRY_IDS as readonly string[]).includes(value)
 
+/** The places a template suits, in the list's order. */
+export const countriesFor = (template: string): Country[] => COUNTRIES.filter((country) => country.templates.includes(template))
+
+/** A template's facts, with the place when it suits the one chosen: "One column · ATS-friendly · Suits the US". */
+export const factsFor = (facts: string, template: string, country: string): string => (country !== 'any' && countryOf(country).templates.includes(template) ? `${facts} · Suits ${countryOf(country).short}` : facts)
+
 /** A CV with one of Check's fixes for its place made: its photo hidden, or the place's paper. */
 export function withFix(cv: Cv, fix: 'hide-photo' | 'paper'): Cv {
     return fix === 'hide-photo' ? {...cv, person: {...cv.person, hide: [...new Set([...cv.person.hide, 'photo' as const])]}} : {...cv, design: {...cv.design, paper: countryOf(cv.design.country).paper}}

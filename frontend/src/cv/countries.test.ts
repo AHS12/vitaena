@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest'
 import {parseDocument, serializeDocument} from '../core/document/document-file'
 import {checkCv} from './ats-check'
-import {COUNTRIES, forCountry, templatesFor, withFix} from './countries'
+import {COUNTRIES, countriesFor, factsFor, forCountry, templatesFor, withFix} from './countries'
 import {cvType, emptyCv, type Cv} from './cv'
 import {datesText, renderModel} from './render-model'
 import {sampleCv} from './sample'
@@ -59,6 +59,31 @@ describe('choosing where a CV is for', () => {
         expect(suited[0]).toBe(COUNTRIES.find((country) => country.id === 'us')!.templates.find((id) => ids.includes(id)))
         expect([...suited, ...rest].sort()).toEqual([...ids].sort())
         expect(templatesFor(ids, 'any')).toEqual({suited: [], rest: ids})
+    })
+})
+
+describe('the places each template suits', () => {
+    it('puts Harvard first for the US, Lebenslauf for Germany and European for Europass', () => {
+        const ids = CV_TEMPLATES.map((template) => template.id)
+
+        expect(templatesFor(ids, 'us').suited[0]).toBe('harvard')
+        expect(templatesFor(ids, 'dach').suited[0]).toBe('lebenslauf')
+        expect(templatesFor(ids, 'europass').suited[0]).toBe('european')
+    })
+
+    it('names only templates there are', () => {
+        const ids = new Set(CV_TEMPLATES.map((template) => template.id))
+
+        for (const country of COUNTRIES) {
+            expect(country.templates.filter((id) => !ids.has(id)), country.id).toEqual([])
+        }
+    })
+
+    it('says so in a suited template’s facts, and only for the place chosen', () => {
+        expect(factsFor('One column', 'harvard', 'us')).toBe('One column · Suits the US')
+        expect(factsFor('One column', 'harvard', 'dach')).toBe('One column')
+        expect(factsFor('One column', 'harvard', 'any')).toBe('One column')
+        expect(countriesFor('lebenslauf').map((country) => country.id)).toEqual(['dach'])
     })
 })
 

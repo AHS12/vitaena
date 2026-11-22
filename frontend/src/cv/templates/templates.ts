@@ -35,6 +35,14 @@ export const CV_TEMPLATES: readonly CvTemplate[] = [
     {id: 'bold', name: 'Bold', about: 'A band of colour across the top with the name in white. Confident, still one column.', facts: 'One column · Photo · ATS-friendly', twoColumns: false, use: 'resume'},
     {id: 'timeline', name: 'Timeline', about: 'Jobs and degrees hang from a line with their dates above them, so a career reads as a path.', facts: 'One column · ATS-friendly', twoColumns: false, use: 'either'},
     {
+        id: 'harvard',
+        name: 'Harvard',
+        about: 'The plain resume US career offices recommend: centred name, bold headings over a rule, and dates against the right margin. Dense, black and white.',
+        facts: 'One column · Made for one page · ATS-friendly',
+        twoColumns: false,
+        use: 'resume',
+    },
+    {
         id: 'lebenslauf',
         name: 'Lebenslauf',
         about: 'Every section as a table, with dates in a left column and a passport-style photo top right, as German, Austrian and Swiss employers expect.',

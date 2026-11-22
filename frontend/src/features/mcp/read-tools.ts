@@ -117,7 +117,7 @@ export const listTemplatesTool = defineTool({
     readOnly: true,
     run: async ({kind}) => {
         const templates = toolsFor(kind).templates
-        const lines = templates.map((template) => `- ${template.name} (id ${template.id}): ${template.about} ${template.facts}.${template.suits ? ` Suits: ${template.suits}.` : ''}`)
+        const lines = templates.map((template) => `- ${template.name} (id ${template.id}): ${template.about} ${template.facts}.${template.suits ? ` Suits: ${template.suits}.` : ''}${template.places && template.places.length > 0 ? ` Best for: ${template.places.join(', ')}.` : ''}`)
         await useAddedFonts.getState().load()
         const fonts = addedFamilies(useAddedFonts.getState().fonts).map((family) => ({id: family.id, family: family.family, scripts: family.scripts}))
         const added = fonts.length > 0 ? `\n\nFonts the person added (font for English letters, scriptFont for Bangla):\n${fonts.map((font) => `- ${font.family} (id ${font.id}), letters for ${font.scripts.join(', ') || 'no script the app knows'}`).join('\n')}` : ''

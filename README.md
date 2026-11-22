@@ -75,7 +75,7 @@ no watermark, and nothing leaves it unless you back it up to storage of your own
 ## Features
 
 - **Real pages as you type,** laid out by the same engine that makes the PDF.
-- **Twelve CV templates and three biodata designs,** each tested the way screening software
+- **Thirteen CV templates and three biodata designs,** each tested the way screening software
   reads a PDF, with a Check tab that shows what it gets.
 - **Twenty-one languages:** English, German, French, Spanish, Italian, Portuguese, Dutch,
   Polish, Turkish, Russian, Ukrainian, Bangla, Hindi, Marathi, Urdu, Arabic, Persian,

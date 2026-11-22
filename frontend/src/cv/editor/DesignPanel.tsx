@@ -21,7 +21,7 @@ import {fontUrl} from '../typst/font-urls'
 import type {DocumentEdit} from '../use-cv-edit'
 import {inLanguage} from '../relabel'
 import {monthText, renderModel} from '../render-model'
-import {COUNTRIES, countryOf, forCountry, templatesFor, type CountryId, type DateStyle} from '../countries'
+import {COUNTRIES, countryOf, factsFor, forCountry, templatesFor, type CountryId, type DateStyle} from '../countries'
 import {sampleCv} from '../sample'
 import {silhouettePhoto} from './silhouette'
 import {TemplatePicture} from './TemplatePicture'
@@ -101,19 +101,27 @@ export function TemplateGallery({
     value,
     tip,
     onPick,
+    suited = 0,
 }: {
     templates: readonly GalleryTemplate[]
     previews: Readonly<Record<string, string>>
     value: string
     tip: string | null
     onPick(id: string): void
+    /** How many of the first templates suit where the document is for; a line sets them apart. */
+    suited?: number
 }) {
     return (
         <div className="design-panel">
             <Group title="Template">
                 {tip ? <p className="design-panel__tip">{tip}</p> : null}
                 <div className="template-choices" role="radiogroup" aria-label="Template">
-                    {templates.map((template) => (
+                    {templates.map((template, index) => [
+                        suited > 0 && index === suited ? (
+                            <p key="divider" className="template-divider">
+                                Other templates
+                            </p>
+                        ) : null,
                         <button key={template.id} type="button" role="radio" aria-checked={value === template.id} className="template-choice" onClick={() => onPick(template.id)}>
                             <span className="template-choice__picture" aria-hidden="true">
                                 <TemplatePicture src={previews[template.id]} />
@@ -128,8 +136,8 @@ export function TemplateGallery({
                             </span>
                             <span className="template-choice__about">{template.about}</span>
                             <span className="template-choice__facts">{template.facts}</span>
-                        </button>
-                    ))}
+                        </button>,
+                    ])}
                 </div>
             </Group>
         </div>
@@ -142,7 +150,7 @@ const CV_GALLERY: readonly GalleryTemplate[] = CV_TEMPLATES.map((template) => ({
 function galleryFor(country: string): readonly GalleryTemplate[] {
     const {suited, rest} = templatesFor(CV_TEMPLATE_IDS, country)
 
-    return [...suited, ...rest].map((id) => CV_GALLERY.find((template) => template.id === id)!)
+    return [...suited, ...rest].map((id) => CV_GALLERY.find((template) => template.id === id)!).map((template) => ({...template, facts: factsFor(template.facts, template.id, country)}))
 }
 
 /** The template gallery: the CV in every template. */
@@ -175,6 +183,7 @@ export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
             previews={previews}
             value={cv.design.template}
             tip={tips.length > 0 ? tips.join(' ') : null}
+            suited={templatesFor(CV_TEMPLATE_IDS, country.id).suited.length}
             onPick={(id) => set('template', id, 'template')}
         />
     )
