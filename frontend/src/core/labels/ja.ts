@@ -30,6 +30,7 @@ export const ja: Labels = {
         religiousPractice: '信仰',
         lifestyle: 'ライフスタイル',
         moreAboutMe: 'その他',
+        digitalSkills: 'デジタルスキル',
     },
     rows: {
         dateOfBirth: '生年月日',
@@ -64,6 +65,8 @@ export const ja: Labels = {
         mother: '母',
         brother: '兄弟',
         sister: '姉妹',
+        visaStatus: '在留資格',
+        drivingLicence: '運転免許',
     },
     page: {
         present: '現在',

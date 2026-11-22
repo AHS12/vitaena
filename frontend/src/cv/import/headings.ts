@@ -34,6 +34,7 @@ const KIND_OF_LABEL: Readonly<Record<keyof Labels['sections'], HeadingKind>> = {
     religiousPractice: 'details',
     lifestyle: 'details',
     moreAboutMe: 'details',
+    digitalSkills: 'tags',
 }
 
 /** Other words Bangla CVs and biodata use for the same headings. */

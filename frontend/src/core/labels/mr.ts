@@ -27,6 +27,7 @@ export const mr: Labels = {
         religiousPractice: 'धार्मिक आचरण',
         lifestyle: 'जीवनशैली',
         moreAboutMe: 'इतर माहिती',
+        digitalSkills: 'डिजिटल कौशल्ये',
     },
     rows: {
         dateOfBirth: 'जन्मतारीख',
@@ -61,6 +62,8 @@ export const mr: Labels = {
         mother: 'आई',
         brother: 'भाऊ',
         sister: 'बहीण',
+        visaStatus: 'व्हिसा स्थिती',
+        drivingLicence: 'वाहन चालक परवाना',
     },
     page: {
         present: 'सध्या',

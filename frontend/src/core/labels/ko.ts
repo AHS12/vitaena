@@ -27,6 +27,7 @@ export const ko: Labels = {
         religiousPractice: '신앙 생활',
         lifestyle: '생활 방식',
         moreAboutMe: '기타 사항',
+        digitalSkills: '디지털 역량',
     },
     rows: {
         dateOfBirth: '생년월일',
@@ -61,6 +62,8 @@ export const ko: Labels = {
         mother: '어머니',
         brother: '형제',
         sister: '자매',
+        visaStatus: '비자 상태',
+        drivingLicence: '운전면허',
     },
     page: {
         present: '현재',

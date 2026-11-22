@@ -27,6 +27,7 @@ export const uk: Labels = {
         religiousPractice: 'Релігійна практика',
         lifestyle: 'Спосіб життя',
         moreAboutMe: 'Більше про мене',
+        digitalSkills: 'Цифрові навички',
     },
     rows: {
         dateOfBirth: 'Дата народження',
@@ -61,6 +62,8 @@ export const uk: Labels = {
         mother: 'Мати',
         brother: 'Брат',
         sister: 'Сестра',
+        visaStatus: 'Візовий статус',
+        drivingLicence: 'Посвідчення водія',
     },
     page: {
         present: 'теперішній час',

@@ -26,6 +26,7 @@ export const tr: Labels = {
         religiousPractice: 'Dini yaşam',
         lifestyle: 'Yaşam tarzı',
         moreAboutMe: 'Hakkımda daha fazlası',
+        digitalSkills: 'Dijital beceriler',
     },
     rows: {
         dateOfBirth: 'Doğum tarihi',
@@ -60,6 +61,8 @@ export const tr: Labels = {
         mother: 'Anne',
         brother: 'Erkek kardeş',
         sister: 'Kız kardeş',
+        visaStatus: 'Vize durumu',
+        drivingLicence: 'Ehliyet',
     },
     page: {
         present: 'Halen',

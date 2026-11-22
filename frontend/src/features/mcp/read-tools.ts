@@ -5,6 +5,8 @@
 
 import {z} from 'zod'
 import {addedFamilies, useAddedFonts} from '../../cv/added-fonts'
+import {countryOf} from '../../cv/countries'
+import type {Cv} from '../../cv/cv'
 import type {Section} from '../../cv/sections'
 import {listDocuments} from '../../platform/documents'
 import {useDocumentStore} from '../../store/document-store'
@@ -138,7 +140,9 @@ export const checkDocumentTool = defineTool({
         const results = tools.check(document.content, read.pages)
         const order = {warning: 0, tip: 1, good: 2}
         const sorted = [...results].sort((a, b) => order[a.level] - order[b.level])
-        const lines = sorted.map((result) => `- ${result.level === 'good' ? 'Good' : result.level === 'tip' ? 'Tip' : 'Warning'}: ${result.title}${result.detail ? `. ${result.detail}` : ''}`)
+        // Advice for the place a CV is for says so, as the Check tab groups it.
+        const place = document.kind === 'cv' ? countryOf((document.content as Cv).design.country).name : ''
+        const lines = sorted.map((result) => `- ${result.level === 'good' ? 'Good' : result.level === 'tip' ? 'Tip' : 'Warning'}${result.country ? `, for ${place}` : ''}: ${result.title}${result.detail ? `. ${result.detail}` : ''}`)
         const screening = document.kind === 'cv' ? `\n\nWhat a screening system reads from the PDF:\n${read.text}` : ''
 
         return {

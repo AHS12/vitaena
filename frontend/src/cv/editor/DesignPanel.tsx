@@ -20,7 +20,8 @@ import {CV_TEMPLATES, TEMPLATE_USE_LABELS} from '../templates/templates'
 import {fontUrl} from '../typst/font-urls'
 import type {DocumentEdit} from '../use-cv-edit'
 import {inLanguage} from '../relabel'
-import {renderModel} from '../render-model'
+import {monthText, renderModel} from '../render-model'
+import {COUNTRIES, countryOf, forCountry, templatesFor, type CountryId, type DateStyle} from '../countries'
 import {sampleCv} from '../sample'
 import {silhouettePhoto} from './silhouette'
 import {TemplatePicture} from './TemplatePicture'
@@ -137,6 +138,13 @@ export function TemplateGallery({
 
 const CV_GALLERY: readonly GalleryTemplate[] = CV_TEMPLATES.map((template) => ({...template, badge: {use: template.use, label: TEMPLATE_USE_LABELS[template.use]}}))
 
+/** The gallery for a place: the templates that suit it first, the rest after, none hidden. */
+function galleryFor(country: string): readonly GalleryTemplate[] {
+    const {suited, rest} = templatesFor(CV_TEMPLATE_IDS, country)
+
+    return [...suited, ...rest].map((id) => CV_GALLERY.find((template) => template.id === id)!)
+}
+
 /** The template gallery: the CV in every template. */
 export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
     const set = setter(edit)
@@ -157,12 +165,16 @@ export function TemplatesPanel({cv, edit}: {cv: Cv; edit: Edit}) {
     }, [blank, cv, model])
     const previews = useTemplatePreviews(shown, CV_TEMPLATE_IDS, 900)
 
+    const country = countryOf(cv.design.country)
+    const templates = useMemo(() => galleryFor(country.id), [country.id])
+    const tips = [country.id !== 'any' ? `For ${country.name}, the first ${templatesFor(CV_TEMPLATE_IDS, country.id).suited.length} suit best. ${country.why}` : '', blank ? 'Shown with example content until your CV has some of its own.' : ''].filter(Boolean)
+
     return (
         <TemplateGallery
-            templates={CV_GALLERY}
+            templates={templates}
             previews={previews}
             value={cv.design.template}
-            tip={blank ? 'Shown with example content until your CV has some of its own.' : null}
+            tip={tips.length > 0 ? tips.join(' ') : null}
             onPick={(id) => set('template', id, 'template')}
         />
     )
@@ -240,12 +252,15 @@ export function StyleGroups({
     set,
     onLanguage,
     scripts,
+    before,
     children,
 }: {
     design: SharedStyle
     set<K extends keyof SharedStyle>(key: K, value: SharedStyle[K], label: string): void
     onLanguage(language: DocumentLanguage): void
     scripts: readonly Script[]
+    /** Groups of the type's own that come first, such as where a CV is for. */
+    before?: ReactNode
     children?: ReactNode
 }) {
     useEffect(loadFaces, [])
@@ -286,6 +301,7 @@ export function StyleGroups({
 
     return (
         <div className="design-panel">
+            {before}
             <Group title="Language">
                 <div className="design-row">
                     <span className="design-row__label">Write in</span>
@@ -425,6 +441,38 @@ export function StyleGroups({
     )
 }
 
+const COUNTRY_CHOICES = COUNTRIES.map((country) => ({value: country.id, label: country.name}))
+
+/** Where a CV is for, and how its dates are written, which the place sets and can be changed. */
+export function CountryGroup({design, onCountry, onLanguage, onDates}: {design: CvDesign; onCountry(id: CountryId): void; onLanguage(language: DocumentLanguage): void; onDates(style: DateStyle): void}) {
+    const country = countryOf(design.country)
+    const writing = {language: design.language, digits: design.digits}
+    const dates = (['month-name', 'numeric-slash', 'numeric-dot', 'year'] as const).map((style) => ({value: style, label: monthText('2020-01', {...writing, dateStyle: style})}))
+    const offered = country.language && country.language !== design.language ? languageInfo(country.language) : null
+
+    return (
+        <Group title="Where it's for">
+            <div className="design-row">
+                <span className="design-row__label">For</span>
+                <Select<CountryId> label="Where the CV is for" value={country.id} options={COUNTRY_CHOICES} onChange={onCountry} />
+            </div>
+            <p className="design-panel__tip">{country.id === 'any' ? 'Choose where you are applying, and Vitaena sets the paper and dates, puts the templates that suit it first, and Check says what employers there expect.' : country.why}</p>
+            {offered ? (
+                <p className="design-panel__tip">
+                    Most CVs there are in {offered.name}.{' '}
+                    <button type="button" className="text-button" onClick={() => onLanguage(offered.id)}>
+                        Write the headings in {offered.name}
+                    </button>
+                </p>
+            ) : null}
+            <div className="design-row">
+                <span className="design-row__label">Dates</span>
+                <Segmented label="How dates are written" value={design.dateStyle} options={dates} onChange={onDates} />
+            </div>
+        </Group>
+    )
+}
+
 /** Everything else about the look: colour, font, size and the page. */
 export function StylePanel({cv, edit}: {cv: Cv; edit: Edit}) {
     const design = cv.design
@@ -433,9 +481,12 @@ export function StylePanel({cv, edit}: {cv: Cv; edit: Edit}) {
     const hasLevels = cv.sections.some((section) => section.kind === 'tags' && section.groups.some((group) => group.showLevels))
     const scripts = useMemo(() => scriptsIn(JSON.stringify([cv.person, cv.sections])), [cv.person, cv.sections])
     const onLanguage = (language: DocumentLanguage) => edit.act(`write in ${languageInfo(language).name}`, (current) => inLanguage(current, language))
+    // A CV with nothing in it yet also gets the sections the place's CVs usually have.
+    const blank = useMemo(() => renderModel(cv).sections.length === 0, [cv])
+    const onCountry = (id: CountryId) => edit.act(`for ${countryOf(id).name}`, (current) => forCountry(current, id, blank))
 
     return (
-        <StyleGroups design={design} set={set} onLanguage={onLanguage} scripts={scripts}>
+        <StyleGroups design={design} set={set} onLanguage={onLanguage} scripts={scripts} before={<CountryGroup design={design} onCountry={onCountry} onLanguage={onLanguage} onDates={(style) => set('dateStyle', style, 'date style')} />}>
             {hasLevels ? (
                 <Group title="Levels">
                     <div className="design-row">

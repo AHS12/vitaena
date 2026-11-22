@@ -27,6 +27,7 @@ export const ur: Labels = {
         religiousPractice: 'دینی معمولات',
         lifestyle: 'طرزِ زندگی',
         moreAboutMe: 'مزید معلومات',
+        digitalSkills: 'ڈیجیٹل مہارتیں',
     },
     rows: {
         dateOfBirth: 'تاریخِ پیدائش',
@@ -61,6 +62,8 @@ export const ur: Labels = {
         mother: 'والدہ',
         brother: 'بھائی',
         sister: 'بہن',
+        visaStatus: 'ویزا کی حیثیت',
+        drivingLicence: 'ڈرائیونگ لائسنس',
     },
     page: {
         present: 'تاحال',

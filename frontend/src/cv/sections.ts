@@ -95,6 +95,8 @@ export const writingFields = {
 export interface Writing {
     readonly language: string
     readonly digits: 'latin' | 'native'
+    /** How an entry's months are written; a biodata, which has no say, writes them by name. */
+    readonly dateStyle?: 'month-name' | 'numeric-slash' | 'numeric-dot' | 'year'
 }
 
 export const ENGLISH: Writing = {language: 'en', digits: 'latin'}

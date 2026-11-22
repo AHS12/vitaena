@@ -26,6 +26,7 @@ export const nl: Labels = {
         religiousPractice: 'Geloofsbeleving',
         lifestyle: 'Levensstijl',
         moreAboutMe: 'Meer over mij',
+        digitalSkills: 'Digitale vaardigheden',
     },
     rows: {
         dateOfBirth: 'Geboortedatum',
@@ -60,6 +61,8 @@ export const nl: Labels = {
         mother: 'Moeder',
         brother: 'Broer',
         sister: 'Zus',
+        visaStatus: 'Verblijfsstatus',
+        drivingLicence: 'Rijbewijs',
     },
     page: {
         present: 'heden',

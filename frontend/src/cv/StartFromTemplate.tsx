@@ -2,14 +2,14 @@
  * Home's ways to start, a tab for each type: a blank document, or one in a template. Each
  * template shows the type's example laid out in it; picking one starts a new, empty
  * document in it, whose page offers the example. The tab last picked is remembered, and
- * so is the language a new document is written in.
+ * so are the language a new document is written in and where a new CV is for.
  */
 
 import './cv-editor.css'
 import {Plus} from 'lucide-react'
 import {useMemo, useState, type KeyboardEvent, type ReactNode} from 'react'
 import {APP} from '../core/app'
-import {isLanguage, LANGUAGES, type DocumentLanguage} from '../core/labels/labels'
+import {isLanguage, languageInfo, LANGUAGES, type DocumentLanguage} from '../core/labels/labels'
 import {Select} from '../components/controls'
 import {biodataType, DEFAULT_BIODATA_DESIGN, emptyBiodata} from '../biodata/biodata'
 import {biodataRenderModel} from '../biodata/render-model'
@@ -17,6 +17,7 @@ import {sampleBiodata} from '../biodata/sample'
 import {BIODATA_TEMPLATES} from '../biodata/templates/templates'
 import {guardUnsaved} from '../shell/commands'
 import {useDocumentStore, type Content} from '../store/document-store'
+import {COUNTRIES, countryOf, forCountry, isCountry, templatesFor, type CountryId} from './countries'
 import {cvType, DEFAULT_DESIGN, emptyCv} from './cv'
 import {languageChoiceWithPack, useFontPacks} from './downloaded-fonts'
 import {TemplatePicture} from './editor/TemplatePicture'
@@ -75,6 +76,29 @@ function rememberLanguage(language: DocumentLanguage): void {
     }
 }
 
+const COUNTRY_KEY = `${APP.id}.home.country`
+
+/** Where the last new CV was for, or Anywhere. */
+function storedCountry(): CountryId {
+    try {
+        const stored = window.localStorage.getItem(COUNTRY_KEY) ?? ''
+
+        return isCountry(stored) ? stored : 'any'
+    } catch {
+        return 'any'
+    }
+}
+
+function rememberCountry(country: CountryId): void {
+    try {
+        window.localStorage.setItem(COUNTRY_KEY, country)
+    } catch {
+        // The place simply isn't remembered.
+    }
+}
+
+const COUNTRY_CHOICES = COUNTRIES.map((country) => ({value: country.id, label: country.name}))
+
 const startNew = (what: string, content: Content, kind: string) => guardUnsaved(useDocumentStore.getState(), what, () => useDocumentStore.getState().startNew(content, kind))
 
 function StartCard({name, facts, picture, badge, onStart}: {name: string; facts: string; picture: ReactNode; badge?: ReactNode; onStart(): void}) {
@@ -111,6 +135,17 @@ function BlankCard({noun, facts, onStart}: {noun: string; facts: string; onStart
 export function StartFromTemplate() {
     const [tab, setTab] = useState<StartTab>(storedTab)
     const [language, setLanguage] = useState<DocumentLanguage>(storedLanguage)
+    const [country, setCountry] = useState<CountryId>(storedCountry)
+    const place = countryOf(country)
+    const {suited, rest} = templatesFor(CV_TEMPLATE_IDS, country)
+    const cvTemplates = [...suited, ...rest].map((id) => CV_TEMPLATES.find((template) => template.id === id)!)
+    const offered = place.language && place.language !== language ? languageInfo(place.language) : null
+    // A new CV for a place: in its template, with the place's paper, dates and usual sections.
+    const newCv = (template: string) => forCountry({...emptyCv(language), design: {...DEFAULT_DESIGN, language, template}}, country, true)
+    const chooseLanguage = (next: DocumentLanguage) => {
+        setLanguage(next)
+        rememberLanguage(next)
+    }
     const packs = useFontPacks((state) => state.packs)
     const cvExample = useMemo(() => renderModel(sampleCv(language)), [language])
     const biodataExample = useMemo(() => biodataRenderModel(sampleBiodata(language)), [language])
@@ -146,10 +181,7 @@ export function StartFromTemplate() {
                         label="Write a new document in"
                         value={language}
                         options={LANGUAGES.map((info) => languageChoiceWithPack(info, packs))}
-                        onChange={(next) => {
-                            setLanguage(next)
-                            rememberLanguage(next)
-                        }}
+                        onChange={chooseLanguage}
                     />
                 </div>
             </div>
@@ -172,9 +204,35 @@ export function StartFromTemplate() {
             </div>
             <div id="start-tab-panel" role="tabpanel" aria-labelledby={`start-tab-${tab}`} className="start-panel">
                 {tab === 'cv' ? (
+                    <>
+                    <div className="start-panel__for">
+                        <span className="home__language-label">For</span>
+                        <Select<CountryId>
+                            label="Where a new CV is for"
+                            value={country}
+                            options={COUNTRY_CHOICES}
+                            onChange={(next) => {
+                                setCountry(next)
+                                rememberCountry(next)
+                            }}
+                        />
+                        {place.id !== 'any' ? (
+                            <span className="start-panel__note">
+                                {place.why} The templates that suit it come first.
+                                {offered ? (
+                                    <>
+                                        {' '}
+                                        <button type="button" className="text-button" onClick={() => chooseLanguage(offered.id)}>
+                                            Write in {offered.name}
+                                        </button>
+                                    </>
+                                ) : null}
+                            </span>
+                        ) : null}
+                    </div>
                     <ul className="start-templates">
-                        <BlankCard noun="CV" facts="Classic, ready to fill in" onStart={() => startNew('Start a new CV', emptyCv(language), cvType.kind)} />
-                        {CV_TEMPLATES.map((template) => (
+                        <BlankCard noun="CV" facts={`${CV_TEMPLATES.find((template) => template.id === (suited[0] ?? 'classic'))?.name ?? 'Classic'}, ready to fill in`} onStart={() => startNew('Start a new CV', newCv(suited[0] ?? 'classic'), cvType.kind)} />
+                        {cvTemplates.map((template) => (
                             <StartCard
                                 key={template.id}
                                 name={template.name}
@@ -185,10 +243,11 @@ export function StartFromTemplate() {
                                         {TEMPLATE_USE_LABELS[template.use]}
                                     </span>
                                 }
-                                onStart={() => startNew(`Start a new CV in ${template.name}`, {...emptyCv(language), design: {...DEFAULT_DESIGN, language, template: template.id}}, cvType.kind)}
+                                onStart={() => startNew(`Start a new CV in ${template.name}`, newCv(template.id), cvType.kind)}
                             />
                         ))}
                     </ul>
+                    </>
                 ) : (
                     <>
                         <p className="start-panel__note">A biodata for a marriage proposal: your details, your family and your photos, on one or two pages to share.</p>

@@ -27,6 +27,7 @@ export const zhHans: Labels = {
         religiousPractice: '宗教信仰',
         lifestyle: '生活方式',
         moreAboutMe: '其他信息',
+        digitalSkills: '数字技能',
     },
     rows: {
         dateOfBirth: '出生日期',
@@ -61,6 +62,8 @@ export const zhHans: Labels = {
         mother: '母亲',
         brother: '兄弟',
         sister: '姐妹',
+        visaStatus: '签证状态',
+        drivingLicence: '驾驶执照',
     },
     page: {
         present: '至今',

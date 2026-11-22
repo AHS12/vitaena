@@ -26,6 +26,7 @@ export const pt: Labels = {
         religiousPractice: 'Prática religiosa',
         lifestyle: 'Estilo de vida',
         moreAboutMe: 'Mais sobre mim',
+        digitalSkills: 'Competências digitais',
     },
     rows: {
         dateOfBirth: 'Data de nascimento',
@@ -60,6 +61,8 @@ export const pt: Labels = {
         mother: 'Mãe',
         brother: 'Irmão',
         sister: 'Irmã',
+        visaStatus: 'Situação do visto',
+        drivingLicence: 'Carteira de habilitação',
     },
     page: {
         present: 'atual',

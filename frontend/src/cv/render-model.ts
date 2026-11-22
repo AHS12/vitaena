@@ -113,11 +113,19 @@ export const pageLanguage = (language: string): {lang: string; latin: boolean; r
 export const MARGINS = {narrow: 1.3, normal: 1.8, wide: 2.4} as const
 export const SPACING = {compact: 0.8, normal: 1, relaxed: 1.2} as const
 
-/** "2023-01" as "Jan 2023", or "জানুয়ারি ২০২৩". */
+/** "2023-01" as "Jan 2023", "01/2023", "01.2023" or "2023", by the design's date style, in its language. */
 export function monthText(value: string, writing: Writing = ENGLISH): string {
     const match = /^(\d{4})-(\d{2})$/.exec(value)
 
-    return match ? numbersIn(monthAndYear(writing.language, Number(match[2]), match[1]), writing) : ''
+    if (!match) {
+        return ''
+    }
+
+    const [, year, month] = match
+    const style = writing.dateStyle ?? 'month-name'
+    const text = style === 'year' ? year : style === 'numeric-slash' ? `${month}/${year}` : style === 'numeric-dot' ? `${month}.${year}` : monthAndYear(writing.language, Number(month), year)
+
+    return numbersIn(text, writing)
 }
 
 /** An entry's dates in one consistent form: "Jan 2020 – Present", "2019 – Mar 2021", "Jun 2018". */

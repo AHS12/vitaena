@@ -60,6 +60,7 @@ export interface Labels {
         readonly religiousPractice: string
         readonly lifestyle: string
         readonly moreAboutMe: string
+        readonly digitalSkills: string
     }
     /** Labels in details sections, and relations in a family. */
     readonly rows: {
@@ -95,6 +96,8 @@ export interface Labels {
         readonly mother: string
         readonly brother: string
         readonly sister: string
+        readonly visaStatus: string
+        readonly drivingLicence: string
     }
     /** Words in dates, ages and heights. */
     readonly page: {

@@ -27,6 +27,7 @@ export const ru: Labels = {
         religiousPractice: 'Религиозная практика',
         lifestyle: 'Образ жизни',
         moreAboutMe: 'Ещё обо мне',
+        digitalSkills: 'Цифровые навыки',
     },
     rows: {
         dateOfBirth: 'Дата рождения',
@@ -61,6 +62,8 @@ export const ru: Labels = {
         mother: 'Мать',
         brother: 'Брат',
         sister: 'Сестра',
+        visaStatus: 'Визовый статус',
+        drivingLicence: 'Водительские права',
     },
     page: {
         present: 'настоящее время',
