@@ -74,5 +74,6 @@ export const ko: Labels = {
         name: '이름',
         work: '직업',
         note: '비고',
+        cefr: {listening: '듣기', reading: '읽기', interaction: '대화', production: '말하기', writing: '쓰기', motherTongue: '모국어', native: '모국어'},
     },
 }

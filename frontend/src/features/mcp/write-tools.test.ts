@@ -227,3 +227,17 @@ describe('a CV for a place, made and changed by an assistant', () => {
         expect((await call('set_design', {id: 'bio-1', country: 'us'})).text).toContain('has no country')
     })
 })
+
+describe('languages on the European scale, set by an assistant', () => {
+    it('puts a group on the scale with each item’s levels', async () => {
+        await call('edit_document', {id: 'cv-1', operations: [{op: 'set_tags', section: 'Languages', items: ['Bangla', 'German (B2)'], cefr: ['native', 'B2 B2 B1 B1 A2']}]})
+        const languages = cvIn('cv-1').sections.find((section) => section.title === 'Languages')
+
+        expect(languages?.kind === 'tags' && languages.groups[0]).toMatchObject({items: ['Bangla', 'German'], cefr: [['native', 'native', 'native', 'native', 'native'], ['B2', 'B2', 'B1', 'B1', 'A2']]})
+    })
+
+    it('refuses a level that isn’t one, or one too few', async () => {
+        expect((await call('edit_document', {id: 'cv-1', operations: [{op: 'set_tags', section: 'Languages', items: ['German'], cefr: ['Fluent']}]})).text).toContain('isn’t a European level')
+        expect((await call('edit_document', {id: 'cv-1', operations: [{op: 'set_tags', section: 'Languages', items: ['German', 'French'], cefr: ['B2']}]})).text).toContain('for each of the 2 items')
+    })
+})

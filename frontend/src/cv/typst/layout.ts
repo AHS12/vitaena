@@ -20,6 +20,7 @@ import bold from '../templates/bold.typ?raw'
 import classic from '../templates/classic.typ?raw'
 import compact from '../templates/compact.typ?raw'
 import parts from '../templates/parts.typ?raw'
+import european from '../templates/european.typ?raw'
 import executive from '../templates/executive.typ?raw'
 import lebenslauf from '../templates/lebenslauf.typ?raw'
 import minimal from '../templates/minimal.typ?raw'
@@ -43,7 +44,7 @@ const CV_DATA = '/cv.json'
 const BIODATA_DATA = '/biodata.json'
 
 const TEMPLATES: Readonly<Record<string, {readonly source: string; readonly data: string}>> = {
-    ...Object.fromEntries(Object.entries({classic, modern, minimal, compact, professional, academic, executive, bold, timeline, sidebar, lebenslauf}).map(([id, source]) => [id, {source, data: CV_DATA}])),
+    ...Object.fromEntries(Object.entries({classic, modern, minimal, compact, professional, academic, executive, bold, timeline, sidebar, lebenslauf, european}).map(([id, source]) => [id, {source, data: CV_DATA}])),
     ...Object.fromEntries(Object.entries({heritage, clean, portrait}).map(([id, source]) => [id, {source, data: BIODATA_DATA}])),
 }
 

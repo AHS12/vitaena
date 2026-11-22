@@ -74,5 +74,6 @@ export const ru: Labels = {
         name: 'Имя',
         work: 'Работа',
         note: 'Примечание',
+        cefr: {listening: 'Аудирование', reading: 'Чтение', interaction: 'Диалог', production: 'Монолог', writing: 'Письмо', motherTongue: 'Родной язык', native: 'Родной'},
     },
 }

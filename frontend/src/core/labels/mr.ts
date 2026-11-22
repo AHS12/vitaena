@@ -74,5 +74,6 @@ export const mr: Labels = {
         name: 'नाव',
         work: 'व्यवसाय',
         note: 'टीप',
+        cefr: {listening: 'ऐकणे', reading: 'वाचन', interaction: 'संवाद', production: 'मौखिक अभिव्यक्ती', writing: 'लेखन', motherTongue: 'मातृभाषा', native: 'मातृभाषा'},
     },
 }

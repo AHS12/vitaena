@@ -290,7 +290,9 @@ export function forCountry(cv: Cv, id: CountryId, fresh: boolean): Cv {
         return made.kind === 'date' ? {...made, show: 'date'} : made
     }
     const details: CvSection[] = country.rows.length > 0 && !has(sections.personalDetails) ? [{id: newId('section'), kind: 'details', title: sections.personalDetails, visible: true, rows: country.rows.map(row)}] : []
-    const added: CvSection[] = country.sections.filter((key) => !has(sections[key])).map((key) => ({id: newId('section'), kind: 'tags', title: sections[key], visible: true, groups: []}))
+    // Europass gives languages European levels, so its Languages start on that scale.
+    const european = (key: keyof Labels['sections']) => (id === 'europass' && key === 'languages' ? [{id: newId('group'), visible: true, label: '', items: [], showLevels: false, levels: [], cefr: []}] : [])
+    const added: CvSection[] = country.sections.filter((key) => !has(sections[key])).map((key) => ({id: newId('section'), kind: 'tags', title: sections[key], visible: true, groups: european(key)}))
     // Personal details sit near the top, as these places write them, after any summary.
     const at = cv.sections[0]?.kind === 'text' ? 1 : 0
 

@@ -386,3 +386,39 @@ describe('the closing line, in every template', () => {
         expect(document.numPages).toBeLessThanOrEqual(2)
     }, 60_000)
 })
+
+describe('languages on the European scale, in every template', () => {
+    const european = (language: 'en' | 'de' = 'en') => {
+        const cv = sampleCv(language)
+
+        return {
+            ...cv,
+            sections: cv.sections.map((section) =>
+                section.kind === 'tags' && section.groups.some((group) => group.items.some((item) => /Bangla|বাংলা/.test(item)))
+                    ? {...section, groups: [{id: 'g', visible: true, label: '', items: ['Bangla', 'German', 'French'], showLevels: false, levels: [0, 0, 0], cefr: [['native', 'native', 'native', 'native', 'native'], ['B2', 'B2', 'B1', 'B1', 'A2'], ['C1', 'C1', 'C1', 'C1', 'C1']] as never}]}
+                    : section,
+            ),
+        }
+    }
+
+    it.each(CV_TEMPLATES.map((template) => template.id))('writes each language with its level in words in %s', async (template) => {
+        const text = await read(await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel(european())))
+
+        if (template === 'european') {
+            expect(text).toContain('Mothertongue')
+        } else {
+            expect(text).toContain('German(A2–B2)')
+            expect(text).toContain('French(C1)')
+        }
+    }, 60_000)
+
+    it('reads the European grid row by row: a language, then its five levels', async () => {
+        const text = await read(await templatePdf(compiler, new URL('./european.typ', import.meta.url), '/cv.json', renderModel(european('de'))))
+
+        expect(text).toContain('Muttersprache')
+        expect(text).toContain('Hören')
+        expect(text).toContain('GermanB2B2B1B1A2')
+        expect(text).toContain('FrenchC1C1C1C1C1')
+        expect(text.indexOf('GermanB2B2B1B1A2')).toBeLessThan(text.indexOf('FrenchC1C1C1C1C1'))
+    }, 60_000)
+})

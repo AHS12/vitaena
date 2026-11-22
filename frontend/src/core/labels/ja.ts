@@ -77,5 +77,6 @@ export const ja: Labels = {
         name: '氏名',
         work: '職業',
         note: '備考',
+        cefr: {listening: '聞く', reading: '読む', interaction: 'やり取り', production: '発表', writing: '書く', motherTongue: '母語', native: '母語'},
     },
 }

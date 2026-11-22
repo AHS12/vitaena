@@ -100,7 +100,7 @@ const MORE_BANGLA: readonly [HeadingKind, readonly string[]][] = [
             'Досвід',
         ],
     ],
-    ['tags', ['Fähigkeiten', 'Sprachkenntnisse', 'IT-Kenntnisse', 'Kompetenzen', 'Langues étrangères', 'Competencias', 'Competências', 'Competenze linguistiche', 'Vaardigheden en talen', 'Języki', 'Beceriler', 'Ключевые навыки', 'Знание языков', 'Навички та вміння']],
+    ['tags', ['Language skills', 'Foreign languages', 'Fähigkeiten', 'Sprachkenntnisse', 'IT-Kenntnisse', 'Kompetenzen', 'Langues étrangères', 'Competencias', 'Competências', 'Competenze linguistiche', 'Vaardigheden en talen', 'Języki', 'Beceriler', 'Ключевые навыки', 'Знание языков', 'Навички та вміння']],
     ['details', ['Persönliches', 'Angaben zur Person', 'État civil', 'Informations personnelles', 'Datos personales', 'Informazioni personali', 'Informações pessoais', 'Personalia', 'Dane osobowe', 'Kişisel bilgiler', 'Личная информация', 'Особиста інформація']],
     ['contact', ['Kontaktdaten', 'Coordonnées', 'Datos de contacto', 'Recapiti', 'Contactos', 'Contactgegevens', 'Dane kontaktowe', 'İletişim bilgileri', 'Контактная информация', 'Контактна інформація']],
 ]

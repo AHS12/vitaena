@@ -114,7 +114,7 @@ export function emptyCv(language: DocumentLanguage = 'en'): Cv {
 export const cvType: DocumentType<Cv> = {
     kind: 'cv',
     noun: 'CV',
-    version: 11,
+    version: 12,
     content: cvSchema,
     empty: () => emptyCv(),
     migrations: {
@@ -185,6 +185,8 @@ export const cvType: DocumentType<Cv> = {
         },
         // Version 11 added the closing line, off.
         10: (content) => ({closing: NO_CLOSING, ...(content as object)}),
+        // Version 12 let a group of languages keep European levels. Older files have none.
+        11: (content) => content,
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.
     thumbnail: async (cv) => (await import('./thumbnail')).cvThumbnail(cv),

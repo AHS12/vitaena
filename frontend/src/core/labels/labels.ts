@@ -112,6 +112,18 @@ export interface Labels {
         readonly name: string
         readonly work: string
         readonly note: string
+        /** The five skills of the European scale (CEFR), as Europass names them, and the words for a first language. */
+        readonly cefr: {
+            readonly listening: string
+            readonly reading: string
+            readonly interaction: string
+            readonly production: string
+            readonly writing: string
+            /** Before the languages someone grew up with: "Mother tongue: Bangla". */
+            readonly motherTongue: string
+            /** Beside one of them, as its level: "Bangla (Native)". */
+            readonly native: string
+        }
     }
 }
 

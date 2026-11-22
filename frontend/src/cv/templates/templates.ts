@@ -42,5 +42,13 @@ export const CV_TEMPLATES: readonly CvTemplate[] = [
         twoColumns: false,
         use: 'either',
     },
+    {
+        id: 'european',
+        name: 'European',
+        about: 'Laid out like a Europass CV: a band with your name, dates in a left column, and languages as a grid of the five European skills.',
+        facts: 'One column · Photo · ATS-friendly',
+        twoColumns: false,
+        use: 'either',
+    },
     {id: 'sidebar', name: 'Sidebar', about: 'A full-height coloured column with the photo, contact details and skills in white.', facts: 'Two columns · Photo · ATS mode makes it one', twoColumns: true, use: 'resume'},
 ]

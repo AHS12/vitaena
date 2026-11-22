@@ -74,5 +74,6 @@ export const fa: Labels = {
         name: 'نام',
         work: 'شغل',
         note: 'توضیحات',
+        cefr: {listening: 'شنیدن', reading: 'خواندن', interaction: 'گفت‌وگو', production: 'بیان شفاهی', writing: 'نوشتن', motherTongue: 'زبان مادری', native: 'زبان مادری'},
     },
 }

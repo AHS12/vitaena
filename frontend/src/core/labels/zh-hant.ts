@@ -74,5 +74,6 @@ export const zhHant: Labels = {
         name: '姓名',
         work: '職業',
         note: '備註',
+        cefr: {listening: '聽力', reading: '閱讀', interaction: '口語交流', production: '口頭表達', writing: '寫作', motherTongue: '母語', native: '母語'},
     },
 }

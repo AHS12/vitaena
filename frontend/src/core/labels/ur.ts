@@ -74,5 +74,6 @@ export const ur: Labels = {
         name: 'نام',
         work: 'پیشہ',
         note: 'نوٹ',
+        cefr: {listening: 'سننا', reading: 'پڑھنا', interaction: 'گفتگو', production: 'زبانی اظہار', writing: 'لکھنا', motherTongue: 'مادری زبان', native: 'مادری زبان'},
     },
 }

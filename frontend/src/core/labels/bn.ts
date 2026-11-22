@@ -78,5 +78,6 @@ export const bn: Labels = {
         name: 'নাম',
         work: 'পেশা',
         note: 'মন্তব্য',
+        cefr: {listening: 'শোনা', reading: 'পড়া', interaction: 'কথোপকথন', production: 'মৌখিক উপস্থাপন', writing: 'লেখা', motherTongue: 'মাতৃভাষা', native: 'মাতৃভাষা'},
     },
 }

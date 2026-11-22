@@ -12,7 +12,9 @@ import {DragHandle, SortableList, type HandleProps} from '../../components/Sorta
 import {moveItem} from '../../core/list'
 import {Switch} from '../../components/controls'
 import {TagInput} from '../../components/TagInput'
-import {levelsFor} from '../levels'
+import {joinItem, levelsFor, splitItem} from '../levels'
+import {allAt, cefrFor, cefrLevel, cefrOfLevel, cefrOfWords, cefrSummary, isLanguages} from '../cefr'
+import {CefrGrid} from './CefrGrid'
 import {LevelList} from './LevelList'
 import {emptyEntry, type Entry, type Section, type Sectioned, type TagGroup} from '../sections'
 import {datesText} from '../render-model'
@@ -79,13 +81,37 @@ function EntryCard({sectionId, sectionTitle, entry, handle, edit}: {sectionId: s
     )
 }
 
-function GroupRow({sectionId, group, handle, edit, single}: {sectionId: string; group: TagGroup; handle: HandleProps; edit: Edit; single: boolean}) {
+/** A group moved to the European scale: names alone, with levels read from their words or dots. */
+function toCefr(group: TagGroup): Partial<TagGroup> {
+    const cefr = group.items.map((item, index) => cefrOfWords(splitItem(item).note) ?? allAt(cefrOfLevel(group.levels[index] ?? 0)))
+
+    return {items: group.items.map((item) => splitItem(item).name), cefr, levels: group.items.map(() => 0)}
+}
+
+/** A group moved back to levels out of five: each level in words after its name, and as dots. */
+function fromCefr(group: TagGroup): Partial<TagGroup> {
+    const cefr = group.cefr ?? []
+
+    return {items: group.items.map((item, index) => joinItem(item, cefrSummary(cefr[index] ?? [], 'Native'))), levels: group.items.map((_, index) => cefrLevel(cefr[index] ?? [])), cefr: undefined}
+}
+
+function GroupRow({sectionId, group, handle, edit, single, languages}: {sectionId: string; group: TagGroup; handle: HandleProps; edit: Edit; single: boolean; languages: boolean}) {
     return (
         <div className="group-row" data-hidden={!group.visible || undefined} onBlur={edit.commit}>
             <DragHandle handle={handle} />
             <div className="group-row__fields">
                 <TextField label="Group" value={group.label} placeholder={single ? 'Optional, such as Languages' : 'Languages'} onChange={(label) => edit.type((cv) => updateGroup(cv, sectionId, group.id, {label}))} />
-                {group.showLevels ? (
+                {group.cefr ? (
+                    <>
+                        <TagInput
+                            label="Languages"
+                            values={group.items}
+                            placeholder="Type one, then Enter"
+                            onChange={(items) => edit.act('languages', (cv) => updateGroup(cv, sectionId, group.id, {items, cefr: cefrFor(items, group), levels: items.map(() => 0)}))}
+                        />
+                        <CefrGrid items={group.items} cefr={group.cefr} onChange={(cefr) => edit.act('European level', (cv) => updateGroup(cv, sectionId, group.id, {cefr}))} />
+                    </>
+                ) : group.showLevels ? (
                     <LevelList
                         id={group.id}
                         items={group.items}
@@ -102,6 +128,15 @@ function GroupRow({sectionId, group, handle, edit, single}: {sectionId: string; 
                         onChange={(items) => edit.act('skills', (cv) => updateGroup(cv, sectionId, group.id, {items, levels: levelsFor(items, group)}))}
                     />
                 )}
+                {languages || group.cefr ? (
+                <div className="group-row__levels">
+                    <Switch label="European levels" value={group.cefr !== undefined} onChange={(on) => edit.act(on ? 'European levels' : 'levels out of five', (cv) => updateGroup(cv, sectionId, group.id, on ? toCefr(group) : fromCefr(group)))} />
+                    <span className="group-row__levels-text">
+                        European levels, A1 to C2
+                        <span className="group-row__levels-hint">For languages, as Europass and most of Europe write them</span>
+                    </span>
+                </div>
+                ) : null}
                 <div className="group-row__levels">
                     <Switch
                         label="Show levels"
@@ -203,7 +238,7 @@ export function SectionPanel({section, handle, edit}: {section: Section; handle:
                                 className="group-list"
                                 onMove={(from, to) => edit.act('move group', (cv) => updateGroups(cv, section.id, (groups) => moveItem(groups, from, to)))}
                             >
-                                {(group, _, groupHandle) => <GroupRow sectionId={section.id} group={group} handle={groupHandle} edit={edit} single={section.groups.length === 1} />}
+                                {(group, _, groupHandle) => <GroupRow sectionId={section.id} group={group} handle={groupHandle} edit={edit} single={section.groups.length === 1} languages={isLanguages(section.title) || isLanguages(group.label)} />}
                             </SortableList>
                             <button type="button" className="button panel__add" onClick={() => edit.act('add group', (cv) => updateGroups(cv, section.id, (groups) => [...groups, emptyGroup()]))}>
                                 <Plus size={13} aria-hidden="true" />

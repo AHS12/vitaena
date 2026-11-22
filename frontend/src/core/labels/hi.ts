@@ -74,5 +74,6 @@ export const hi: Labels = {
         name: 'नाम',
         work: 'व्यवसाय',
         note: 'टिप्पणी',
+        cefr: {listening: 'सुनना', reading: 'पढ़ना', interaction: 'बातचीत', production: 'मौखिक अभिव्यक्ति', writing: 'लिखना', motherTongue: 'मातृभाषा', native: 'मातृभाषा'},
     },
 }

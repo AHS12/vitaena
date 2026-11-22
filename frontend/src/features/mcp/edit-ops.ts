@@ -10,7 +10,8 @@
 import {z} from 'zod'
 import {cmOf} from '../../cv/details'
 import {emptyGroup, newSection} from '../../cv/editor/edit-ops'
-import {levelsFor} from '../../cv/levels'
+import {levelsFor, splitItem} from '../../cv/levels'
+import {cefrFor, cefrOfWords, type CefrLevel} from '../../cv/cefr'
 import {emptyEntry, newId, type DetailRow, type Entry, type FamilyMember, type Section, type SectionKind, type TagGroup} from '../../cv/sections'
 import type {Content} from '../../store/document-types'
 
@@ -61,6 +62,10 @@ export const operationSchema = z.object({
     text: z.string().optional().describe("A text section's text. Paragraphs are separated by a blank line."),
     label: z.string().optional().describe("A group's label, such as Languages, or none."),
     items: z.array(z.string()).optional().describe('A group\'s items, replacing those it has. A level in words goes in brackets: "English (Fluent)".'),
+    cefr: z
+        .array(z.string())
+        .optional()
+        .describe('For set_tags on languages: each item’s European levels (CEFR), in the items’ order: "C1" for all five skills, five for listening, reading, spoken interaction, spoken production and writing ("B2 B2 B1 B1 A2"), or "native". Puts the group on the European scale, with the items as names alone.'),
     rows: z
         .array(z.object({label: z.string(), value: z.string()}))
         .optional()
@@ -85,7 +90,7 @@ export const OPS_HELP = [
     'add_entry: section, then title, org, location, start, end, current, summary, bullets, position.',
     'update_entry: entry, then only the fields to change.',
     'remove_entry, move_entry: entry, then position.',
-    'set_tags: section, then group (or a label to find or make one), items, label.',
+    'set_tags: section, then group (or a label to find or make one), items, label, and for languages cefr.',
     'remove_group: group.',
     'set_details: section, rows.',
     'set_family: section, members.',
@@ -409,7 +414,24 @@ export function applyOperations(content: Content, kind: string, operations: read
                     }
 
                     const before = group ?? {...emptyGroup(), label: label ?? ''}
-                    const after: TagGroup = {...before, label: label ?? before.label, items, levels: levelsFor(items, before)}
+                    let after: TagGroup = {...before, label: label ?? before.label, items, levels: levelsFor(items, before)}
+
+                    if (operation.cefr !== undefined) {
+                        if (operation.cefr.length !== items.length) {
+                            throw new OperationError(`give a European level for each of the ${items.length} items, not ${operation.cefr.length}`)
+                        }
+
+                        const cefr = operation.cefr.map((words) => cefrOfWords(words))
+                        const bad = operation.cefr.find((_, index) => cefr[index] === null)
+
+                        if (bad !== undefined) {
+                            throw new OperationError(`"${bad}" isn’t a European level: give A1 to C2, five of them, or native`)
+                        }
+
+                        after = {...after, items: items.map((item) => splitItem(item).name), cefr: cefr as CefrLevel[][], levels: items.map(() => 0)}
+                    } else if (before.cefr) {
+                        after = {...after, cefr: cefrFor(items, before)}
+                    }
 
                     replaceSection({...section, groups: group ? section.groups.map((candidate) => (candidate.id === after.id ? after : candidate)) : [...section.groups, after]})
 

@@ -73,5 +73,6 @@ export const tr: Labels = {
         name: 'Ad',
         work: 'Meslek',
         note: 'Not',
+        cefr: {listening: 'Dinleme', reading: 'Okuma', interaction: 'Karşılıklı konuşma', production: 'Sözlü anlatım', writing: 'Yazma', motherTongue: 'Ana dil', native: 'Ana dil'},
     },
 }

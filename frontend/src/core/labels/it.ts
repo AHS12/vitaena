@@ -73,5 +73,6 @@ export const it: Labels = {
         name: 'Nome',
         work: 'Professione',
         note: 'Nota',
+        cefr: {listening: 'Ascolto', reading: 'Lettura', interaction: 'Interazione', production: 'Produzione orale', writing: 'Scrittura', motherTongue: 'Madrelingua', native: 'Madrelingua'},
     },
 }

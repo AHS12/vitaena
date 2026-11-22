@@ -74,5 +74,6 @@ export const uk: Labels = {
         name: 'Ім’я',
         work: 'Робота',
         note: 'Примітка',
+        cefr: {listening: 'Аудіювання', reading: 'Читання', interaction: 'Діалог', production: 'Монолог', writing: 'Письмо', motherTongue: 'Рідна мова', native: 'Рідна'},
     },
 }

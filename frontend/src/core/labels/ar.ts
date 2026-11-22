@@ -84,5 +84,6 @@ export const ar: Labels = {
         name: 'الاسم',
         work: 'العمل',
         note: 'ملاحظات',
+        cefr: {listening: 'الاستماع', reading: 'القراءة', interaction: 'المحادثة', production: 'التعبير الشفهي', writing: 'الكتابة', motherTongue: 'اللغة الأم', native: 'اللغة الأم'},
     },
 }

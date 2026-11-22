@@ -1,0 +1,66 @@
+<!doctype html>
+<!--
+  An invented CV laid out the way the Europass editor lays one out: dates as 01/2020 –
+  Current above each entry, the city and country beside the employer, and languages as a
+  grid of the five European skills under the mother tongue. Printed by
+  scripts/import-fixtures.mjs.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ana Example</title>
+<style>
+    @font-face { font-family: Plex; font-weight: 400; src: url('../../../../node_modules/@expo-google-fonts/ibm-plex-sans/400Regular/IBMPlexSans_400Regular.ttf'); }
+    @font-face { font-family: Plex; font-weight: 700; src: url('../../../../node_modules/@expo-google-fonts/ibm-plex-sans/700Bold/IBMPlexSans_700Bold.ttf'); }
+    @page { size: A4; margin: 18mm; }
+    body { font-family: Plex; font-size: 10pt; color: #111; line-height: 1.4; }
+    .name { font-size: 20pt; font-weight: 700; margin: 0 0 4pt; color: #0b3d91; }
+    p { margin: 0; }
+    h2 { font-size: 11.5pt; font-weight: 700; color: #0b3d91; margin: 16pt 0 6pt; border-bottom: 1.5px solid #0b3d91; text-transform: uppercase; }
+    .when { color: #555; margin-top: 8pt; }
+    .role { font-weight: 700; }
+    ul { margin: 2pt 0 0; padding-left: 14pt; }
+    table { border-collapse: collapse; width: 100%; margin-top: 4pt; }
+    th, td { text-align: center; padding: 3pt 2pt; border-bottom: 1px solid #ccc; }
+    th { font-size: 8.5pt; color: #555; font-weight: 400; }
+    td.lang, th.lang { text-align: left; font-weight: 700; }
+</style>
+</head>
+<body>
+    <p class="name">Ana Example</p>
+    <p>Email: ana.example@example.com</p>
+    <p>Phone: +34 910 123 456</p>
+    <p>Address: Madrid, Spain</p>
+
+    <h2>Work experience</h2>
+    <p class="when">03/2020 – Current</p>
+    <p class="role">Marketing Coordinator</p>
+    <p>Sol Media S.L. – Madrid, Spain</p>
+    <ul>
+        <li>Planned campaigns for twenty clients across Spain and Portugal.</li>
+        <li>Grew newsletter readers from 4,000 to 15,000 in two years.</li>
+    </ul>
+    <p class="when">06/2017 – 02/2020</p>
+    <p class="role">Marketing Assistant</p>
+    <p>Riverside Retail – Valencia, Spain</p>
+    <ul>
+        <li>Wrote product pages and social posts in Spanish and English.</li>
+    </ul>
+
+    <h2>Education and training</h2>
+    <p class="when">09/2013 – 06/2017</p>
+    <p class="role">Degree in Advertising and Public Relations</p>
+    <p>University of Riverside – Valencia, Spain</p>
+
+    <h2>Language skills</h2>
+    <p>Mother tongue(s): Spanish</p>
+    <table>
+        <tr><th class="lang">Other languages</th><th>Listening</th><th>Reading</th><th>Spoken interaction</th><th>Spoken production</th><th>Writing</th></tr>
+        <tr><td class="lang">English</td><td>C1</td><td>C1</td><td>B2</td><td>B2</td><td>C1</td></tr>
+        <tr><td class="lang">French</td><td>B1</td><td>B2</td><td>A2</td><td>A2</td><td>B1</td></tr>
+    </table>
+
+    <h2>Digital skills</h2>
+    <p>Google Analytics, Canva, WordPress, Microsoft Excel</p>
+</body>
+</html>

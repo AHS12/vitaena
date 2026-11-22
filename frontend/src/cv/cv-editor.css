@@ -915,6 +915,58 @@ input.panel__title:focus {
     color: var(--text-tertiary);
 }
 
+/* Languages on the European scale: a level for all five skills, then each one */
+.cefr-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.cefr-grid__row {
+    display: grid;
+    grid-template-columns: minmax(64px, 1fr) repeat(6, 48px);
+    align-items: center;
+    gap: 4px;
+}
+
+.cefr-grid__row--head {
+    font: var(--text-caption);
+    color: var(--text-tertiary);
+}
+
+.cefr-grid__row--head span:not(:first-child) {
+    text-align: center;
+}
+
+.cefr-grid__name {
+    overflow: hidden;
+    font: var(--text-label);
+    color: var(--text-primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cefr-grid__select {
+    /* No arrow, so "Native" fits a column narrow enough for six across the pane. */
+    appearance: none;
+    width: 100%;
+    min-height: 26px;
+    padding: 2px 1px;
+    text-align: center;
+    text-align-last: center;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    font: var(--text-caption);
+}
+
+.cefr-grid__select:focus-visible {
+    outline: none;
+    border-color: var(--brand-teal);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-teal) 22%, transparent);
+}
+
 .level-list {
     display: flex;
     flex-direction: column;

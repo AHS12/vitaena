@@ -74,5 +74,6 @@ export const pl: Labels = {
         name: 'Imię i nazwisko',
         work: 'Zawód',
         note: 'Uwagi',
+        cefr: {listening: 'Słuchanie', reading: 'Czytanie', interaction: 'Porozumiewanie się', production: 'Samodzielne wypowiadanie się', writing: 'Pisanie', motherTongue: 'Język ojczysty', native: 'Język ojczysty'},
     },
 }

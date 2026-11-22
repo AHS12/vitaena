@@ -73,5 +73,6 @@ export const fr: Labels = {
         name: 'Nom',
         work: 'Profession',
         note: 'Remarque',
+        cefr: {listening: 'Écouter', reading: 'Lire', interaction: 'Prendre part à une conversation', production: 'S\'exprimer oralement en continu', writing: 'Écrire', motherTongue: 'Langue maternelle', native: 'Langue maternelle'},
     },
 }

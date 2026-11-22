@@ -73,5 +73,6 @@ export const en: Labels = {
         name: 'Name',
         work: 'Work',
         note: 'Note',
+        cefr: {listening: 'Listening', reading: 'Reading', interaction: 'Spoken interaction', production: 'Spoken production', writing: 'Writing', motherTongue: 'Mother tongue', native: 'Native'},
     },
 }

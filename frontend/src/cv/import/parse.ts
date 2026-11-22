@@ -11,10 +11,11 @@
  * Nothing is dropped: what the rules can't place goes into a hidden Not sorted section.
  */
 
-import {labelsFor, type DocumentLanguage} from '../../core/labels/labels'
+import {LANGUAGE_IDS, labelsFor, type DocumentLanguage} from '../../core/labels/labels'
 import {scriptsIn} from '../fonts'
 import {DEFAULT_DESIGN, NO_CLOSING, emptyEntry, newId, type Cv, type CvEntry, type CvPerson, type CvSection, type CvTagGroup} from '../cv'
-import {joinItem, levelOfWords, withWordLevels} from '../levels'
+import {joinItem, levelOfWords, splitItem, withWordLevels} from '../levels'
+import {allAt, cefrOfItems, type CefrLevel} from '../cefr'
 import {findDates, withoutDates, type DateRange} from './dates'
 import {headingKey, knownHeading, type HeadingKind} from './headings'
 import type {PdfLine} from './layout'
@@ -518,7 +519,48 @@ function learnLinesBeforeDates(sections: readonly RawSection[], body: number): n
 
 export const LABELLED = /^([^:,]{1,30}):\s*(.*)$/
 
+/** A place and a day, as a German or South Asian CV ends: "Berlin, 19.11.2026", "Dhaka, 19/11/2026". */
+const CLOSING_LINE = /^(\p{L}[\p{L} .'-]{1,40}),\s*(\d{1,2})[./](\d{1,2})[./]((?:19|20)\d{2})$/u
+
+/** A row of a European language grid: the language, then its five levels. */
+const CEFR_ROW = /^(.+?)\s+([ABC][12](?:\s+[ABC][12]){4})$/i
+
+/** "Mother tongue(s): Spanish", in any language a CV is written in. */
+const MOTHER_TONGUE = new RegExp(`^(?:${[...new Set(LANGUAGE_IDS.map((language) => labelsFor(language).page.cefr.motherTongue))].join('|')})(?:\\s*\\(s\\))?\\s*:?\\s*(.+)$`, 'iu')
+
+/**
+ * Languages laid out as Europass lays them out: the mother tongues on a line, then a grid,
+ * a language to a row with its five skills' levels. One group on the European scale, or
+ * null when the lines aren't such a grid.
+ */
+export function cefrGridOf(lines: readonly PdfLine[]): CvTagGroup | null {
+    const natives = lines.flatMap((line) => {
+        const found = MOTHER_TONGUE.exec(line.text.trim())
+
+        return found ? found[1].split(/\s*[,;]\s*/).filter(Boolean) : []
+    })
+    const rows = lines.flatMap((line) => {
+        const found = CEFR_ROW.exec(line.text.trim())
+
+        return found ? [{name: found[1].trim(), levels: found[2].toUpperCase().split(/\s+/) as CefrLevel[]}] : []
+    })
+
+    if (rows.length === 0) {
+        return null
+    }
+
+    const items = [...natives, ...rows.map((row) => row.name)]
+
+    return {id: newId('group'), visible: true, label: '', items, showLevels: false, levels: items.map(() => 0), cefr: [...natives.map(() => allAt('native')), ...rows.map((row) => row.levels)]}
+}
+
 export function tagGroupsOf(lines: readonly PdfLine[]): CvTagGroup[] {
+    const grid = cefrGridOf(lines)
+
+    if (grid) {
+        return [grid]
+    }
+
     const groups: {label: string; items: string[]; text: string}[] = []
     const current = () => groups[groups.length - 1] ?? (groups.push({label: '', items: [], text: ''}), groups[groups.length - 1])
     const start = (label: string, text = '') => groups.push({label, items: [], text})
@@ -570,7 +612,10 @@ export function tagGroupsOf(lines: readonly PdfLine[]): CvTagGroup[] {
                     return level && levelOfWords(level[2]) > 0 ? joinItem(level[1], level[2]) : item
                 })
 
-            return {id: newId('group'), visible: true, label: group.label, items, ...withWordLevels(items)}
+            // Levels written as A1 to C2 stay on the European scale.
+            const european = cefrOfItems(items, splitItem)
+
+            return european ? {id: newId('group'), visible: true, label: group.label, ...european, showLevels: false, levels: european.items.map(() => 0)} : {id: newId('group'), visible: true, label: group.label, items, ...withWordLevels(items)}
         })
         .filter((group) => group.items.length > 0 || group.label)
 }
@@ -598,8 +643,19 @@ export function labelAndValue(line: PdfLine): [label: string, value: string] | n
 
     const labelled = LABELLED.exec(line.text)
 
-    return labelled && !BULLET.test(line.text) ? [labelled[1].trim(), labelled[2].trim()] : null
+    if (labelled && !BULLET.test(line.text)) {
+        return [labelled[1].trim(), labelled[2].trim()]
+    }
+
+    // A long label, such as Staatsangehörigkeit, can run up to its value with no gap between.
+    const lower = line.text.trim().toLowerCase()
+    const known = ROW_LABELS.find((label) => lower.startsWith(`${label} `))
+
+    return known ? [line.text.trim().slice(0, known.length), line.text.trim().slice(known.length).trim()] : null
 }
+
+/** The app's row labels in every language, longest first, lower case. */
+const ROW_LABELS = [...new Set(LANGUAGE_IDS.flatMap((language) => Object.values(labelsFor(language).rows).map((label) => label.toLowerCase())))].sort((a, b) => b.length - a.length)
 
 /** Lines of a details section as rows of words; what isn't a row goes to `unsorted`. */
 export function detailRowsOf(lines: readonly PdfLine[], unsorted: string[]): {label: string; value: string}[] {
@@ -717,7 +773,14 @@ export function cvFromLayout(layout: PdfLayout): ImportedCv {
 
     contactFrom([...parts.above, ...parts.header], contact, unsorted)
 
-    for (const section of parts.sections) {
+    // "Berlin, 19.11.2026" as the last line is the CV's closing line, not part of its last section.
+    const last = parts.sections[parts.sections.length - 1]
+    const closingLine = last?.lines[last.lines.length - 1]
+    const ending = closingLine ? CLOSING_LINE.exec(closingLine.text.trim()) : null
+    const sections = ending && last ? [...parts.sections.slice(0, -1), {...last, lines: last.lines.slice(0, -1)}] : parts.sections
+    const closing = ending ? {show: true, place: ending[1].trim(), date: `${ending[4]}-${ending[3].padStart(2, '0')}-${ending[2].padStart(2, '0')}`, signature: ''} : NO_CLOSING
+
+    for (const section of sections) {
         const kind = section.kind ?? guessKind(section.lines)
         const base = {id: newId('section'), title: section.title, visible: true}
 
@@ -753,5 +816,5 @@ export function cvFromLayout(layout: PdfLayout): ImportedCv {
         hide: [],
     }
 
-    return {cv: {person, sections: cvSections, closing: NO_CLOSING, design: {...DEFAULT_DESIGN, template: parts.twoColumns ? 'modern' : 'classic', language: languageOfHeadings(cvSections.map((section) => section.title))}}, unsorted: unsorted.length}
+    return {cv: {person, sections: cvSections, closing, design: {...DEFAULT_DESIGN, template: parts.twoColumns ? 'modern' : 'classic', language: languageOfHeadings(cvSections.map((section) => section.title))}}, unsorted: unsorted.length}
 }

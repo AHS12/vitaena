@@ -74,5 +74,6 @@ export const zhHans: Labels = {
         name: '姓名',
         work: '职业',
         note: '备注',
+        cefr: {listening: '听力', reading: '阅读', interaction: '口语交流', production: '口头表达', writing: '写作', motherTongue: '母语', native: '母语'},
     },
 }

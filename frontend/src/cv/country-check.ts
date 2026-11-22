@@ -6,7 +6,9 @@
 
 import {LANGUAGE_IDS, labelsFor, type Labels} from '../core/labels/labels'
 import type {CheckResult} from './ats-check'
+import {cefrOfWords} from './cefr'
 import {countryOf} from './countries'
+import {splitItem} from './levels'
 import type {Cv} from './cv'
 
 /** Rows that tell an employer a person's age, family or origin, in every language. */
@@ -15,9 +17,6 @@ const PERSONAL: readonly (keyof Labels['rows'])[] = ['dateOfBirth', 'maritalStat
 const personalWords = (key: keyof Labels['rows']): Set<string> => new Set(LANGUAGE_IDS.map((language) => labelsFor(language).rows[key].toLowerCase()))
 
 const WORDS = Object.fromEntries(PERSONAL.map((key) => [key, personalWords(key)])) as Record<(typeof PERSONAL)[number], Set<string>>
-
-/** CEFR levels, as Europass writes them: A1 to C2. */
-const CEFR = /\b[ABC][12]\b/
 
 /** The rows shown on the page, by what they say: "Date of birth" and the like. */
 function personalRows(cv: Cv): string[] {
@@ -97,11 +96,12 @@ export function checkCountry(cv: Cv, pages: number | null): CheckResult[] {
 
     if (country.id === 'europass') {
         const languages = cv.sections.find((section) => section.visible && section.kind === 'tags' && section.title.trim().toLowerCase() === labelsFor(cv.design.language).sections.languages.toLowerCase())
-        const items = languages?.kind === 'tags' ? languages.groups.filter((group) => group.visible).flatMap((group) => group.items) : []
-        const unlevelled = items.filter((item) => !CEFR.test(item) && !/native|mother/i.test(item))
+        const groups = languages?.kind === 'tags' ? languages.groups.filter((group) => group.visible) : []
+        // On the European scale, a language without any level; otherwise one whose words name none.
+        const unlevelled = groups.flatMap((group) => (group.cefr ? group.items.filter((_, index) => (group.cefr?.[index] ?? []).every((level) => level === '')) : group.items.filter((item) => cefrOfWords(splitItem(item).note) === null)))
 
         if (unlevelled.length > 0) {
-            add({id: 'country-cefr', level: 'tip', title: unlevelled.length === 1 ? 'One language has no European level' : `${unlevelled.length} languages have no European level`, detail: 'Europass gives each language a level from A1 to C2, such as "German (B2)", so readers across Europe can compare them.'})
+            add({id: 'country-cefr', level: 'tip', title: unlevelled.length === 1 ? 'One language has no European level' : `${unlevelled.length} languages have no European level`, detail: 'Europass gives each language a level from A1 to C2, so readers across Europe can compare them. Turn on European levels for the group, or write one in brackets, such as "German (B2)".'})
         }
     }
 

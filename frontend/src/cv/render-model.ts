@@ -12,7 +12,8 @@ import {ENGLISH, type Section, type Writing} from './sections'
 import {fontById, fontFamilies} from './fonts'
 import {parseRich, type Span} from './rich'
 import {levelOfWords, splitItem} from './levels'
-import {commaIn, dateRange, dayMonthYear, labelsFor, languageInfo, monthAndYear} from '../core/labels/labels'
+import {commaIn, dateRange, dayMonthYear, labelsFor, languageInfo, monthAndYear, type Labels} from '../core/labels/labels'
+import {cefrLevel, cefrSummary} from './cefr'
 import {detailValue, numbersIn} from './details'
 
 export interface RenderEntry {
@@ -33,6 +34,15 @@ export interface RenderTagItem {
     readonly level: number
 }
 
+/** A language on the European scale: its five skills' levels, or a first language. */
+export interface RenderCefrItem {
+    readonly name: string
+    /** A first language, which a grid lists apart rather than giving levels. */
+    readonly native: boolean
+    /** For listening, reading, spoken interaction, spoken production and writing; "" where not given. */
+    readonly levels: readonly string[]
+}
+
 export interface RenderTagGroup {
     readonly label: string
     /** The items as one line, for templates that write them out. */
@@ -40,6 +50,8 @@ export interface RenderTagGroup {
     /** Draw each item's level, as dots or a bar. */
     readonly levels: boolean
     readonly list: readonly RenderTagItem[]
+    /** The items' European levels, for a group kept on that scale, else null. Every template has `list` too. */
+    readonly cefr: readonly RenderCefrItem[] | null
 }
 
 /** One line of a details section, its value already written out: "12 March 1996 (30 years)". */
@@ -78,8 +90,11 @@ export interface RenderModel {
     /** The signature under it as a data URL, or "" for a line to sign on. */
     readonly signature: string
     /** Words a template writes itself, in the CV's language. */
-    /** Words the template writes itself: the Contact heading, and the comma between a job and its employer. */
-    readonly words: {readonly contact: string; readonly comma: string}
+    /**
+     * Words the template writes itself: the Contact heading, the comma between a job and its
+     * employer, and the European scale's skills, for a grid of languages.
+     */
+    readonly words: {readonly contact: string; readonly comma: string; readonly cefr: Labels['page']['cefr']}
     readonly design: {
         readonly accent: string
         /** The font's family name, as Typst knows it. */
@@ -239,12 +254,22 @@ export function sectionBody(section: Section, today: Date, writing: Writing = EN
         const groups = section.groups
             .filter((group) => group.visible)
             .map((group) => {
-                const kept = group.items.map((item, index) => ({text: trimmed(item), level: group.levels[index] ?? 0})).filter((item) => item.text)
+                const kept = group.items.map((item, index) => ({text: trimmed(item), level: group.levels[index] ?? 0, cefr: group.cefr?.[index]})).filter((item) => item.text)
+
+                if (group.cefr) {
+                    // On the European scale every template still says each level in words, "English (C1)".
+                    const native = labelsFor(writing.language).page.cefr.native
+                    const cefr = kept.map((item) => ({name: item.text, native: item.cefr?.every((level) => level === 'native') ?? false, levels: (item.cefr ?? []).map((level) => (level === 'native' ? native : level))}))
+                    const list = kept.map((item) => ({name: item.text, note: cefrSummary(item.cefr ?? [], native), level: group.showLevels ? cefrLevel(item.cefr ?? []) : 0}))
+
+                    return {label: group.label.trim(), items: list.map((item) => (item.note ? `${item.name} (${item.note})` : item.name)).join(commaIn(writing.language)), levels: group.showLevels, list, cefr}
+                }
+
                 const items = kept.map((item) => item.text)
                 // A level set by hand wins; else one the item's own words name.
                 const list = kept.map((item) => tagItem(item.text, group.showLevels ? item.level || undefined : 0))
 
-                return {label: group.label.trim(), items: items.join(commaIn(writing.language)), levels: group.showLevels, list}
+                return {label: group.label.trim(), items: items.join(commaIn(writing.language)), levels: group.showLevels, list, cefr: null}
             })
             .filter((group) => group.items)
 
@@ -279,7 +304,7 @@ export function renderModel(cv: Cv, today: Date = new Date()): RenderModel {
         sections,
         closing: closingText(cv, today),
         signature: cv.closing.show ? cv.closing.signature : '',
-        words: {contact: labelsFor(cv.design.language).sections.contact, comma: commaIn(cv.design.language)},
+        words: {contact: labelsFor(cv.design.language).sections.contact, comma: commaIn(cv.design.language), cefr: labelsFor(cv.design.language).page.cefr},
         design: {
             accent: cv.design.accent,
             font: fontById(cv.design.font).family,

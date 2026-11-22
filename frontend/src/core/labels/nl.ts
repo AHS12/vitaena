@@ -73,5 +73,6 @@ export const nl: Labels = {
         name: 'Naam',
         work: 'Beroep',
         note: 'Opmerking',
+        cefr: {listening: 'Luisteren', reading: 'Lezen', interaction: 'Gesprekken voeren', production: 'Spreken', writing: 'Schrijven', motherTongue: 'Moedertaal', native: 'Moedertaal'},
     },
 }
