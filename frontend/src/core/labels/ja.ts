@@ -30,6 +30,7 @@ export const ja: Labels = {
         religiousPractice: '信仰',
         lifestyle: 'ライフスタイル',
         moreAboutMe: 'その他',
+        digitalSkills: 'デジタルスキル',
     },
     rows: {
         dateOfBirth: '生年月日',
@@ -64,6 +65,8 @@ export const ja: Labels = {
         mother: '母',
         brother: '兄弟',
         sister: '姉妹',
+        visaStatus: '在留資格',
+        drivingLicence: '運転免許',
     },
     page: {
         present: '現在',
@@ -74,5 +77,6 @@ export const ja: Labels = {
         name: '氏名',
         work: '職業',
         note: '備考',
+        cefr: {listening: '聞く', reading: '読む', interaction: 'やり取り', production: '発表', writing: '書く', motherTongue: '母語', native: '母語'},
     },
 }

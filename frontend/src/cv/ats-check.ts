@@ -11,6 +11,8 @@ import {emailWarning} from './editor/edit-ops'
 import {CV_TEMPLATES} from './templates/templates'
 import {splitItem} from './levels'
 import {notSortedLines} from './import/not-sorted'
+import {checkCountry} from './country-check'
+import {countryOf} from './countries'
 
 export type CheckLevel = 'good' | 'tip' | 'warning'
 
@@ -19,8 +21,12 @@ export interface CheckResult {
     readonly level: CheckLevel
     readonly title: string
     readonly detail?: string
-    /** Something the Check can do about it with one click. */
-    readonly fix?: 'ats-mode'
+    /** Something the Check can do about it with one click: ATS mode, hiding the photo, or the place's paper. */
+    readonly fix?: 'ats-mode' | 'hide-photo' | 'paper'
+    /** The fix's button, when it isn't the usual one: "Use US Letter". */
+    readonly fixLabel?: string
+    /** Advice for the place the CV is for, shown in a group of its own. */
+    readonly country?: boolean
 }
 
 /** Headings most parsers look for, and other words that mean the same. */
@@ -84,12 +90,13 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
     }
 
     // The app's own headings in another language: right for a reader of that language, but
-    // screening software knows English ones, so it's said once, not per heading.
+    // screening software knows English ones, so it's said once, not per heading. Not when
+    // it's the language of the place the CV is for.
     const ownWords = new Set(Object.values(labelsFor(cv.design.language).sections).map((title) => title.toLowerCase()))
     const inLanguage = cv.design.language !== 'en' ? shown.filter((section) => ownWords.has(section.title.trim().toLowerCase())) : []
     const unknown = shown.filter((section) => !isKnown(section.title) && !inLanguage.includes(section)).map((section) => section.title.trim() || 'An untitled section')
 
-    if (inLanguage.length > 0) {
+    if (inLanguage.length > 0 && countryOf(cv.design.country).language !== cv.design.language) {
         const language = languageInfo(cv.design.language).name
 
         results.push({
@@ -111,7 +118,7 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
               },
     )
 
-    if (!shown.some((section) => section.kind === 'entries' && /experience|employment|work|positions|অভিজ্ঞতা|পেশা|চাকরি|अनुभव|व्यवसाय|تجربہ|پیشہ|ملازمت|خبرة|خبرات|الوظيفي|سوابق|تجربه|職歴|職務経歴|経歴|经历|經歷|经验|經驗|工作|경력/i.test(section.title))) {
+    if (!shown.some((section) => section.kind === 'entries' && /experience|employment|work|positions|অভিজ্ঞতা|পেশা|চাকরি|अनुभव|व्यवसाय|تجربہ|پیشہ|ملازمت|خبرة|خبرات|الوظيفي|سوابق|تجربه|職歴|職務経歴|経歴|经历|經歷|经验|經驗|工作|경력|berufserfahrung|erfahrung|beruflich|expérience|experiencia|esperienz|experiência|werkervaring|ervaring|doświadczenie|deneyim|опыт|досвід/i.test(section.title))) {
         results.push({id: 'experience', level: 'tip', title: 'No Experience section', detail: 'Most screening looks for one, even for a first job: internships and volunteering count.'})
     }
 
@@ -125,12 +132,13 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
         results.push({id: 'columns', level: 'good', title: 'One column, read top to bottom'})
     }
 
-    if (person.photo && !person.hide.includes('photo')) {
+    // With a place chosen, its own advice says whether a photo is expected.
+    if (person.photo && !person.hide.includes('photo') && cv.design.country === 'any') {
         results.push({id: 'photo', level: 'tip', title: 'Your CV has a photo', detail: 'Expected in much of Europe and Asia, but often left out for jobs in the US and UK. Show on the page turns it off without removing it.'})
     }
 
     const entries = shown.flatMap((section) => (section.kind === 'entries' ? section.entries.filter((entry) => entry.visible).map((entry) => ({section: section.title, entry})) : []))
-    const undated = entries.filter(({section, entry}) => /experience|employment|work|education|positions|অভিজ্ঞতা|পেশা|চাকরি|শিক্ষা|अनुभव|व्यवसाय|शिक्षा|शैक्षणिक|शिक्षण|تجربہ|پیشہ|تعلیم|خبرة|خبرات|تعليم|مؤهلات|سوابق|تجربه|تحصیلات|職歴|職務経歴|経歴|学歴|经历|經歷|经验|經驗|工作|教育|学历|學歷|경력|학력/i.test(section) && !entry.start && !entry.end && !entry.current)
+    const undated = entries.filter(({section, entry}) => /experience|employment|work|education|positions|অভিজ্ঞতা|পেশা|চাকরি|শিক্ষা|अनुभव|व्यवसाय|शिक्षा|शैक्षणिक|शिक्षण|تجربہ|پیشہ|تعلیم|خبرة|خبرات|تعليم|مؤهلات|سوابق|تجربه|تحصیلات|職歴|職務経歴|経歴|学歴|经历|經歷|经验|經驗|工作|教育|学历|學歷|경력|학력|berufserfahrung|erfahrung|beruflich|expérience|experiencia|esperienz|experiência|werkervaring|ervaring|doświadczenie|deneyim|опыт|досвід|ausbildung|bildung|studium|formation|formación|educación|istruzione|formazione|formação|educação|opleiding|wykształcenie|edukacja|eğitim|образование|освіта/i.test(section) && !entry.start && !entry.end && !entry.current)
 
     if (undated.length > 0) {
         results.push({
@@ -170,9 +178,9 @@ export function checkCv(cv: Cv, pages: number | null): CheckResult[] {
         })
     }
 
-    if (pages !== null && pages > 2 && !shown.some((section) => /publication|research|grant|teaching/i.test(section.title))) {
+    if (pages !== null && pages > 2 && cv.design.country === 'any' && !shown.some((section) => /publication|research|grant|teaching/i.test(section.title))) {
         results.push({id: 'length', level: 'tip', title: `${pages} pages is long for most jobs`, detail: 'Outside academia, most readers expect one or two. Compact spacing or the Compact template can help.'})
     }
 
-    return results
+    return [...results, ...checkCountry(cv, pages)]
 }

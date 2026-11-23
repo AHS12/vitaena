@@ -28,7 +28,7 @@ const {biodataRenderModel} = await jiti.import('../src/biodata/render-model.ts')
 const {BIODATA_TEMPLATES} = await jiti.import('../src/biodata/templates/templates.ts')
 
 /** Each template in a colour of its own, so the gallery doesn't look like one template four times. */
-const LOOKS = {academic: {accent: '#3b3b6d', font: 'source-serif-4'}, professional: {accent: '#2563eb'}, classic: {accent: '#1f4e79'}, modern: {accent: '#22706d'}, minimal: {accent: '#7a1f4b', font: 'source-serif-4'}, compact: {accent: '#2e6b3e', font: 'ibm-plex-sans'}, executive: {accent: '#5b4636', font: 'eb-garamond'}, bold: {accent: '#b4442c'}, timeline: {accent: '#0f766e', font: 'lato'}, sidebar: {accent: '#1e3a5f'}}
+const LOOKS = {academic: {accent: '#3b3b6d', font: 'source-serif-4'}, professional: {accent: '#2563eb'}, classic: {accent: '#1f4e79'}, modern: {accent: '#22706d'}, minimal: {accent: '#7a1f4b', font: 'source-serif-4'}, compact: {accent: '#2e6b3e', font: 'ibm-plex-sans'}, executive: {accent: '#5b4636', font: 'eb-garamond'}, bold: {accent: '#b4442c'}, timeline: {accent: '#0f766e', font: 'lato'}, sidebar: {accent: '#1e3a5f'}, lebenslauf: {accent: '#334155'}, european: {accent: '#1d4ed8'}, harvard: {accent: '#111111', font: 'source-serif-4'}}
 const WIDTH = 900
 
 /** A plain drawn silhouette, so templates with a photo show one without a real face. */
@@ -74,6 +74,8 @@ async function picture(source, dataPath, full) {
         compiler.mapShadow(file.path, file.bytes)
     }
 
+    // What every CV template imports, such as the closing line, as the app gives it.
+    compiler.addSource('/parts.typ', readFileSync(here('../src/cv/templates/parts.typ'), 'utf8'))
     compiler.addSource('/main.typ', readFileSync(source, 'utf8'))
     compiler.mapShadow(dataPath, new TextEncoder().encode(JSON.stringify(model)))
 

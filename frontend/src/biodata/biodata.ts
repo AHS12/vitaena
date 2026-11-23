@@ -118,7 +118,7 @@ export const biodataType: DocumentType<Biodata> = {
     kind: 'biodata',
     noun: 'biodata',
     plural: 'biodata',
-    version: 3,
+    version: 4,
     content: biodataSchema,
     empty: () => emptyBiodata(),
     migrations: {
@@ -130,6 +130,8 @@ export const biodataType: DocumentType<Biodata> = {
         },
         // Version 3 added second labels, in another language. Older files have none.
         2: (content) => ({second: {language: '', labels: {}}, ...(content as object)}),
+        // Version 4 let a group of languages keep European levels, as a CV's can. Older files have none.
+        3: (content) => content,
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.
     thumbnail: async (biodata) => {

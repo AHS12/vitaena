@@ -75,10 +75,11 @@ no watermark, and nothing leaves it unless you back it up to storage of your own
 ## Features
 
 - **Real pages as you type,** laid out by the same engine that makes the PDF.
-- **Ten CV templates and three biodata designs,** each tested the way screening software
+- **Thirteen CV templates and three biodata designs,** each tested the way screening software
   reads a PDF, with a Check tab that shows what it gets.
-- **Eleven languages:** English, Bangla, Hindi, Marathi, Urdu, Arabic, Persian, Japanese,
-  Chinese and Korean, right to left where needed, with fonts for each or your own.
+- **Twenty-one languages:** English, German, French, Spanish, Italian, Portuguese, Dutch,
+  Polish, Turkish, Russian, Ukrainian, Bangla, Hindi, Marathi, Urdu, Arabic, Persian,
+  Japanese, Chinese and Korean, right to left where needed, with fonts for each or your own.
 - **Import** a CV or biodata from a PDF or Word file.
 - **Export** a PDF, a one-column PDF, Word, plain text, or pictures of a biodata.
 - **Backups** to a folder, a file, or your own S3-compatible cloud storage.
@@ -102,6 +103,10 @@ Everything else is on the [website](https://vitaena.ahs12.xyz), with pages for
 | Executive | Timeline | Minimal | Compact | Academic |
 |---|---|---|---|---|
 | ![Executive](docs/assets/templates/executive.png) | ![Timeline](docs/assets/templates/timeline.png) | ![Minimal](docs/assets/templates/minimal.png) | ![Compact](docs/assets/templates/compact.png) | ![Academic](docs/assets/templates/academic.png) |
+
+| Lebenslauf | European | Harvard |
+|---|---|---|
+| ![Lebenslauf](docs/assets/templates/lebenslauf.png) | ![European](docs/assets/templates/european.png) | ![Harvard](docs/assets/templates/harvard.png) |
 
 ### Biodata
 

@@ -5,6 +5,8 @@
 // For ATS: one column, real text throughout. Each date is written just before its own
 // entry, so a parser reads it as part of that entry.
 
+#import "/parts.typ": closing
+
 #let cv = json("/cv.json")
 #let accent = rgb(cv.design.accent)
 #let muted = luma(95)
@@ -206,3 +208,5 @@
     }
   }
 }
+
+#closing(cv)

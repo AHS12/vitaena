@@ -27,6 +27,25 @@ describe('second labels on a biodata', () => {
         expect(biodata.second.labels[mine.sections[1].id]).toBe('লেখাপড়া')
     })
 
+    it('change to the new language when it changes, keeping any the person typed', () => {
+        const start = sampleBiodata('bn')
+        const typed = setSecondLabel(withSecondLanguage(start, 'fa'), start.sections[1].id, 'My studies')
+        const biodata = withSecondLanguage(typed, 'ja')
+        const personal = biodata.sections[0]
+
+        expect(biodata.second.labels[personal.id]).toBe(withSecondLanguage(start, 'ja').second.labels[personal.id])
+        expect(biodata.second.labels[personal.id]).not.toBe(withSecondLanguage(start, 'fa').second.labels[personal.id])
+        expect(biodata.second.labels[start.sections[1].id]).toBe('My studies')
+    })
+
+    it('change to the new language after being turned off and on again', () => {
+        const start = sampleBiodata('bn')
+        const off = withSecondLanguage(withSecondLanguage(start, 'fa'), '')
+        const biodata = withSecondLanguage(off, 'en')
+
+        expect(biodata.second.labels[start.sections[0].id]).toBe('Personal details')
+    })
+
     it('go to the page under the first, and stay kept, hidden, when turned off', () => {
         const biodata = withSecondLanguage(sampleBiodata('bn'), 'en')
         const on = biodataRenderModel(biodata)

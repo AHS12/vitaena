@@ -4,7 +4,7 @@
  * CVs write them.
  */
 
-import {DEFAULT_DESIGN, type Cv, type CvEntry} from './cv'
+import {DEFAULT_DESIGN, NO_CLOSING, type Cv, type CvEntry} from './cv'
 
 const job = (id: string, title: string, org: string, start: string, end: string, bullets: string[], current = false): CvEntry => ({
     id,
@@ -102,6 +102,7 @@ export function sampleCvBn(): Cv {
                 groups: [{id: 'g4', visible: true, showLevels: true, levels: [5, 4.5], label: '', items: ['বাংলা (মাতৃভাষা)', 'ইংরেজি (উন্নত)']}],
             },
         ],
+        closing: NO_CLOSING,
         design: {...DEFAULT_DESIGN, language: 'bn'},
     }
 }

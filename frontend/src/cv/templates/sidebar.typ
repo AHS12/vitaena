@@ -6,6 +6,8 @@
 // text comes out in the order a reader would want. With ATS mode on, the sidebar goes and
 // everything is one column, with the contact details under the name.
 
+#import "/parts.typ": closing
+
 #let cv = json("/cv.json")
 #let accent = rgb(cv.design.accent)
 #let muted = luma(95)
@@ -182,6 +184,7 @@
     {
       name-block
       for s in main { section(s, false) }
+      closing(cv)
     },
     {
       set text(size: 0.92em, fill: white)
@@ -206,4 +209,5 @@
     text(size: 0.92em, contact-line(cv.contact, [|#h(0.5em)]))
   }
   for s in cv.sections { section(s, false) }
+  closing(cv)
 }

@@ -30,6 +30,7 @@ export const bn: Labels = {
         religiousPractice: 'ধর্মীয় অনুশীলন',
         lifestyle: 'জীবনযাপন',
         moreAboutMe: 'আরও কিছু তথ্য',
+        digitalSkills: 'ডিজিটাল দক্ষতা',
     },
     rows: {
         dateOfBirth: 'জন্ম তারিখ',
@@ -64,6 +65,8 @@ export const bn: Labels = {
         mother: 'মাতা',
         brother: 'ভাই',
         sister: 'বোন',
+        visaStatus: 'ভিসার অবস্থা',
+        drivingLicence: 'ড্রাইভিং লাইসেন্স',
     },
     page: {
         present: 'বর্তমান',
@@ -75,5 +78,6 @@ export const bn: Labels = {
         name: 'নাম',
         work: 'পেশা',
         note: 'মন্তব্য',
+        cefr: {listening: 'শোনা', reading: 'পড়া', interaction: 'কথোপকথন', production: 'মৌখিক উপস্থাপন', writing: 'লেখা', motherTongue: 'মাতৃভাষা', native: 'মাতৃভাষা'},
     },
 }

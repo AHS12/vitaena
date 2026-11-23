@@ -27,6 +27,7 @@ export const zhHant: Labels = {
         religiousPractice: '宗教信仰',
         lifestyle: '生活方式',
         moreAboutMe: '其他資訊',
+        digitalSkills: '數位技能',
     },
     rows: {
         dateOfBirth: '出生日期',
@@ -61,6 +62,8 @@ export const zhHant: Labels = {
         mother: '母親',
         brother: '兄弟',
         sister: '姊妹',
+        visaStatus: '簽證狀態',
+        drivingLicence: '駕駛執照',
     },
     page: {
         present: '至今',
@@ -71,5 +74,6 @@ export const zhHant: Labels = {
         name: '姓名',
         work: '職業',
         note: '備註',
+        cefr: {listening: '聽力', reading: '閱讀', interaction: '口語交流', production: '口頭表達', writing: '寫作', motherTongue: '母語', native: '母語'},
     },
 }

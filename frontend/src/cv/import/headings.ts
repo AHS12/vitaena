@@ -34,6 +34,7 @@ const KIND_OF_LABEL: Readonly<Record<keyof Labels['sections'], HeadingKind>> = {
     religiousPractice: 'details',
     lifestyle: 'details',
     moreAboutMe: 'details',
+    digitalSkills: 'tags',
 }
 
 /** Other words Bangla CVs and biodata use for the same headings. */
@@ -66,6 +67,42 @@ const MORE_BANGLA: readonly [HeadingKind, readonly string[]][] = [
     ['text', ['자기 소개', '지원 동기', '경력 요약']],
     ['entries', ['경력 사항', '경력사항', '학력 사항', '학력사항', '자격 사항', '교육 이수']],
     ['tags', ['기술', '보유기술', '기술 스택']],
+    ['text', ['Kurzprofil', 'Berufliches Profil', 'Zusammenfassung', 'Résumé', 'Profil professionnel', 'Resumen', 'Perfil profesional', 'Sommario', 'Profilo professionale', 'Resumo', 'Perfil profissional', 'Samenvatting', 'Profil zawodowy', 'Hakkımda', 'Profesyonel özet', 'Обо мне', 'Цель', 'Про мене']],
+    [
+        'entries',
+        [
+            'Beruflicher Werdegang',
+            'Berufspraxis',
+            'Praktika',
+            'Bildungsweg',
+            'Schulbildung',
+            'Studium',
+            'Weiterbildung',
+            'Expériences professionnelles',
+            'Expérience',
+            'Parcours professionnel',
+            'Diplômes',
+            'Experiencia profesional',
+            'Experiencia',
+            'Educación',
+            'Esperienze professionali',
+            'Esperienza lavorativa',
+            'Formazione',
+            'Experiência',
+            'Educação',
+            'Ervaring',
+            'Werkervaring en stages',
+            'Doświadczenie',
+            'Edukacja',
+            'Deneyim',
+            'Eğitim bilgileri',
+            'Опыт',
+            'Досвід',
+        ],
+    ],
+    ['tags', ['Language skills', 'Foreign languages', 'Fähigkeiten', 'Sprachkenntnisse', 'IT-Kenntnisse', 'Kompetenzen', 'Langues étrangères', 'Competencias', 'Competências', 'Competenze linguistiche', 'Vaardigheden en talen', 'Języki', 'Beceriler', 'Ключевые навыки', 'Знание языков', 'Навички та вміння']],
+    ['details', ['Persönliches', 'Angaben zur Person', 'État civil', 'Informations personnelles', 'Datos personales', 'Informazioni personali', 'Informações pessoais', 'Personalia', 'Dane osobowe', 'Kişisel bilgiler', 'Личная информация', 'Особиста інформація']],
+    ['contact', ['Kontaktdaten', 'Coordonnées', 'Datos de contacto', 'Recapiti', 'Contactos', 'Contactgegevens', 'Dane kontaktowe', 'İletişim bilgileri', 'Контактная информация', 'Контактна інформація']],
 ]
 
 const KNOWN: readonly [HeadingKind, readonly string[]][] = [

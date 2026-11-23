@@ -12,7 +12,8 @@ import {ENGLISH, type Section, type Writing} from './sections'
 import {fontById, fontFamilies} from './fonts'
 import {parseRich, type Span} from './rich'
 import {levelOfWords, splitItem} from './levels'
-import {commaIn, dateRange, labelsFor, languageInfo, monthAndYear} from '../core/labels/labels'
+import {commaIn, dateRange, dayMonthYear, labelsFor, languageInfo, monthAndYear, type Labels} from '../core/labels/labels'
+import {cefrLevel, cefrSummary} from './cefr'
 import {detailValue, numbersIn} from './details'
 
 export interface RenderEntry {
@@ -33,6 +34,15 @@ export interface RenderTagItem {
     readonly level: number
 }
 
+/** A language on the European scale: its five skills' levels, or a first language. */
+export interface RenderCefrItem {
+    readonly name: string
+    /** A first language, which a grid lists apart rather than giving levels. */
+    readonly native: boolean
+    /** For listening, reading, spoken interaction, spoken production and writing; "" where not given. */
+    readonly levels: readonly string[]
+}
+
 export interface RenderTagGroup {
     readonly label: string
     /** The items as one line, for templates that write them out. */
@@ -40,6 +50,8 @@ export interface RenderTagGroup {
     /** Draw each item's level, as dots or a bar. */
     readonly levels: boolean
     readonly list: readonly RenderTagItem[]
+    /** The items' European levels, for a group kept on that scale, else null. Every template has `list` too. */
+    readonly cefr: readonly RenderCefrItem[] | null
 }
 
 /** One line of a details section, its value already written out: "12 March 1996 (30 years)". */
@@ -73,9 +85,16 @@ export interface RenderModel {
     /** The photo as a data URL, or "" for none. The engine hands it to the template as a file. */
     readonly photo: string
     readonly sections: readonly RenderSection[]
+    /** The line the CV ends with, "Berlin, 19.11.2026", or "" for none. */
+    readonly closing: string
+    /** The signature under it as a data URL, or "" for a line to sign on. */
+    readonly signature: string
     /** Words a template writes itself, in the CV's language. */
-    /** Words the template writes itself: the Contact heading, and the comma between a job and its employer. */
-    readonly words: {readonly contact: string; readonly comma: string}
+    /**
+     * Words the template writes itself: the Contact heading, the comma between a job and its
+     * employer, and the European scale's skills, for a grid of languages.
+     */
+    readonly words: {readonly contact: string; readonly comma: string; readonly cefr: Labels['page']['cefr']}
     readonly design: {
         readonly accent: string
         /** The font's family name, as Typst knows it. */
@@ -113,11 +132,19 @@ export const pageLanguage = (language: string): {lang: string; latin: boolean; r
 export const MARGINS = {narrow: 1.3, normal: 1.8, wide: 2.4} as const
 export const SPACING = {compact: 0.8, normal: 1, relaxed: 1.2} as const
 
-/** "2023-01" as "Jan 2023", or "জানুয়ারি ২০২৩". */
+/** "2023-01" as "Jan 2023", "01/2023", "01.2023" or "2023", by the design's date style, in its language. */
 export function monthText(value: string, writing: Writing = ENGLISH): string {
     const match = /^(\d{4})-(\d{2})$/.exec(value)
 
-    return match ? numbersIn(monthAndYear(writing.language, Number(match[2]), match[1]), writing) : ''
+    if (!match) {
+        return ''
+    }
+
+    const [, year, month] = match
+    const style = writing.dateStyle ?? 'month-name'
+    const text = style === 'year' ? year : style === 'numeric-slash' ? `${month}/${year}` : style === 'numeric-dot' ? `${month}.${year}` : monthAndYear(writing.language, Number(month), year)
+
+    return numbersIn(text, writing)
 }
 
 /** An entry's dates in one consistent form: "Jan 2020 – Present", "2019 – Mar 2021", "Jun 2018". */
@@ -130,6 +157,34 @@ export function datesText(entry: Pick<CvEntry, 'start' | 'end' | 'current'>, wri
     }
 
     return start || end
+}
+
+/**
+ * A day as the closing line writes it, in the design's date style: "19.11.2026",
+ * "19/11/2026", or by name, "19 November 2026".
+ */
+export function dayText(value: string, writing: Writing = ENGLISH): string {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+
+    if (!match) {
+        return ''
+    }
+
+    const [, year, month, day] = match
+    const style = writing.dateStyle ?? 'month-name'
+    const text = style === 'numeric-dot' ? `${day}.${month}.${year}` : style === 'numeric-slash' ? `${day}/${month}/${year}` : dayMonthYear(writing.language, Number(day), Number(month), Number(year))
+
+    return numbersIn(text, writing)
+}
+
+/** "2026-11-19" for a day, as a closing line's date is kept. */
+const isoDay = (date: Date): string => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+
+/** The closing line: place and date, the date today's unless one is fixed. */
+export function closingText(cv: Pick<Cv, 'closing' | 'design'>, today: Date): string {
+    const {closing} = cv
+
+    return closing.show ? [closing.place.trim(), dayText(closing.date || isoDay(today), cv.design)].filter(Boolean).join(', ') : ''
 }
 
 const trimmed = (value: string): string => value.trim()
@@ -149,9 +204,9 @@ export function tagItem(text: string, level?: number): RenderTagItem {
 }
 
 /** Sections that belong beside the main story in a two-column template. */
-const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training|দক্ষতা|ভাষা|আগ্রহ|শখ|প্রকল্প|পুরস্কার|স্বেচ্ছাসেবা|সনদ|প্রশিক্ষণ|कौशल|भाषा|रुचि|शौक|परियोजना|पुरस्कार|प्रमाणपत्र|स्वयंसेवा|छंद|आवडी|प्रकल्प|مہارت|زبان|دلچسپ|مشاغل|منصوب|اعزاز|اسناد|رضاکار|مهارات|لغات|هوايات|اهتمامات|مشاريع|جوائز|شهادات|دورات|تطوع|مهارت|علایق|سرگرمی|پروژه|افتخارات|گواهینامه|داوطلب|スキル|語学|趣味|興味|プロジェクト|資格|受賞|ボランティア|技能|语言|語言|兴趣|興趣|爱好|嗜好|项目|專案|证书|證照|荣誉|榮譽|志愿|志工|기술|어학|취미|관심|프로젝트|자격|수상|봉사/i
+const SIDE_TITLES = /skill|language|interest|hobb|strength|project|award|honou?r|tool|technolog|competenc|volunt|reference|certific|course|training|দক্ষতা|ভাষা|আগ্রহ|শখ|প্রকল্প|পুরস্কার|স্বেচ্ছাসেবা|সনদ|প্রশিক্ষণ|कौशल|भाषा|रुचि|शौक|परियोजना|पुरस्कार|प्रमाणपत्र|स्वयंसेवा|छंद|आवडी|प्रकल्प|مہارت|زبان|دلچسپ|مشاغل|منصوب|اعزاز|اسناد|رضاکار|مهارات|لغات|هوايات|اهتمامات|مشاريع|جوائز|شهادات|دورات|تطوع|مهارت|علایق|سرگرمی|پروژه|افتخارات|گواهینامه|داوطلب|スキル|語学|趣味|興味|プロジェクト|資格|受賞|ボランティア|技能|语言|語言|兴趣|興趣|爱好|嗜好|项目|專案|证书|證照|荣誉|榮譽|志愿|志工|기술|어학|취미|관심|프로젝트|자격|수상|봉사|kenntnis|fähigkeit|sprach|kompetenz|interesse|hobby|projekt|zertifik|auszeichnung|ehrenamt|weiterbildung|compétence|langue|intérêt|loisir|projet|distinction|bénévol|habilidad|idioma|interes|aficion|proyecto|premio|voluntar|competenz|lingue|progett|premi|volontar|competência|projeto|passatempo|distinç|vaardighed|talen|projecten|prijzen|vrijwillig|umiejętn|języki|zainteresowan|projekty|nagrody|certyfikat|wolontariat|yetenek|beceri|diller|ilgi|hobi|proje|ödül|sertifika|gönüllü|навык|язык|интерес|увлечен|проект|наград|сертифик|волонт|навичк|мови|інтерес|захоплен|проєкт|нагород|сертифік/i
 
-const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education|অভিজ্ঞতা|শিক্ষা|अनुभव|शिक्षा|शैक्षणिक|تجربہ|تعلیم|خبرة|خبرات|تعليم|مؤهلات|سوابق|تجربه|تحصیلات|職歴|職務経歴|学歴|工作经历|工作經歷|教育|学历|學歷|경력|학력/i.test(title)) ? 'side' : 'main')
+const columnOf = (kind: Cv['sections'][number]['kind'], title: string): Column => (kind === 'tags' || kind === 'details' || (kind === 'entries' && SIDE_TITLES.test(title) && !/experience|education|অভিজ্ঞতা|শিক্ষা|अनुभव|शिक्षा|शैक्षणिक|تجربہ|تعلیم|خبرة|خبرات|تعليم|مؤهلات|سوابق|تجربه|تحصیلات|職歴|職務経歴|学歴|工作经历|工作經歷|教育|学历|學歷|경력|학력|berufserfahrung|erfahrung|beruflich|expérience|experiencia|esperienz|experiência|werkervaring|ervaring|doświadczenie|deneyim|опыт|досвід|ausbildung|bildung|studium|formation|formación|educación|istruzione|formazione|formação|educação|opleiding|wykształcenie|edukacja|eğitim|образование|освіта/i.test(title)) ? 'side' : 'main')
 
 /**
  * A section as a template is given it: hidden parts left out, and null when nothing in
@@ -199,12 +254,22 @@ export function sectionBody(section: Section, today: Date, writing: Writing = EN
         const groups = section.groups
             .filter((group) => group.visible)
             .map((group) => {
-                const kept = group.items.map((item, index) => ({text: trimmed(item), level: group.levels[index] ?? 0})).filter((item) => item.text)
+                const kept = group.items.map((item, index) => ({text: trimmed(item), level: group.levels[index] ?? 0, cefr: group.cefr?.[index]})).filter((item) => item.text)
+
+                if (group.cefr) {
+                    // On the European scale every template still says each level in words, "English (C1)".
+                    const native = labelsFor(writing.language).page.cefr.native
+                    const cefr = kept.map((item) => ({name: item.text, native: item.cefr?.every((level) => level === 'native') ?? false, levels: (item.cefr ?? []).map((level) => (level === 'native' ? native : level))}))
+                    const list = kept.map((item) => ({name: item.text, note: cefrSummary(item.cefr ?? [], native), level: group.showLevels ? cefrLevel(item.cefr ?? []) : 0}))
+
+                    return {label: group.label.trim(), items: list.map((item) => (item.note ? `${item.name} (${item.note})` : item.name)).join(commaIn(writing.language)), levels: group.showLevels, list, cefr}
+                }
+
                 const items = kept.map((item) => item.text)
                 // A level set by hand wins; else one the item's own words name.
                 const list = kept.map((item) => tagItem(item.text, group.showLevels ? item.level || undefined : 0))
 
-                return {label: group.label.trim(), items: items.join(commaIn(writing.language)), levels: group.showLevels, list}
+                return {label: group.label.trim(), items: items.join(commaIn(writing.language)), levels: group.showLevels, list, cefr: null}
             })
             .filter((group) => group.items)
 
@@ -237,7 +302,9 @@ export function renderModel(cv: Cv, today: Date = new Date()): RenderModel {
         contact,
         photo: person.photo && !person.hide.includes('photo') ? person.photo : '',
         sections,
-        words: {contact: labelsFor(cv.design.language).sections.contact, comma: commaIn(cv.design.language)},
+        closing: closingText(cv, today),
+        signature: cv.closing.show ? cv.closing.signature : '',
+        words: {contact: labelsFor(cv.design.language).sections.contact, comma: commaIn(cv.design.language), cefr: labelsFor(cv.design.language).page.cefr},
         design: {
             accent: cv.design.accent,
             font: fontById(cv.design.font).family,

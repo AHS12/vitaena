@@ -27,6 +27,7 @@ export const fa: Labels = {
         religiousPractice: 'پایبندی مذهبی',
         lifestyle: 'سبک زندگی',
         moreAboutMe: 'اطلاعات بیشتر',
+        digitalSkills: 'مهارت‌های دیجیتال',
     },
     rows: {
         dateOfBirth: 'تاریخ تولد',
@@ -61,6 +62,8 @@ export const fa: Labels = {
         mother: 'مادر',
         brother: 'برادر',
         sister: 'خواهر',
+        visaStatus: 'وضعیت ویزا',
+        drivingLicence: 'گواهینامه رانندگی',
     },
     page: {
         present: 'تاکنون',
@@ -71,5 +74,6 @@ export const fa: Labels = {
         name: 'نام',
         work: 'شغل',
         note: 'توضیحات',
+        cefr: {listening: 'شنیدن', reading: 'خواندن', interaction: 'گفت‌وگو', production: 'بیان شفاهی', writing: 'نوشتن', motherTongue: 'زبان مادری', native: 'زبان مادری'},
     },
 }

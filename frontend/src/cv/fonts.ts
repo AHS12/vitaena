@@ -154,7 +154,11 @@ export function fontFamilies(id: string, scriptFont = '', language = 'en'): stri
     // letter it lacks, or for a computer that hasn't it.
     const added = isAddedFont(scriptFont) ? [addedFamily(scriptFont)] : []
 
-    return [...new Set([main.family, ...added, ...scripts, CV_FONTS[0].family])]
+    // Letters the chosen font lacks, such as Lato's Turkish and Cyrillic ones, come from a
+    // bundled font of the same kind that has them, before any script font could supply its own.
+    const cover = fontById(main.kind === 'Serif' ? 'source-serif-4' : 'inter').family
+
+    return [...new Set([main.family, ...added, cover, ...scripts, CV_FONTS[0].family])]
 }
 
 /** The scripts that appear in some text, such as a document's render model as JSON. */

@@ -6,6 +6,7 @@
 
 import {z} from 'zod'
 import {LANGUAGE_IDS} from '../core/labels/labels'
+import {CEFR_LEVELS} from './cefr'
 
 let counter = 0
 
@@ -44,6 +45,12 @@ export const tagGroupSchema = z.object({
     showLevels: z.boolean(),
     /** Each item's level, 0 to 5 in half steps, in the items' order. 0 draws no level. */
     levels: z.array(z.number().min(0).max(5).multipleOf(0.5)),
+    /**
+     * Each item's European levels (CEFR), for listening, reading, spoken interaction,
+     * spoken production and writing, in the items' order. Present only for a group kept on
+     * that scale, whose items are then names alone.
+     */
+    cefr: z.array(z.array(z.enum(CEFR_LEVELS)).length(5)).optional(),
 })
 
 const rowBase = {
@@ -95,6 +102,8 @@ export const writingFields = {
 export interface Writing {
     readonly language: string
     readonly digits: 'latin' | 'native'
+    /** How an entry's months are written; a biodata, which has no say, writes them by name. */
+    readonly dateStyle?: 'month-name' | 'numeric-slash' | 'numeric-dot' | 'year'
 }
 
 export const ENGLISH: Writing = {language: 'en', digits: 'latin'}

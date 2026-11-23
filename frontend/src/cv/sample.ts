@@ -7,7 +7,7 @@
  * is anyone's real CV or anyone else's words.
  */
 
-import {DEFAULT_DESIGN, type Cv, type CvEntry} from './cv'
+import {DEFAULT_DESIGN, NO_CLOSING, type Cv, type CvEntry} from './cv'
 import {isLanguage} from '../core/labels/labels'
 import {inLanguage} from './relabel'
 import {sampleCvBn} from './sample-bn'
@@ -120,6 +120,7 @@ function englishCv(): Cv {
                 groups: [{id: 'g4', visible: true, showLevels: true, levels: [5, 4.5], label: '', items: ['Bangla (Native)', 'English (Advanced)']}],
             },
         ],
+        closing: NO_CLOSING,
         design: {...DEFAULT_DESIGN},
     }
 }

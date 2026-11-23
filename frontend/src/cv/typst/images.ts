@@ -2,8 +2,8 @@
  * Pictures travel to Typst as files beside the template, not inside the JSON, so a
  * template writes image(cv.photo) and the data stays out of the text it reads.
  *
- * Any document's render model may carry them: a CV its photo, a biodata its photo, a
- * full-length photo and a small heading image.
+ * Any document's render model may carry them: a CV its photo and signature, a biodata its
+ * photo, a full-length photo and a small heading image.
  */
 
 /** What every render model is to the layout engine: data a template reads as JSON. */
@@ -15,7 +15,7 @@ export interface ImageFile {
 }
 
 /** The top-level fields a render model may hold a picture in, as a data URL. */
-const IMAGE_FIELDS = ['photo', 'fullPhoto', 'headingImage'] as const
+const IMAGE_FIELDS = ['photo', 'fullPhoto', 'headingImage', 'signature'] as const
 
 function bytesOf(base64: string): Uint8Array {
     const binary = atob(base64)

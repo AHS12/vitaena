@@ -1,0 +1,76 @@
+<!doctype html>
+<!--
+  An invented German Lebenslauf, laid out as a table the way Word templates for Germany
+  lay one out: Persönliche Daten, then each section with its dates in a narrow left column
+  as MM.YYYY – MM.YYYY, languages with their levels, and the place and date at the end.
+  Printed by scripts/import-fixtures.mjs.
+-->
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Lukas Beispiel</title>
+<style>
+    @font-face { font-family: Plex; font-weight: 400; src: url('../../../../node_modules/@expo-google-fonts/ibm-plex-sans/400Regular/IBMPlexSans_400Regular.ttf'); }
+    @font-face { font-family: Plex; font-weight: 700; src: url('../../../../node_modules/@expo-google-fonts/ibm-plex-sans/700Bold/IBMPlexSans_700Bold.ttf'); }
+    @page { size: A4; margin: 20mm; }
+    body { font-family: Plex; font-size: 10.5pt; color: #111; line-height: 1.4; }
+    .name { font-size: 22pt; font-weight: 700; margin: 0 0 2pt; }
+    .role { font-size: 12pt; margin: 0 0 8pt; }
+    p { margin: 0; }
+    h2 { font-size: 12.5pt; font-weight: 700; margin: 16pt 0 6pt; border-bottom: 1px solid #888; }
+    table { border-collapse: collapse; width: 100%; }
+    td { vertical-align: top; padding: 2pt 0 5pt; }
+    td.when { width: 34mm; color: #444; }
+    ul { margin: 2pt 0 0; padding-left: 14pt; }
+</style>
+</head>
+<body>
+    <p class="name">Lukas Beispiel</p>
+    <p class="role">Wirtschaftsinformatiker</p>
+    <p>lukas.beispiel@example.com</p>
+    <p>+49 30 901820</p>
+    <p>Berlin, Deutschland</p>
+
+    <h2>Persönliche Daten</h2>
+    <table>
+        <tr><td class="when">Geburtsdatum</td><td>14.05.1994</td></tr>
+        <tr><td class="when">Geburtsort</td><td>Leipzig</td></tr>
+        <tr><td class="when">Staatsangehörigkeit</td><td>deutsch</td></tr>
+    </table>
+
+    <h2>Berufserfahrung</h2>
+    <table>
+        <tr>
+            <td class="when">04.2021 – heute</td>
+            <td><b>IT-Berater</b>, Nordlicht Consulting GmbH, Berlin
+                <ul>
+                    <li>Einführung eines ERP-Systems bei zwölf mittelständischen Kunden</li>
+                    <li>Leitung eines Teams von vier Beratern</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="when">09.2018 – 03.2021</td>
+            <td><b>Junior-Entwickler</b>, Spreewerk Software AG, Potsdam
+                <ul>
+                    <li>Entwicklung von Schnittstellen in Java und SQL</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+
+    <h2>Ausbildung</h2>
+    <table>
+        <tr><td class="when">10.2014 – 08.2018</td><td><b>B.Sc. Wirtschaftsinformatik</b>, Universität Riverside, Leipzig</td></tr>
+    </table>
+
+    <h2>Sprachkenntnisse</h2>
+    <table>
+        <tr><td class="when">Deutsch</td><td>Muttersprache</td></tr>
+        <tr><td class="when">Englisch</td><td>C1</td></tr>
+        <tr><td class="when">Französisch</td><td>B1</td></tr>
+    </table>
+
+    <p style="margin-top: 24pt">Berlin, 19.11.2026</p>
+</body>
+</html>

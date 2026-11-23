@@ -8,6 +8,7 @@
 
 import {z} from 'zod'
 import type {DocumentType} from '../core/document/document-file'
+import {COUNTRY_IDS, DATE_STYLES} from './countries'
 import {cvFromV1} from './import-v1'
 import {withWordLevels} from './levels'
 import {labelsFor, type DocumentLanguage} from '../core/labels/labels'
@@ -50,12 +51,30 @@ const designSchema = z.object({
     atsMode: z.boolean(),
     /** How levels on lists are drawn: the template's own way, or one picked here. */
     levelStyle: z.enum(['template', 'dots', 'bar', 'squares']),
+    /** Where it's for, which Check gives advice for: an id from COUNTRIES. */
+    country: z.enum(COUNTRY_IDS),
+    /** How entries' months are written: "Jan 2020", "01/2020", "01.2020" or "2020". */
+    dateStyle: z.enum(DATE_STYLES),
     ...writingFields,
+})
+
+/**
+ * The line a CV can end with, as German and South Asian CVs do: "Berlin, 19.11.2026" and a
+ * signature under it, or a line to sign on.
+ */
+const closingSchema = z.object({
+    show: z.boolean(),
+    place: z.string(),
+    /** A fixed day as "2026-11-19", or "" for the day it's printed. */
+    date: z.union([z.literal(''), z.string().regex(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/)]),
+    /** A picture of the signature as a PNG data URL, or "" for a line to sign on. */
+    signature: z.union([z.literal(''), z.string().regex(/^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/)]),
 })
 
 const cvSchema = z.object({
     person: personSchema,
     sections: z.array(sectionSchema),
+    closing: closingSchema,
     design: designSchema,
 })
 
@@ -66,11 +85,14 @@ export type CvEntry = Entry
 export type CvTagGroup = TagGroup
 export type CvDetailRow = DetailRow
 export type CvDesign = Cv['design']
+export type CvClosing = Cv['closing']
 export type EntryPart = CvEntry['hide'][number]
 export type PersonPart = CvPerson['hide'][number]
 
 /** A CV's numbers are 0 to 9 unless chosen otherwise, as employers read them. */
-export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', font: 'inter', fontSize: 10, paper: 'a4', margins: 'normal', spacing: 'normal', atsMode: false, levelStyle: 'template', language: 'en', digits: 'latin', scriptFont: ''}
+export const NO_CLOSING: CvClosing = {show: false, place: '', date: '', signature: ''}
+
+export const DEFAULT_DESIGN: CvDesign = {template: 'classic', accent: '#1f4e79', font: 'inter', fontSize: 10, paper: 'a4', margins: 'normal', spacing: 'normal', atsMode: false, levelStyle: 'template', country: 'any', dateStyle: 'month-name', language: 'en', digits: 'latin', scriptFont: ''}
 
 /** A new CV: the sections most people need, empty, under the headings ATS parsers look for, in its language. */
 export function emptyCv(language: DocumentLanguage = 'en'): Cv {
@@ -84,6 +106,7 @@ export function emptyCv(language: DocumentLanguage = 'en'): Cv {
             {id: newId('section'), kind: 'entries', title: sections.education, visible: true, entries: []},
             {id: newId('section'), kind: 'tags', title: sections.skills, visible: true, groups: []},
         ],
+        closing: NO_CLOSING,
         design: {...DEFAULT_DESIGN, language},
     }
 }
@@ -91,7 +114,7 @@ export function emptyCv(language: DocumentLanguage = 'en'): Cv {
 export const cvType: DocumentType<Cv> = {
     kind: 'cv',
     noun: 'CV',
-    version: 9,
+    version: 12,
     content: cvSchema,
     empty: () => emptyCv(),
     migrations: {
@@ -154,6 +177,16 @@ export const cvType: DocumentType<Cv> = {
 
             return {...cv, design: {language: 'en', digits: 'latin', scriptFont: '', ...cv.design}}
         },
+        // Version 10 added where a CV is for, and how its dates are written.
+        9: (content) => {
+            const cv = content as {design?: Record<string, unknown>}
+
+            return {...cv, design: {country: 'any', dateStyle: 'month-name', ...cv.design}}
+        },
+        // Version 11 added the closing line, off.
+        10: (content) => ({closing: NO_CLOSING, ...(content as object)}),
+        // Version 12 let a group of languages keep European levels. Older files have none.
+        11: (content) => content,
     },
     // Loaded on use, so tests and the library list never pull in the layout engine.
     thumbnail: async (cv) => (await import('./thumbnail')).cvThumbnail(cv),

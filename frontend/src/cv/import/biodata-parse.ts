@@ -32,10 +32,12 @@ const pad = (value: number) => String(value).padStart(2, '0')
 /** A day as written in a biodata, "12 March 1996", "12/03/1996" (day first), "1996-03-12" or "১২ মার্চ ১৯৯৬", as "1996-03-12". */
 export function dayOf(written: string): string {
     // Bangla and Devanagari digits and month names read as 0 to 9 and English month names.
-    const text = OTHER_MONTHS.flatMap((months) => months.map((name, index) => [name, MONTHS[index]] as const)).reduce((line, [name, english]) => line.replace(name, english), asLatinDigits(written))
+    // Only whole words, so a short name such as "mai" isn't read inside another word.
+    const text = OTHER_MONTHS.flatMap((months) => months.map((name, index) => [name, MONTHS[index]] as const)).reduce((line, [name, english]) => line.replace(new RegExp(`(?<![\\p{L}\\p{M}])${name}(?![\\p{L}\\p{M}])`, 'iu'), english), asLatinDigits(written))
     const iso = /\b((?:19|20)\d{2})-(\d{1,2})-(\d{1,2})\b/.exec(text) ?? /((?:19|20)\d{2})\s*[年년]\s*(\d{1,2})\s*[月월]\s*(\d{1,2})\s*[日일]/.exec(text)
     const numbers = /\b(\d{1,2})[/.-](\d{1,2})[/.-]((?:19|20)\d{2})\b/.exec(text)
-    const dayFirst = /\b(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?([a-z]{3,9})\.?,?\s+((?:19|20)\d{2})\b/i.exec(text)
+    // "12 March 1996", "12. März 1996", "12 de marzo de 1996".
+    const dayFirst = /\b(\d{1,2})(?:st|nd|rd|th|\.)?\s+(?:of\s+|de\s+)?([a-z]{3,9})\.?,?\s+(?:de\s+)?((?:19|20)\d{2})\b/i.exec(text)
     const monthFirst = /\b([a-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+((?:19|20)\d{2})\b/i.exec(text)
     const month = (name: string) => MONTHS.indexOf(name.slice(0, 3).toLowerCase()) + 1
     let parts: [number, number, number] | null = null

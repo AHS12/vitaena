@@ -70,6 +70,10 @@ func TestForgetsCopiesAfterThirtyDays(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// A real copy that old was named a month ago. This one was named a moment ago, so the
+	// next must come in a later millisecond, or it takes the name the pruned one freed.
+	time.Sleep(2 * time.Millisecond)
+
 	if _, err := svc.KeepCopy("cv-1", []byte("new")); err != nil {
 		t.Fatal(err)
 	}

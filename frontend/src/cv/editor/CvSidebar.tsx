@@ -9,6 +9,8 @@ import type {DocumentEdit} from '../use-cv-edit'
 import {cvSectionChoices, emailWarning, linkWarning, toggled, updatePerson} from './edit-ops'
 import {useEditorStore} from './editor-store'
 import {CheckPanel} from './CheckPanel'
+import {ClosingPanel} from './ClosingPanel'
+import {withFix} from '../countries'
 import {NotSortedNote} from '../import/NotSortedNote'
 import {StylePanel, TemplatesPanel} from './DesignPanel'
 import {SectionList} from './SectionList'
@@ -98,7 +100,7 @@ export function CvSidebar({cv, edit, onAtsMode}: {cv: Cv; edit: Edit; onAtsMode(
                 ))}
             </div>
             <div className="cv-sidebar" id="cv-tab-panel" role="tabpanel" aria-labelledby={`cv-tab-${tab}`} data-coach="editor">
-                {tab === 'content' ? <ContentPanel cv={cv} edit={edit} /> : <CheckPanel cv={cv} onAtsMode={onAtsMode} />}
+                {tab === 'content' ? <ContentPanel cv={cv} edit={edit} /> : <CheckPanel cv={cv} onFix={(fix) => (fix === 'ats-mode' ? onAtsMode() : edit.act(fix === 'paper' ? 'paper' : 'hide the photo', (current) => withFix(current, fix)))} />}
             </div>
         </div>
     )
@@ -110,6 +112,7 @@ function ContentPanel({cv, edit}: {cv: Cv; edit: Edit}) {
             <NotSortedNote doc={cv} />
             <PersonPanel person={cv.person} edit={edit} />
             <SectionList doc={cv} edit={edit as DocumentEdit<Sectioned>} choices={cvSectionChoices(cv.design.language)} />
+            <ClosingPanel cv={cv} edit={edit} />
         </>
     )
 }

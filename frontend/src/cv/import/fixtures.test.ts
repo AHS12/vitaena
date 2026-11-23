@@ -130,3 +130,39 @@ describe.each([
         expect(result.unsorted).toBe(0)
     })
 })
+
+describe('CVs for Europe from other apps', () => {
+    it('reads a German Lebenslauf: German, its dates, personal details, languages and closing line', async () => {
+        const {cv} = await imported('lebenslauf')
+        const titled = (title: string) => cv.sections.find((section) => section.title === title)
+
+        expect(cv.design.language).toBe('de')
+        expect(titled('Persönliche Daten')).toMatchObject({rows: [{label: 'Geburtsdatum', value: '14.05.1994'}, {label: 'Geburtsort', value: 'Leipzig'}, {label: 'Staatsangehörigkeit', value: 'deutsch'}]})
+        expect(titled('Berufserfahrung')).toMatchObject({entries: [{title: 'IT-Berater', org: 'Nordlicht Consulting GmbH', location: 'Berlin', start: '2021-04', current: true}, {title: 'Junior-Entwickler', start: '2018-09', end: '2021-03'}]})
+        expect(titled('Sprachkenntnisse')).toMatchObject({groups: [{items: ['Deutsch', 'Englisch', 'Französisch'], cefr: [['native', 'native', 'native', 'native', 'native'], ['C1', 'C1', 'C1', 'C1', 'C1'], ['B1', 'B1', 'B1', 'B1', 'B1']]}]})
+        expect(cv.closing).toEqual({show: true, place: 'Berlin', date: '2026-11-19', signature: ''})
+        expect(titled('Not sorted')).toBeUndefined()
+    })
+
+    it('reads a Europass-style CV: its dates, and languages as a grid of the five skills', async () => {
+        const {cv} = await imported('europass-style')
+        const titled = (title: string) => cv.sections.find((section) => section.title === title)
+
+        expect(titled('Work experience')).toMatchObject({entries: [{title: 'Marketing Coordinator', start: '2020-03', current: true}, {title: 'Marketing Assistant', start: '2017-06', end: '2020-02'}]})
+        expect(titled('Language skills')).toMatchObject({
+            kind: 'tags',
+            groups: [
+                {
+                    items: ['Spanish', 'English', 'French'],
+                    cefr: [
+                        ['native', 'native', 'native', 'native', 'native'],
+                        ['C1', 'C1', 'B2', 'B2', 'C1'],
+                        ['B1', 'B2', 'A2', 'A2', 'B1'],
+                    ],
+                },
+            ],
+        })
+        expect(titled('Digital skills')).toMatchObject({kind: 'tags'})
+        expect(cv.closing.show).toBe(false)
+    })
+})

@@ -5,6 +5,8 @@
 // in the page header (from page 2 it repeats the name, which the body already has), and
 // ligatures off so "fi" stays two letters.
 
+#import "/parts.typ": closing
+
 #let cv = json("/cv.json")
 #let accent = rgb(cv.design.accent)
 #let muted = luma(90)
@@ -187,3 +189,5 @@
     }
   }
 }
+
+#closing(cv)

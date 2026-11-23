@@ -8,6 +8,8 @@ import {LANGUAGE_IDS, LANGUAGES, type DocumentLanguage} from '../../core/labels/
 import {CV_FONTS, SCRIPT_FONTS} from '../../cv/fonts'
 import {addedFamilies, useAddedFonts} from '../../cv/added-fonts'
 import {inLanguage} from '../../cv/relabel'
+import {COUNTRIES, COUNTRY_IDS, DATE_STYLES, forCountry} from '../../cv/countries'
+import type {Cv} from '../../cv/cv'
 import type {Sectioned} from '../../cv/sections'
 import {nounOfKind} from '../../store/document-types'
 import {freeName, saveChange, saveNew, summaryOf} from './changes'
@@ -72,6 +74,8 @@ export const setDesignTool = defineTool({
         spacing: z.enum(['compact', 'normal', 'relaxed']).optional(),
         atsMode: z.boolean().optional().describe('CV only.'),
         levelStyle: z.enum(['template', 'dots', 'bar', 'squares']).optional().describe('CV only.'),
+        country: z.enum(COUNTRY_IDS).optional().describe(`CV only. Where it's for, which sets the paper and how dates are written, and gives check_document that place's advice: ${COUNTRIES.map((country) => `${country.id} for ${country.name}`).join(', ')}.`),
+        dateStyle: z.enum(DATE_STYLES).optional().describe('CV only. How entries’ months are written: month-name "Jan 2020", numeric-slash "01/2020", numeric-dot "01.2020", year "2020".'),
         border: z.boolean().optional().describe('Biodata only.'),
         language: z.enum(LANGUAGE_IDS).optional().describe('The language of the headings, labels and dates the app writes.'),
         digits: z.enum(['latin', 'native']).optional().describe('Numbers the app writes: native for the language\'s own digits (০১২ in Bangla), latin for 0 to 9.'),
@@ -83,7 +87,7 @@ export const setDesignTool = defineTool({
         const document = await loadDocument(id)
         const tools = toolsFor(document.kind)
         const given = Object.fromEntries(Object.entries(design).filter(([, value]) => value !== undefined))
-        const cvOnly = ['atsMode', 'levelStyle'].filter((key) => key in given && document.kind !== 'cv')
+        const cvOnly = ['atsMode', 'levelStyle', 'country', 'dateStyle'].filter((key) => key in given && document.kind !== 'cv')
         const biodataOnly = ['border'].filter((key) => key in given && document.kind !== 'biodata')
 
         if (Object.keys(given).length === 0) {
@@ -117,11 +121,13 @@ export const setDesignTool = defineTool({
         }
 
         const content = document.content as Sectioned & {design: {language: string}}
-        const words: Record<string, string> = {fontSize: 'text size', atsMode: 'ATS mode', levelStyle: 'level style', scriptFont: 'script font'}
+        const words: Record<string, string> = {fontSize: 'text size', atsMode: 'ATS mode', levelStyle: 'level style', scriptFont: 'script font', dateStyle: 'date style', country: 'place it’s for'}
         const changes = Object.keys(given).map((key) => `set the ${words[key] ?? key}`)
         // A new language carries the app's own headings and labels across, as Style does.
         const moved = design.language !== undefined && design.language !== content.design.language ? inLanguage(content, design.language) : content
-        const said = await saveChange(document, {...moved, design: {...moved.design, ...given}}, changes, context)
+        // A place sets its paper and dates first, as Style does; what's given besides wins.
+        const placed = design.country !== undefined ? forCountry(moved as unknown as Cv, design.country, false) : moved
+        const said = await saveChange(document, {...placed, design: {...placed.design, ...given}}, changes, context)
 
         return {text: said, structured: {changes}}
     },
@@ -137,10 +143,11 @@ export const createDocumentTool = defineTool({
         name: z.string().min(1).describe('What the person will see it called, such as "Jane Doe – Product designer".'),
         template: z.string().optional().describe('A template id from list_templates. Default: the kind\'s usual one.'),
         language: z.enum(LANGUAGE_IDS).optional().describe('The language its headings, labels and dates start in. Default: en.'),
+        country: z.enum(COUNTRY_IDS).optional().describe('CV only. Where it’s for, as set_design takes it: sets the paper and dates and adds the sections CVs there usually have, such as personal details for de.'),
         operations: z.array(operationSchema).optional().describe('Changes to make to it straight away, as for edit_document.'),
     }),
     readOnly: false,
-    run: async ({kind, name, template, language, operations}, context) => {
+    run: async ({kind, name, template, language, country, operations}, context) => {
         const tools = toolsFor(kind)
         const empty = tools.emptyIn((language ?? 'en') as DocumentLanguage) as {design: object}
 
@@ -148,7 +155,12 @@ export const createDocumentTool = defineTool({
             throw new Error(`There's no template "${template}" for a ${nounOfKind(kind)}. They are: ${tools.templates.map((candidate) => candidate.id).join(', ')}.`)
         }
 
-        const start = template === undefined ? empty : {...empty, design: {...empty.design, template}}
+        if (country !== undefined && kind !== 'cv') {
+            throw new Error(`A ${nounOfKind(kind)} has no country.`)
+        }
+
+        const templated = template === undefined ? empty : {...empty, design: {...empty.design, template}}
+        const start = country !== undefined ? forCountry(templated as Cv, country, true) : templated
         const result = operations && operations.length > 0 ? applied(start, kind, operations) : {content: start, changes: [], added: []}
         const chosen = await freeName(name)
         const id = await saveNew(kind, chosen, result.content, context, `made it${result.changes.length > 0 ? ` and ${summaryOf(result.changes)}` : ''}`)

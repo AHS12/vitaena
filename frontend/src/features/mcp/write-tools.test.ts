@@ -201,3 +201,43 @@ describe('putting back a change', () => {
         expect(textOf(app.KeepCopy.mock.calls.at(-1)?.[1])).toBe(changed)
     })
 })
+
+describe('a CV for a place, made and changed by an assistant', () => {
+    it('sets the place with its paper and dates, and lets what is given besides win', async () => {
+        await call('set_design', {id: 'cv-1', country: 'us', dateStyle: 'numeric-slash'})
+
+        expect(cvIn('cv-1').design).toMatchObject({country: 'us', paper: 'us-letter', dateStyle: 'numeric-slash'})
+    })
+
+    it('makes a CV for Germany with its personal details and closing line', async () => {
+        const reply = await call('create_document', {kind: 'cv', name: 'Lebenslauf', template: 'lebenslauf', language: 'de', country: 'dach'})
+        const id = (reply as {structuredContent?: {id: string}}).structuredContent?.id ?? [...files.keys()].find((key) => !['cv-1', 'bio-1'].includes(key))!
+        const cv = cvIn(id)
+
+        expect(cv.design).toMatchObject({template: 'lebenslauf', country: 'dach', dateStyle: 'numeric-dot'})
+        expect(cv.sections.map((section) => section.title)).toContain('Persönliche Daten')
+        expect(cv.closing.show).toBe(true)
+    })
+
+    it('sets the closing line, and refuses one for a biodata', async () => {
+        await call('edit_document', {id: 'cv-1', operations: [{op: 'set_closing', visible: true, location: 'Berlin', value: '2026-11-19'}]})
+
+        expect(cvIn('cv-1').closing).toEqual({show: true, place: 'Berlin', date: '2026-11-19', signature: ''})
+        expect((await call('edit_document', {id: 'bio-1', operations: [{op: 'set_closing', visible: true}]})).text).toContain('has no closing line')
+        expect((await call('set_design', {id: 'bio-1', country: 'us'})).text).toContain('has no country')
+    })
+})
+
+describe('languages on the European scale, set by an assistant', () => {
+    it('puts a group on the scale with each item’s levels', async () => {
+        await call('edit_document', {id: 'cv-1', operations: [{op: 'set_tags', section: 'Languages', items: ['Bangla', 'German (B2)'], cefr: ['native', 'B2 B2 B1 B1 A2']}]})
+        const languages = cvIn('cv-1').sections.find((section) => section.title === 'Languages')
+
+        expect(languages?.kind === 'tags' && languages.groups[0]).toMatchObject({items: ['Bangla', 'German'], cefr: [['native', 'native', 'native', 'native', 'native'], ['B2', 'B2', 'B1', 'B1', 'A2']]})
+    })
+
+    it('refuses a level that isn’t one, or one too few', async () => {
+        expect((await call('edit_document', {id: 'cv-1', operations: [{op: 'set_tags', section: 'Languages', items: ['German'], cefr: ['Fluent']}]})).text).toContain('isn’t a European level')
+        expect((await call('edit_document', {id: 'cv-1', operations: [{op: 'set_tags', section: 'Languages', items: ['German', 'French'], cefr: ['B2']}]})).text).toContain('for each of the 2 items')
+    })
+})

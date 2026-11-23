@@ -19,13 +19,13 @@ export interface DateRange {
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 const MONTH_NAME = `(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|${[...new Set(OTHER_MONTHS.flat())].join('|')})\\.?`
 
-/** A month written in Bangla, Hindi, Marathi, Urdu, Arabic or Persian, 1 to 12, or 0. */
-const otherMonth = (name: string): number => OTHER_MONTHS.map((months) => months.indexOf(name) + 1).find((month) => month > 0) ?? 0
+/** A month written in another language than English, 1 to 12, or 0. */
+const otherMonth = (name: string): number => OTHER_MONTHS.map((months) => months.findIndex((each) => each.toLowerCase() === name.toLowerCase()) + 1).find((month) => month > 0) ?? 0
 const YEAR = '(?:19|20)\\d{2}'
 /** One date: "Mar 2022", "March, 2022", "2022年3月", "03/2022", "03.2022", "2022-03" or "2022". */
 const ONE = `(?:${MONTH_NAME},?\\s+${YEAR}|${YEAR}\\s*[年년]\\s*(?:0?[1-9]|1[0-2])\\s*[月월]|(?:0?[1-9]|1[0-2])[/.]${YEAR}|${YEAR}[-/.](?:0[1-9]|1[0-2])(?!\\d)|${YEAR})`
-const NOW = '(?:present|current(?:ly)?|now|today|ongoing|to date|বর্তমান|চলমান|এখন পর্যন্ত|वर्तमान|अब तक|सध्या|आजपर्यंत|تاحال|اب تک|جاری|حتى الآن|حتى الان|حاليا|حالياً|الآن|حتى اليوم|現在|至今|迄今|현재|재직 ?중|تاکنون|تا کنون|اکنون|هم‌اکنون)'
-const RANGE = new RegExp(`(?<![\\w/.-])(${ONE})(?:\\s*(?:[–—~～〜-]|to|until)\\s*(${ONE}|${NOW}))?(?![\\w/])`, 'i')
+const NOW = '(?:present|current(?:ly)?|now|today|ongoing|to date|bis heute|heute|aktuell|derzeit|jetzt|aujourd\'hui|à ce jour|en cours|actualidad|actualmente|actual|presente|hoy|oggi|in corso|attuale|atualmente|atual|heden|nu|obecnie|nadal|halen|günümüz|devam ediyor|по настоящее время|настоящее время|н\\.\\s?в\\.|теперішній час|дотепер|тепер|বর্তমান|চলমান|এখন পর্যন্ত|वर्तमान|अब तक|सध्या|आजपर्यंत|تاحال|اب تک|جاری|حتى الآن|حتى الان|حاليا|حالياً|الآن|حتى اليوم|現在|至今|迄今|현재|재직 ?중|تاکنون|تا کنون|اکنون|هم‌اکنون)'
+const RANGE = new RegExp(`(?<![\\w/.-])(${ONE})(?:\\s*(?:[–—~～〜-]|to|until|bis|au|à|hasta|al|a|tot|até|do|по|до)\\s*(${ONE}|${NOW}))?(?![\\w/])`, 'i')
 
 /** One date as "2022-03". A year alone is January when it starts and December when it ends. */
 function monthOf(text: string, end: boolean): string {

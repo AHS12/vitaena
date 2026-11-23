@@ -31,6 +31,7 @@ export const ar: Labels = {
         religiousPractice: 'الالتزام الديني',
         lifestyle: 'نمط الحياة',
         moreAboutMe: 'معلومات إضافية',
+        digitalSkills: 'المهارات الرقمية',
     },
     rows: {
         dateOfBirth: 'تاريخ الميلاد',
@@ -65,6 +66,8 @@ export const ar: Labels = {
         mother: 'الأم',
         brother: 'الأخ',
         sister: 'الأخت',
+        visaStatus: 'حالة التأشيرة',
+        drivingLicence: 'رخصة القيادة',
     },
     page: {
         present: 'حتى الآن',
@@ -81,5 +84,6 @@ export const ar: Labels = {
         name: 'الاسم',
         work: 'العمل',
         note: 'ملاحظات',
+        cefr: {listening: 'الاستماع', reading: 'القراءة', interaction: 'المحادثة', production: 'التعبير الشفهي', writing: 'الكتابة', motherTongue: 'اللغة الأم', native: 'اللغة الأم'},
     },
 }

@@ -5,6 +5,8 @@
 
 import {z} from 'zod'
 import {addedFamilies, useAddedFonts} from '../../cv/added-fonts'
+import {countryOf} from '../../cv/countries'
+import type {Cv} from '../../cv/cv'
 import type {Section} from '../../cv/sections'
 import {listDocuments} from '../../platform/documents'
 import {useDocumentStore} from '../../store/document-store'
@@ -115,7 +117,7 @@ export const listTemplatesTool = defineTool({
     readOnly: true,
     run: async ({kind}) => {
         const templates = toolsFor(kind).templates
-        const lines = templates.map((template) => `- ${template.name} (id ${template.id}): ${template.about} ${template.facts}.${template.suits ? ` Suits: ${template.suits}.` : ''}`)
+        const lines = templates.map((template) => `- ${template.name} (id ${template.id}): ${template.about} ${template.facts}.${template.suits ? ` Suits: ${template.suits}.` : ''}${template.places && template.places.length > 0 ? ` Best for: ${template.places.join(', ')}.` : ''}`)
         await useAddedFonts.getState().load()
         const fonts = addedFamilies(useAddedFonts.getState().fonts).map((family) => ({id: family.id, family: family.family, scripts: family.scripts}))
         const added = fonts.length > 0 ? `\n\nFonts the person added (font for English letters, scriptFont for Bangla):\n${fonts.map((font) => `- ${font.family} (id ${font.id}), letters for ${font.scripts.join(', ') || 'no script the app knows'}`).join('\n')}` : ''
@@ -138,7 +140,9 @@ export const checkDocumentTool = defineTool({
         const results = tools.check(document.content, read.pages)
         const order = {warning: 0, tip: 1, good: 2}
         const sorted = [...results].sort((a, b) => order[a.level] - order[b.level])
-        const lines = sorted.map((result) => `- ${result.level === 'good' ? 'Good' : result.level === 'tip' ? 'Tip' : 'Warning'}: ${result.title}${result.detail ? `. ${result.detail}` : ''}`)
+        // Advice for the place a CV is for says so, as the Check tab groups it.
+        const place = document.kind === 'cv' ? countryOf((document.content as Cv).design.country).name : ''
+        const lines = sorted.map((result) => `- ${result.level === 'good' ? 'Good' : result.level === 'tip' ? 'Tip' : 'Warning'}${result.country ? `, for ${place}` : ''}: ${result.title}${result.detail ? `. ${result.detail}` : ''}`)
         const screening = document.kind === 'cv' ? `\n\nWhat a screening system reads from the PDF:\n${read.text}` : ''
 
         return {

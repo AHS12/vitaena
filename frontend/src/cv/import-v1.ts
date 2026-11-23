@@ -5,7 +5,7 @@
  * Only the shape is trusted, never the values: anything missing or odd becomes empty.
  */
 
-import {DEFAULT_DESIGN, newId, type Cv, type CvEntry, type CvSection} from './cv'
+import {DEFAULT_DESIGN, NO_CLOSING, newId, type Cv, type CvEntry, type CvSection} from './cv'
 import {withWordLevels} from './levels'
 
 type Raw = Record<string, unknown>
@@ -166,6 +166,7 @@ export function cvFromV1(raw: unknown): {name: string; content: Cv} | null {
         content: {
             person: {name: text(info.name), headline: text(info.title), email: text(info.email), phone: text(info.phone), location: text(info.location), links, photo: v1Photo(info.photo), hide: hidePerson},
             sections: sections.filter((section) => section !== null),
+            closing: NO_CLOSING,
             design: {...DEFAULT_DESIGN},
         },
     }

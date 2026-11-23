@@ -312,6 +312,35 @@ describe('Korean in every template', () => {
     }, 60_000)
 })
 
+describe('European languages in every template', () => {
+    it.each(CV_TEMPLATES.map((template) => template.id))('sets a German and a Russian CV in %s, and their text reads back', async (template) => {
+        const german = await read(await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel(sampleCv('de'))))
+        const russian = await read(await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel(sampleCv('ru'))))
+
+        expect(german).toMatch(/berufserfahrung/i)
+        expect(german).toContain('heute')
+        expect(russian).toMatch(/опытработы/i)
+    }, 60_000)
+
+    it('draws Turkish and Russian letters a font lacks from Inter, so Lato shows them', async () => {
+        const cv = sampleCv('ru')
+        const pdf = await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel({...cv, person: {...cv.person, name: 'Ğülşen Иванова'}, design: {...cv.design, font: 'lato'}}))
+
+        expect(await read(pdf)).toContain('ĞülşenИванова')
+        expect(embeddedFonts(pdf).some((font) => font.startsWith('Inter'))).toBe(true)
+        expect(embeddedFonts(pdf).some((font) => /Bengali|SC/.test(font))).toBe(false)
+    }, 60_000)
+
+    it.each(['de', 'fr', 'es', 'ru'] as const)('comes back through import as a CV in %s', async (language) => {
+        const cv = sampleCv(language)
+        const pdf = await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel(cv))
+        const {cv: imported} = cvFromLayout(await readPdfLayout(pdf))
+
+        expect(imported.design.language).toBe(language)
+        expect(imported.sections.map((section) => section.title)).toEqual(cv.sections.map((section) => section.title))
+    }, 60_000)
+})
+
 describe('the fonts each language offers', () => {
     it.each([
         ['hind', 'hi', 'Hind'],
@@ -331,5 +360,65 @@ describe('the fonts each language offers', () => {
         const pdf = await templatePdf(compiler, new URL('./classic.typ', import.meta.url), '/cv.json', renderModel({...cv, design: {...cv.design, scriptFont: font}}))
 
         expect(embeddedFonts(pdf).join(' ')).toContain(embedded)
+    }, 60_000)
+})
+
+describe('the closing line, in every template', () => {
+    const SIGNATURE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+
+    it.each(CV_TEMPLATES.map((template) => template.id))('ends %s with place and date on the last page', async (template) => {
+        const cv = sampleCv('de')
+        const signed = {...cv, closing: {show: true, place: 'Berlin', date: '2026-11-19', signature: SIGNATURE}, design: {...cv.design, dateStyle: 'numeric-dot' as const}}
+        const pdf = await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel(signed))
+        const document = await getDocument({data: pdf.slice(), useSystemFonts: false}).promise
+        const last = await (await document.getPage(document.numPages)).getTextContent()
+        const text = last.items.map((item) => ('str' in item ? item.str : '')).join('')
+
+        // Footers and a side column may follow it in reading order, so only the page is promised.
+        expect(text.replace(/\s/g, '')).toContain('Berlin,19.11.2026')
+    }, 60_000)
+
+    it('lays out the German example in Lebenslauf on at most two pages', async () => {
+        const cv = sampleCv('de')
+        const pdf = await templatePdf(compiler, new URL('./lebenslauf.typ', import.meta.url), '/cv.json', renderModel({...cv, closing: {show: true, place: 'Berlin', date: '', signature: ''}}))
+        const document = await getDocument({data: pdf.slice(), useSystemFonts: false}).promise
+
+        expect(document.numPages).toBeLessThanOrEqual(2)
+    }, 60_000)
+})
+
+describe('languages on the European scale, in every template', () => {
+    const european = (language: 'en' | 'de' = 'en') => {
+        const cv = sampleCv(language)
+
+        return {
+            ...cv,
+            sections: cv.sections.map((section) =>
+                section.kind === 'tags' && section.groups.some((group) => group.items.some((item) => /Bangla|বাংলা/.test(item)))
+                    ? {...section, groups: [{id: 'g', visible: true, label: '', items: ['Bangla', 'German', 'French'], showLevels: false, levels: [0, 0, 0], cefr: [['native', 'native', 'native', 'native', 'native'], ['B2', 'B2', 'B1', 'B1', 'A2'], ['C1', 'C1', 'C1', 'C1', 'C1']] as never}]}
+                    : section,
+            ),
+        }
+    }
+
+    it.each(CV_TEMPLATES.map((template) => template.id))('writes each language with its level in words in %s', async (template) => {
+        const text = await read(await templatePdf(compiler, new URL(`./${template}.typ`, import.meta.url), '/cv.json', renderModel(european())))
+
+        if (template === 'european') {
+            expect(text).toContain('Mothertongue')
+        } else {
+            expect(text).toContain('German(A2–B2)')
+            expect(text).toContain('French(C1)')
+        }
+    }, 60_000)
+
+    it('reads the European grid row by row: a language, then its five levels', async () => {
+        const text = await read(await templatePdf(compiler, new URL('./european.typ', import.meta.url), '/cv.json', renderModel(european('de'))))
+
+        expect(text).toContain('Muttersprache')
+        expect(text).toContain('Hören')
+        expect(text).toContain('GermanB2B2B1B1A2')
+        expect(text).toContain('FrenchC1C1C1C1C1')
+        expect(text.indexOf('GermanB2B2B1B1A2')).toBeLessThan(text.indexOf('FrenchC1C1C1C1C1'))
     }, 60_000)
 })
