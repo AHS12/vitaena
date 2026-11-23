@@ -66,7 +66,7 @@
 // Nastaliq's tall letters get taller line boxes, the same for Latin text so lines beside
 // each other stay level, and its joined letters keep the ligatures Latin text goes without.
 #set text(top-edge: 0.85em, bottom-edge: -0.35em, ligatures: true) if cv.design.rtl
-#set par(leading: 0.5em, spacing: gap(0.5), justify: false)
+#set par(leading: 0.62em, spacing: gap(0.55), justify: false)
 // Chinese characters and kana are dense, and read better with more room between lines.
 #set par(leading: 0.85em) if cv.design.cjk
 #set list(marker: [•], indent: 0.3em, body-indent: 0.45em, spacing: gap(0.3))

@@ -104,6 +104,10 @@ Everything else is on the [website](https://vitaena.ahs12.xyz), with pages for
 |---|---|---|---|---|
 | ![Executive](docs/assets/templates/executive.png) | ![Timeline](docs/assets/templates/timeline.png) | ![Minimal](docs/assets/templates/minimal.png) | ![Compact](docs/assets/templates/compact.png) | ![Academic](docs/assets/templates/academic.png) |
 
+| Lebenslauf | European | Harvard |
+|---|---|---|
+| ![Lebenslauf](docs/assets/templates/lebenslauf.png) | ![European](docs/assets/templates/european.png) | ![Harvard](docs/assets/templates/harvard.png) |
+
 ### Biodata
 
 | Heritage | Clean | Portrait |
