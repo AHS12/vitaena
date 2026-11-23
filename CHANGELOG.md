@@ -2,6 +2,55 @@
 
 What's new in each version.
 
+## 0.2.4 (November 23, 2026)
+
+**CVs for the country you're applying in**
+
+- Choose where a CV is for in For, on Home or in Style: the United States, Canada, the UK
+  and Ireland, Australia and New Zealand, Europe (Europass), Germany, Austria and
+  Switzerland, France and southern Europe, the Netherlands and the Nordics, the Gulf, South
+  Asia, or anywhere.
+- Choosing a place sets the paper and how dates are written, and puts the templates that
+  suit it first, each saying so. A new CV also gets the sections CVs there usually have,
+  such as personal details for Germany, or nationality, visa status and driving licence
+  for the Gulf. Undo takes it back, and your photo is never touched.
+- Check tells you what employers there expect, and why: no photo or date of birth in the
+  US, at most two pages in Germany, a European level for each language for Europass. It
+  hides the photo or changes the paper in one click.
+- Write dates as Jan 2020, 01/2020, 01.2020 or 2020, in Style, Dates.
+
+**Three new templates**
+
+- Lebenslauf, for German, Austrian and Swiss employers: every section as a table, with
+  dates in a left column and a passport-style photo top right.
+- European, laid out like a Europass CV, with languages as a grid of the five European
+  skills.
+- Harvard, the plain one-page resume US career offices recommend.
+
+**Place, date and signature**
+
+- End a CV the way German and South Asian CVs end: the place and date, such as
+  "Berlin, 19.11.2026", and a picture of your signature under it, or a line to sign on.
+  Turn it on at the end of Content. Every template has it.
+
+**Language levels from A1 to C2**
+
+- Give your languages European levels, for all five skills at once or one by one, or mark
+  one as your mother tongue. Every template writes them, as "German (B2)".
+
+**Ten more languages**
+
+- Write a CV or biodata in German, French, Spanish, Italian, Portuguese, Dutch, Polish,
+  Turkish, Russian or Ukrainian. Their fonts come with the app, so there's nothing to
+  download.
+- Import reads CVs in these languages too, Europass language grids and a closing place and
+  date among them.
+
+**Fixes**
+
+- Changing the language of a biodata's second labels now changes every label Vitaena
+  wrote, not only the empty ones. Labels you typed stay.
+
 ## 0.2.3 (November 20, 2026)
 
 **Write it in your own language**
